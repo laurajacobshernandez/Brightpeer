@@ -371,9 +371,18 @@ begin
   return res;
 end $$;
 
-revoke execute on function public.generate_payouts(date)  from anon;
-revoke execute on function public.generate_invoices(date) from anon;
-revoke execute on function public.admin_stats()           from anon;
+alter function public.guard_profile() set search_path = public;
+alter function public.guard_expert() set search_path = public;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.admin_stats() from public, anon;
+revoke execute on function public.generate_payouts(date) from public, anon;
+revoke execute on function public.generate_invoices(date) from public, anon;
+revoke execute on function public.review_timesheet(uuid, text) from public, anon;
+revoke execute on function public.expert_contracts() from public, anon;
+revoke execute on function public.company_contracts() from public, anon;
+revoke execute on function public.company_timesheets() from public, anon;
+grant execute on function public.admin_stats(), public.generate_payouts(date), public.generate_invoices(date), public.review_timesheet(uuid, text), public.expert_contracts(), public.company_contracts(), public.company_timesheets(), public.is_admin() to authenticated;
+grant execute on function public.is_admin() to anon;
 
 -- ---------- Storage for CVs ------------------------------------------
 
