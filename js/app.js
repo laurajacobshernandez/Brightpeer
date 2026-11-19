@@ -55,11 +55,11 @@ function fail(e) { console.error(e); toast((e && e.message) || t('error'), true)
 const PILL = {
   pending: 'warn', submitted: 'warn', new: 'warn', open: 'warn', in_progress: 'info', shortlisted: 'info',
   approved: 'ok', accepted: 'ok', active: 'ok', paid: 'ok', done: 'ok',
-  rejected: 'bad', declined: 'bad', ended: 'grey', closed: 'grey',
+  rejected: 'bad', declined: 'bad', ended: 'grey', closed: 'grey', passed: 'ok', failed: 'bad',
 };
 const STATUS_LABEL = {
   pending: 'pending', submitted: 'submitted', new: 'stNew', open: 'open', in_progress: 'stInProgress', approved: 'approved',
-  accepted: 'approved', active: 'active', paid: 'paid', done: 'stDone', rejected: 'rejected', declined: 'stDeclined', ended: 'ended',
+  accepted: 'approved', active: 'active', paid: 'paid', done: 'stDone', rejected: 'rejected', declined: 'stDeclined', ended: 'ended', passed: 'stPassed', failed: 'stFailed',
 };
 const pill = (s) => `<span class="pill pill-${PILL[s] || 'grey'}">${esc(STATUS_LABEL[s] ? t(STATUS_LABEL[s]) : s)}</span>`;
 
@@ -490,6 +490,7 @@ async function expertDashboard() {
     sb.from('timesheets').select('*').eq('expert_id', uid).order('week_start', { ascending: false }),
     sb.from('payouts').select('*').eq('expert_id', uid).order('week_start', { ascending: false }),
   ]);
+  const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
   const e = ex.data || {};
   const contracts = cons.data || [];
   const sheets = ts.data || [];
@@ -523,6 +524,8 @@ async function expertDashboard() {
           <div class="row" style="flex-wrap:nowrap"><input id="refLink" readonly value="${esc(refLink)}"><button class="btn btn-sm" id="copyRef">${t('copy')}</button></div>
         </div>
       </div>
+
+      ${testsCard}
 
       <div class="stack"><div class="row between"><h2 style="font-size:1.6rem">${t('myContracts')}</h2></div>
         ${table([t('roles'), t('pay'), t('status')], contracts.map((c) => [esc(c.title), `${money(c.expert_rate)} ${t('perHour')}`, pill(c.status)]))}
@@ -700,7 +703,7 @@ async function pageAdmin() {
   if (profile?.role !== 'admin') return pageNotFound();
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
-  const TABS = ['overview', 'experts', 'roles', 'requests', 'contracts', 'hoursTab', 'invoices', 'payouts'];
+  const TABS = ['overview', 'experts', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'invoices', 'payouts'];
   const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${t(k)}</button>`).join('')}</div>`;
   const view = await ADMIN[adminTab]();
   return {
@@ -750,6 +753,44 @@ const ADMIN = {
         }; });
         $app.querySelectorAll('[data-ex]').forEach((b) => { b.onclick = async () => {
           const { error: er } = await sb.from('experts').update({ status: b.dataset.st }).eq('id', b.dataset.ex);
+          if (er) return fail(er); render();
+        }; });
+      },
+    };
+  },
+
+  async testsTab() {
+    const { data, error } = await sb.rpc('admin_test_attempts');
+    if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    const list = data || [];
+    if (!list.length) return { html: `<p class="muted">${t('testNone')}</p>` };
+    const mins = (a) => (a.submitted_at ? Math.round((new Date(a.submitted_at) - new Date(a.started_at)) / 60000) + ' min' : '–');
+    return {
+      html: `<div class="stack">${list.map((a) => {
+        const pct = a.mc_max ? Math.round((a.mc_score / a.mc_max) * 100) : null;
+        const ans = a.answers || {};
+        const detail = (a.questions || []).map((q) => {
+          if (q.kind === 'mc') {
+            const given = ans[q.id];
+            const ok = given !== undefined && Number(given) === q.correct;
+            return `<p class="small">${q.pos}. ${ok ? '✓' : '✗'} ${esc(given !== undefined ? (q.options || [])[given] : '—')}${ok ? '' : ` <span class="muted">(${t('testCorrect')}: ${esc((q.options || [])[q.correct])})</span>`}</p>`;
+          }
+          return `<div class="stack" style="gap:4px;margin-top:8px"><p class="small" style="white-space:pre-wrap;font-weight:600">${q.pos}. ${esc(q.prompt)}</p><p class="small" style="white-space:pre-wrap;background:var(--chip);padding:10px;border-radius:10px">${esc(ans[q.id] || '—')}</p></div>`;
+        }).join('');
+        return `<div class="card stack">
+          <div class="row between"><div><h3>${esc(a.full_name || '')} · ${esc(a.title)}</h3><p class="muted small">${esc(a.email || '')} · ${esc(fieldName(a.expert_field))} · ${dateStr(a.submitted_at || a.started_at)} · ${mins(a)}${a.late ? ' · ⚠ ' + t('testLate') : ''}</p></div>${pill(a.status)}</div>
+          ${pct !== null ? `<p><strong>${a.mc_score} / ${a.mc_max}</strong> (${pct} %) ${pct >= a.pass_pct ? '✓' : `<span class="muted">${t('testBelow')} ${a.pass_pct} %</span>`}</p>` : ''}
+          <details><summary class="link">${t('testAnswers')}</summary><div class="stack" style="gap:4px;margin-top:8px">${detail}</div></details>
+          ${a.status !== 'in_progress' ? `<div class="row"><button class="btn btn-sm" data-ta="${a.id}" data-st="passed">${t('testPass')}</button><button class="btn btn-danger btn-sm" data-ta="${a.id}" data-st="failed">${t('testFail')}</button><button class="btn btn-ghost btn-sm" data-ta-reset="${a.id}">${t('testReset')}</button></div>` : ''}
+        </div>`;
+      }).join('')}</div>`,
+      mount() {
+        $app.querySelectorAll('[data-ta]').forEach((b) => { b.onclick = async () => {
+          const { error: er } = await sb.from('test_attempts').update({ status: b.dataset.st }).eq('id', b.dataset.ta);
+          if (er) return fail(er); render();
+        }; });
+        $app.querySelectorAll('[data-ta-reset]').forEach((b) => { b.onclick = async () => {
+          const { error: er } = await sb.from('test_attempts').delete().eq('id', b.dataset.taReset);
           if (er) return fail(er); render();
         }; });
       },
@@ -928,6 +969,131 @@ const ADMIN = {
   },
 };
 
+// ---------------------------------------------------------------- skill tests
+async function skillTestsCard(uid, myField) {
+  const [{ data: tests }, { data: attempts }] = await Promise.all([
+    sb.from('skill_tests').select('id,field,title,intro,minutes').eq('active', true),
+    sb.from('test_attempts').select('test_id,status,submitted_at').eq('expert_id', uid),
+  ]);
+  if (!tests || !tests.length) return '';
+  const byTest = Object.fromEntries((attempts || []).map((a) => [a.test_id, a]));
+  const list = [...tests].sort((a, b) => (b.field === myField) - (a.field === myField) || a.title.localeCompare(b.title));
+  const rows = list.map((x) => {
+    const a = byTest[x.id];
+    let action;
+    if (!a) action = `<a class="btn btn-sm ${x.field === myField ? 'btn-accent' : 'btn-ghost'}" href="#/test/${esc(x.id)}">${t('testStart')}</a>`;
+    else if (a.status === 'in_progress') action = `<a class="btn btn-sm btn-accent" href="#/test/${esc(x.id)}">${t('testContinue')}</a>`;
+    else action = pill(a.status);
+    return `<div class="row between" style="padding:12px 0;border-top:1px solid var(--line)">
+      <div><p style="font-weight:600">${esc(x.title)}${x.field === myField ? ` <span class="pill pill-info">${t('testYourField')}</span>` : ''}</p><p class="muted small">${esc(x.minutes)} min · ${esc(x.intro || '')}</p></div>${action}</div>`;
+  }).join('');
+  return `<div class="card stack" style="gap:4px"><h3>${t('testsH')}</h3><p class="muted small" style="margin-bottom:8px">${t('testsP')}</p>${rows}</div>`;
+}
+
+let testTimer = null;
+async function pageTest(id) {
+  if (testTimer) { clearInterval(testTimer); testTimer = null; }
+  if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
+  if (!session) return needLogin();
+  if (!profile) await loadProfile();
+  if (profile?.role !== 'expert') return pageNotFound();
+
+  const [{ data: tst }, { data: att }] = await Promise.all([
+    sb.from('skill_tests').select('*').eq('id', id).maybeSingle(),
+    sb.from('test_attempts').select('status').eq('expert_id', session.user.id).eq('test_id', id).maybeSingle(),
+  ]);
+  if (!tst) return pageNotFound();
+  const back = `<a href="#/dashboard" style="font-weight:600">← ${t('dashboard')}</a>`;
+  if (att && att.status !== 'in_progress') {
+    return `<section class="wrap section narrow stack-lg">${back}<h1 style="font-size:clamp(2rem,4vw,3rem)">${esc(tst.title)}</h1>
+      <div class="card stack"><h3>${t('testDoneH')}</h3><p class="muted">${t('testDoneP')}</p><div>${pill(att.status)}</div></div></section>`;
+  }
+
+  // intro screen (or straight in when resuming)
+  const intro = `<section class="wrap section narrow stack-lg">${back}
+    <h1 style="font-size:clamp(2rem,4vw,3rem)">${esc(tst.title)}</h1>
+    <div class="card stack"><p>${esc(tst.intro || '')}</p>
+      <ul class="stack" style="gap:6px;margin:0;padding-left:20px">
+        <li>${t('testRule1').replace('{m}', esc(tst.minutes))}</li><li>${t('testRule2')}</li><li>${t('testRule3')}</li><li>${t('testRule4')}</li>
+      </ul>
+      <button class="btn btn-accent" id="startTest" style="align-self:flex-start">${att ? t('testContinue') : t('testStart')}</button>
+    </div></section>`;
+
+  return {
+    html: intro,
+    mount() {
+      document.getElementById('startTest').onclick = async (ev) => {
+        ev.target.disabled = true;
+        const { data, error } = await sb.rpc('start_test', { p_test: id });
+        if (error) { ev.target.disabled = false; return fail(error); }
+        runTest(data);
+      };
+    },
+  };
+}
+
+function runTest(d) {
+  const key = 'bp_test_' + d.attempt_id;
+  let answers = {};
+  try { answers = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { answers = {}; }
+  const save = () => { try { localStorage.setItem(key, JSON.stringify(answers)); } catch (e) { /* ignore */ } };
+  // align with server clock
+  const skew = Date.now() - new Date(d.now).getTime();
+  const deadline = new Date(d.deadline).getTime() + skew;
+  let sent = false;
+
+  const qHtml = (d.questions || []).map((q, i) => {
+    const head = `<p class="muted small">${t('testQuestion')} ${i + 1} / ${d.questions.length}</p><p style="white-space:pre-wrap;font-weight:500">${esc(q.prompt)}</p>`;
+    if (q.kind === 'mc') {
+      return `<fieldset class="card stack" style="border:1px solid var(--line);margin:0">${head}
+        ${(q.options || []).map((o, k) => `<label class="row" style="gap:10px;flex-wrap:nowrap;align-items:flex-start;cursor:pointer">
+          <input type="radio" name="q_${q.id}" value="${k}" ${String(answers[q.id]) === String(k) ? 'checked' : ''} style="width:auto;min-height:0;margin-top:4px">
+          <span style="white-space:pre-wrap">${esc(o)}</span></label>`).join('')}</fieldset>`;
+    }
+    return `<div class="card stack">${head}<textarea data-open="${q.id}" maxlength="6000" style="min-height:180px">${esc(answers[q.id] || '')}</textarea></div>`;
+  }).join('');
+
+  $app.innerHTML = `<section class="wrap section narrow stack-lg">
+    <div class="row between" style="position:sticky;top:64px;z-index:5;background:var(--bg);padding:10px 0">
+      <h1 style="font-size:1.6rem">${esc(d.title)}</h1><span class="pill pill-info" id="timer" style="font-size:1rem">--:--</span></div>
+    <form id="testF" class="stack-lg">${qHtml}
+      <p class="muted small">${t('testRule3')}</p>
+      <button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('testSubmit')}</button>
+    </form></section>`;
+  window.scrollTo(0, 0);
+
+  const f = document.getElementById('testF');
+  f.addEventListener('change', (ev) => {
+    const m = ev.target.name && ev.target.name.match(/^q_(.+)$/);
+    if (m) { answers[m[1]] = Number(ev.target.value); save(); }
+  });
+  f.addEventListener('input', (ev) => {
+    if (ev.target.dataset.open) { answers[ev.target.dataset.open] = ev.target.value; save(); }
+  });
+
+  const submit = async (auto) => {
+    if (sent) return; sent = true; busy(f, true);
+    if (testTimer) { clearInterval(testTimer); testTimer = null; }
+    const { error } = await sb.rpc('submit_test', { p_attempt: d.attempt_id, p_answers: answers });
+    if (error) { sent = false; busy(f, false); return fail(error); }
+    try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
+    toast(auto ? t('testTimeUp') : t('testSent'));
+    go('#/dashboard');
+  };
+  f.onsubmit = (ev) => { ev.preventDefault(); submit(false); };
+
+  const $t = document.getElementById('timer');
+  const tick = () => {
+    if (!document.body.contains($t)) { clearInterval(testTimer); testTimer = null; return; }
+    const left = Math.max(0, deadline - Date.now());
+    const m = Math.floor(left / 60000); const sec = Math.floor((left % 60000) / 1000);
+    $t.textContent = `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    if (left < 120000) $t.className = 'pill pill-bad';
+    if (left <= 0) submit(true);
+  };
+  tick(); testTimer = setInterval(tick, 1000);
+}
+
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 async function render() {
@@ -950,6 +1116,7 @@ async function render() {
       case 'legal': page = pageLegal(parts[1] || 'terms'); break;
       case 'dashboard': page = await pageDashboard(); break;
       case 'admin': page = await pageAdmin(); break;
+      case 'test': page = await pageTest(parts[1]); break;
       default: page = pageNotFound();
     }
   } catch (e) {

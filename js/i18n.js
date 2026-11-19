@@ -4,6 +4,14 @@
 export const LANGS = { en: 'English', de: 'Deutsch', fr: 'Français', it: 'Italiano', es: 'Español' };
 
 const en = {
+  testsTab: 'Tests', testsH: 'Skill tests', testsP: 'Take the short test for your field. It helps us match you faster. You can take each test once.',
+  testStart: 'Start test', testContinue: 'Continue test', testYourField: 'Your field', testQuestion: 'Question',
+  testRule1: 'You have {m} minutes. The timer keeps running if you leave the page.', testRule2: 'You can take this test only once.',
+  testRule3: 'When the time is up, your answers are sent automatically.', testRule4: 'Please answer on your own, without AI tools or help from others.',
+  testSubmit: 'Submit answers', testSent: 'Thank you! Your answers have been sent.', testTimeUp: 'Time is up – your answers have been sent.',
+  testDoneH: 'Test submitted', testDoneP: 'Thank you. We review your answers and let you know by email.',
+  stPassed: 'Passed', stFailed: 'Not passed', testNone: 'No tests taken yet.', testCorrect: 'correct', testLate: 'late',
+  testBelow: 'below', testAnswers: 'Show answers', testPass: 'Passed', testFail: 'Not passed', testReset: 'Allow new attempt',
   // nav
   navRoles: 'Find work', navCompanies: 'For companies', navResearch: 'Research', navAbout: 'Company', navHelp: 'Help',
   login: 'Log in', logout: 'Log out', dashboard: 'Dashboard', admin: 'Admin', applyNow: 'Apply as expert', hire: 'Hire experts',
@@ -81,6 +89,14 @@ const en = {
 };
 
 const de = {
+  testsTab: 'Tests', testsH: 'Fachtests', testsP: 'Mach den kurzen Test für dein Fachgebiet. So können wir dich schneller vermitteln. Jeder Test geht nur einmal.',
+  testStart: 'Test starten', testContinue: 'Test fortsetzen', testYourField: 'Dein Fachgebiet', testQuestion: 'Frage',
+  testRule1: 'Du hast {m} Minuten. Die Zeit läuft weiter, auch wenn du die Seite verlässt.', testRule2: 'Du kannst diesen Test nur einmal machen.',
+  testRule3: 'Wenn die Zeit abgelaufen ist, werden deine Antworten automatisch gesendet.', testRule4: 'Bitte antworte selbst, ohne KI-Tools und ohne Hilfe von anderen.',
+  testSubmit: 'Antworten senden', testSent: 'Danke! Deine Antworten wurden gesendet.', testTimeUp: 'Die Zeit ist abgelaufen – deine Antworten wurden gesendet.',
+  testDoneH: 'Test abgegeben', testDoneP: 'Danke. Wir prüfen deine Antworten und melden uns per E-Mail.',
+  stPassed: 'Bestanden', stFailed: 'Nicht bestanden', testNone: 'Noch keine Tests gemacht.', testCorrect: 'richtig', testLate: 'zu spät',
+  testBelow: 'unter', testAnswers: 'Antworten anzeigen', testPass: 'Bestanden', testFail: 'Nicht bestanden', testReset: 'Neuen Versuch erlauben',
   navRoles: 'Jobs finden', navCompanies: 'Für Firmen', navResearch: 'Research', navAbout: 'Über uns', navHelp: 'Hilfe',
   login: 'Anmelden', logout: 'Abmelden', dashboard: 'Dashboard', admin: 'Admin', applyNow: 'Als Expert:in bewerben', hire: 'Fachleute finden',
   language: 'Sprache',
