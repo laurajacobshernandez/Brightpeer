@@ -13,6 +13,7 @@ Static website (no build step) on **GitHub Pages** + **Supabase** (login, databa
 2. Den ganzen Inhalt von [`supabase/schema.sql`](supabase/schema.sql) hineinkopieren → **Run**.
    Danach gibt es alle Tabellen, Sicherheitsregeln, den Speicher für Lebensläufe und 7 Beispiel-Stellen.
 3. Danach dasselbe mit [`supabase/tests.sql`](supabase/tests.sql) (Fachtests für Software, Medizin, Recht und Übersetzung DE).
+4. Danach dasselbe mit [`supabase/privacy.sql`](supabase/privacy.sql) (verschlüsselte Bankdaten, automatische Löschung nach 24 Monaten).
 
 ### 2. Supabase mit der Website verbinden
 1. Supabase → **Project Settings → API**: *Project URL* und *anon public key* kopieren.

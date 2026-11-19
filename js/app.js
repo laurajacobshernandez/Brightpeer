@@ -557,6 +557,7 @@ async function expertDashboard() {
     sb.from('payouts').select('*').eq('expert_id', uid).order('week_start', { ascending: false }),
   ]);
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
+  const { data: myPayout } = await sb.rpc('my_payout_details');
   const e = ex.data || {};
   const contracts = cons.data || [];
   const sheets = ts.data || [];
@@ -623,7 +624,8 @@ async function expertDashboard() {
       <div class="grid">
         <form id="payoutF" class="card stack"><h3>${t('payoutSettings')}</h3>
           <label class="f">${t('payoutMethod')}<select name="payout_method"><option value="bank" ${e.payout_method === 'bank' ? 'selected' : ''}>${t('bank')}</option><option value="paypal" ${e.payout_method === 'paypal' ? 'selected' : ''}>${t('paypal')}</option></select></label>
-          <label class="f">${t('payoutDetails')}<textarea name="payout_details" style="min-height:80px">${esc(e.payout_details || '')}</textarea></label>
+          <label class="f">${t('payoutDetails')}<textarea name="payout_details" style="min-height:80px">${esc(myPayout || '')}</textarea></label>
+          <p class="muted small">🔒 ${t('payoutEncrypted')}</p>
           <button class="btn" type="submit" style="align-self:flex-start">${t('save')}</button>
         </form>
         <form id="profileF" class="card stack"><h3>${t('profileH')}</h3>
@@ -769,6 +771,7 @@ async function pageAdmin() {
   if (profile?.role !== 'admin') return pageNotFound();
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
+  await deleteQueuedFiles();
   const TABS = ['overview', 'experts', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'invoices', 'payouts'];
   const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${t(k)}</button>`).join('')}</div>`;
   const view = await ADMIN[adminTab]();
@@ -779,6 +782,17 @@ async function pageAdmin() {
       view.mount && view.mount();
     },
   };
+}
+
+// CVs of accounts deleted after 24 months (queued by the daily cleanup job)
+async function deleteQueuedFiles() {
+  try {
+    const { data } = await sb.from('file_deletions').select('path,bucket').limit(100);
+    if (!data || !data.length) return;
+    const paths = data.filter((f) => f.bucket === 'cvs').map((f) => f.path);
+    const { error } = await sb.storage.from('cvs').remove(paths);
+    if (!error) await sb.from('file_deletions').delete().in('path', paths);
+  } catch (e) { console.error(e); }
 }
 
 const ADMIN = {
@@ -800,8 +814,9 @@ const ADMIN = {
     const filter = parseHash().query.get('st') || 'pending';
     let qy = sb.from('experts').select('*, profiles(full_name,email,country)').order('created_at', { ascending: false });
     if (filter !== 'all') qy = qy.eq('status', filter);
-    const { data, error } = await qy;
+    const [{ data, error }, { data: pd }] = await Promise.all([qy, sb.rpc('admin_payout_details')]);
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    const payoutOf = Object.fromEntries((pd || []).map((x) => [x.id, x.details]));
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
       html: `<div class="stack"><div class="row">${filt}</div>${table(['Name', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
@@ -809,7 +824,7 @@ const ADMIN = {
         `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || ''), esc(fieldName(e.field)), esc(e.years_experience ?? ''),
         e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
         e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', esc(e.referred_by || ''),
-        `<span class="small">${esc(e.payout_method || '')} ${esc(e.payout_details || '')}</span>`, pill(e.status),
+        `<span class="small">${esc(e.payout_method || '')} ${esc(payoutOf[e.id] || '')}</span>`, pill(e.status),
         `<div class="row"><button class="btn btn-sm" data-ex="${e.id}" data-st="approved">${t('approve')}</button><button class="btn btn-danger btn-sm" data-ex="${e.id}" data-st="rejected">${t('reject')}</button></div>`,
       ]))}</div>`,
       mount() {
@@ -1009,7 +1024,11 @@ const ADMIN = {
   },
 
   async payouts() {
-    const { data, error } = await sb.from('payouts').select('*, experts(payout_method, payout_details, profiles(full_name,email))').order('week_start', { ascending: false });
+    const [{ data, error }, { data: pd }] = await Promise.all([
+      sb.from('payouts').select('*, experts(payout_method, profiles(full_name,email))').order('week_start', { ascending: false }),
+      sb.rpc('admin_payout_details'),
+    ]);
+    const payoutOf = Object.fromEntries((pd || []).map((x) => [x.id, x.details]));
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
     const open = (data || []).filter((p) => p.status === 'pending').reduce((a, p) => a + Number(p.amount), 0);
     return {
@@ -1018,7 +1037,7 @@ const ADMIN = {
         <p class="muted">Open payouts: <b>${money(open)}</b> – pay them via Wise or PayPal, then click “Mark paid”.</p>
         ${table(['Expert', t('weekStart'), t('hoursWorked'), t('amount'), t('payoutMethod'), t('payoutDetails'), t('status'), ''], (data || []).map((p) => [
           `${esc(p.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(p.experts?.profiles?.email || '')}</span>`, dateStr(p.week_start), esc(p.hours), money(p.amount),
-          esc(p.experts?.payout_method || '–'), `<span class="small">${esc(p.experts?.payout_details || '–')}</span>`, pill(p.status),
+          esc(p.experts?.payout_method || '–'), `<span class="small">${esc(payoutOf[p.expert_id] || '–')}</span>`, pill(p.status),
           p.status === 'pending' ? `<button class="btn btn-sm" data-paidpay="${p.id}">Mark paid</button>` : dateStr(p.paid_at),
         ]))}
       </div>`,
