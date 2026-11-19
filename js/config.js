@@ -5,7 +5,7 @@
 // 2) Fill in your company details for invoices and the imprint.
 
 export const CONFIG = {
-  SUPABASE_URL: 'YOUR_SUPABASE_URL',
+  SUPABASE_URL: 'https://wlslnfgfbcanfwlbxaap.supabase.co',
   SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
 
   // Shown to companies on invoices ("Pay by bank transfer")
