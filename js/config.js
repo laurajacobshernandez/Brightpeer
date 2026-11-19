@@ -10,7 +10,7 @@ export const CONFIG = {
 
   // Shown to companies on invoices ("Pay by bank transfer")
   BANK: {
-    holder: '[COMPANY NAME]',
+    holder: 'Laura Hernandez',
     iban: '[IBAN]',
     bic: '[BIC/SWIFT]',
     bank: '[BANK NAME]',
@@ -18,10 +18,10 @@ export const CONFIG = {
 
   // Shown in the imprint and legal pages
   COMPANY: {
-    name: '[COMPANY NAME]',
-    address: '[STREET, ZIP CITY, SWITZERLAND]',
+    name: 'Brightpeer, owner Laura Hernandez',
+    address: 'Elfenaustrasse 7, 2503 Biel, Switzerland',
     email: 'hello@brightpeer.com',
-    uid: '[UID / CHE-XXX.XXX.XXX]',
+    uid: '', // optional: CHE-XXX.XXX.XXX (leave empty if you have none),
   },
 
   // Show "Continue with Google" (enable Google in Supabase → Authentication → Providers first)

@@ -444,7 +444,7 @@ function pageLegal(which) {
     body = `<h1 style="font-size:2.5rem">${t('imprint')}</h1>
       <p><b>${esc(C.name)}</b><br>${esc(C.address)}</p>
       <p>Email: <a href="mailto:${esc(C.email)}">${esc(C.email)}</a></p>
-      <p>Company ID (UID): ${esc(C.uid)}</p>
+      ${C.uid ? `<p>Company ID (UID): ${esc(C.uid)}</p>` : ''}
       <p>Brightpeer is a brand of ${esc(C.name)}.</p>`;
   } else if (which === 'privacy') {
     body = `<h1 style="font-size:2.5rem">${t('privacy')}</h1>${note}
