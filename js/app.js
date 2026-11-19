@@ -128,7 +128,7 @@ function renderFooter() {
     <div class="footer-links">
       <a href="#/roles">${t('navRoles')}</a><a href="#/companies">${t('navCompanies')}</a><a href="#/research">${t('navResearch')}</a>
       <a href="#/about">${t('navAbout')}</a><a href="#/help">${t('navHelp')}</a>
-      <a href="#/legal/terms">${t('terms')}</a><a href="#/legal/privacy">${t('privacy')}</a><a href="#/legal/imprint">${t('imprint')}</a>
+      <a href="#/legal/terms">${t('terms')}</a><a href="#/legal/client">${t('clientTerms')}</a><a href="#/legal/privacy">${t('privacy')}</a><a href="#/legal/cookies">${t('cookies')}</a><a href="#/legal/imprint">${t('imprint')}</a>
     </div>
     <p class="muted small" style="width:100%">© ${new Date().getFullYear()} Brightpeer. ${t('rights')}</p>
   </div>`;
@@ -273,7 +273,7 @@ function authForm(kind) {
       <label class="f">${t('password')} *<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
     </div>
     ${kind === 'company' ? companyFields : expertFields}
-    <label class="check"><input type="checkbox" required> <span>${t('agree')} <a href="#/legal/terms">${t('terms')}</a> · <a href="#/legal/privacy">${t('privacy')}</a></span></label>
+    <label class="check"><input type="checkbox" required> <span>${t('agree')} <a href="#/legal/${kind === 'company' ? 'client' : 'terms'}">${t('terms')}</a> · <a href="#/legal/privacy">${t('privacy')}</a></span></label>
     <div id="signupMsg"></div>
     <button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('createAccount')}</button>
     <p class="small muted">${t('haveAccount')} <a href="#/login">${t('login')}</a></p>
@@ -436,38 +436,104 @@ function pageHelp() {
 
 function pageLegal(which) {
   const C = CONFIG.COMPANY;
-  const company = `${esc(C.name)}, ${esc(C.address)}`;
-  const tabs = `<div class="row"><a class="btn btn-sm ${which === 'terms' ? '' : 'btn-ghost'}" href="#/legal/terms">${t('terms')}</a><a class="btn btn-sm ${which === 'privacy' ? '' : 'btn-ghost'}" href="#/legal/privacy">${t('privacy')}</a><a class="btn btn-sm ${which === 'imprint' ? '' : 'btn-ghost'}" href="#/legal/imprint">${t('imprint')}</a></div>`;
-  const note = `<p class="form-msg err small">Template – please have this text reviewed by a lawyer before launch.</p>`;
+  const who = `Brightpeer is a sole proprietorship based at ${esc(C.address)}`;
+  const mail = `<a href="mailto:${esc(C.email)}">${esc(C.email)}</a>`;
+  const updated = '<p class="muted small">Last updated: 19 November 2026</p>';
+  const PAGES = ['terms', 'client', 'privacy', 'imprint', 'cookies'];
+  if (!PAGES.includes(which)) which = 'terms';
+  const label = { terms: t('terms'), client: t('clientTerms'), privacy: t('privacy'), imprint: t('imprint'), cookies: t('cookies') };
+  const tabs = `<div class="row">${PAGES.map((k) => `<a class="btn btn-sm ${which === k ? '' : 'btn-ghost'}" href="#/legal/${k}">${label[k]}</a>`).join('')}</div>`;
+  const ol = (items) => `<ol>${items.map((i) => `<li>${i}</li>`).join('')}</ol>`;
+  const tbl = (head, rows) => `<div class="table-wrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const law = 'These Terms are governed by Swiss law, excluding conflict-of-law rules and the UN Convention on the International Sale of Goods. The courts of Biel/Bienne, Switzerland, have exclusive jurisdiction';
   let body = '';
-  if (which === 'imprint') {
-    body = `<h1 style="font-size:2.5rem">${t('imprint')}</h1>
-      <p><b>${esc(C.name)}</b><br>${esc(C.address)}</p>
-      <p>Email: <a href="mailto:${esc(C.email)}">${esc(C.email)}</a></p>
-      ${C.uid ? `<p>Company ID (UID): ${esc(C.uid)}</p>` : ''}
-      <p>Brightpeer is a brand of ${esc(C.name)}.</p>`;
+
+  if (which === 'terms') {
+    body = `<h1 style="font-size:2.5rem">Expert Terms of Service</h1>${updated}
+      <p>These Expert Terms ("Terms") govern your use of Brightpeer as an expert. ${who}, Switzerland ("Brightpeer", "we", "us"). By creating an account or applying for a project, you accept these Terms.</p>
+      <h2>1. What Brightpeer does</h2><p>Brightpeer connects qualified professionals ("Experts") with companies that need expert work, such as AI training, evaluation, research or advisory tasks ("Clients"). Clients contract with Brightpeer. Brightpeer engages Experts for specific projects and pays them directly.</p>
+      <h2>2. Eligibility</h2>${ol([
+        'You must be at least 18 years old and legally able to enter into contracts.',
+        'You may only hold one account. All information you provide (identity, education, licences, experience) must be true and current.',
+        'We may verify your identity, qualifications and references, and may decline or remove any application at our discretion.',
+        'You are responsible for complying with the laws of your country, including any rules on working for foreign businesses.'])}
+      <h2>3. Independent contractor status</h2><p>You work as an independent contractor, not as an employee, agent or partner of Brightpeer or any Client. You decide when and how much you work, use your own equipment, and may work for others. You are not entitled to employee benefits, holidays or insurance from Brightpeer. You are solely responsible for your own taxes, social security contributions and any business registration required where you live.</p>
+      <h2>4. Projects</h2>${ol([
+        'Each project shows its tasks, hourly rate, expected hours and any special rules. Accepting a project creates a separate project agreement on these Terms.',
+        'You must complete work yourself, personally, and not use other people or subcontractors.',
+        'You may only use AI tools for a task where the project rules expressly allow it.',
+        'We or the Client may end your participation in a project at any time. You are paid for approved work completed up to that point.'])}
+      <h2>5. Hours, pay and payouts</h2>${ol([
+        'You log your hours accurately in the Brightpeer dashboard. Logging time you did not work is fraud and leads to removal and non-payment.',
+        'Hours are reviewed and approved weekly. Approved hours are paid weekly by bank transfer or PayPal, in USD unless stated otherwise.',
+        'Brightpeer charges Experts no sign-up, platform or payout fees. Your bank or PayPal may charge their own fees or currency conversion costs.',
+        'We may withhold payment for work that does not meet the project\'s quality rules, breaches these Terms or is under investigation for fraud. We will tell you why.',
+        'You must keep your payout details correct. We are not responsible for payments sent to details you provided.'])}
+      <h2>6. Referral bonus</h2><p>If a person you refer is accepted and completes their first 10 paid hours, both of you receive a referral bonus of USD 100. Self-referrals, fake accounts or spam lead to cancellation of all bonuses.</p>
+      <h2>7. Confidentiality</h2><p>All project materials, Client names, data, prompts, guidelines and outputs are confidential. You may not share, copy, publish or use them outside the project, during or after it, unless the Client or Brightpeer agrees in writing. You must delete confidential material when a project ends, if asked.</p>
+      <h2>8. Intellectual property</h2><p>Everything you create for a project ("Work Product") is transferred to Brightpeer or the Client, as specified, in full and worldwide, as soon as it is created. To the extent a transfer is not possible by law, you grant an exclusive, perpetual, irrevocable, royalty-free licence. You confirm the Work Product is your own and does not infringe anyone's rights.</p>
+      <h2>9. Conduct</h2><p>You agree not to: use another person's identity; share your account; contact Clients to work with them outside Brightpeer for 12 months after a project you met them through; harass anyone; or attempt to manipulate tests, reviews or the platform.</p>
+      <h2>10. Suspension and termination</h2><p>You may close your account at any time. We may suspend or close your account for breach of these Terms, fraud, poor quality or legal reasons. Approved, unpaid hours are paid out unless withheld under section 5.4. Sections 3, 7, 8 and 11–13 survive termination.</p>
+      <h2>11. Liability</h2><p>Brightpeer is provided "as is". To the extent permitted by law, we are not liable for indirect or consequential damages, lost earnings from projects not offered, or the availability of work. Our total liability is limited to the amount paid to you in the 3 months before the claim. Nothing limits liability for intent or gross negligence.</p>
+      <h2>12. Changes</h2><p>We may update these Terms. We will notify you by email or in the dashboard at least 14 days before material changes take effect. Continuing to use Brightpeer after that means you accept them.</p>
+      <h2>13. Governing law and jurisdiction</h2><p>${law}, unless mandatory law where you live provides otherwise.</p>
+      <p>Contact: ${mail}</p>`;
+  } else if (which === 'client') {
+    body = `<h1 style="font-size:2.5rem">Client Terms of Service</h1>${updated}
+      <p>These Client Terms govern the services Brightpeer provides to businesses ("Client"). ${who}, Switzerland. They apply to every order, statement of work or request the Client submits.</p>
+      <h2>1. Services</h2><p>Brightpeer recruits, vets and manages independent experts ("Experts") to perform the work the Client describes in a request ("Project"). Brightpeer is the Client's sole contracting party. Experts are engaged by Brightpeer, not by the Client.</p>
+      <h2>2. Requests and Statements of Work</h2>${ol([
+        'The Client describes each Project: scope, required skills, expected hours, deadlines, quality criteria and confidentiality rules.',
+        'Brightpeer confirms the Project with a quote or statement of work ("SOW") stating rates and estimated volume. A Project starts once both sides accept the SOW.',
+        'Brightpeer selects the Experts. The Client may ask for an Expert to be replaced; Brightpeer will do so within a reasonable time.'])}
+      <h2>3. Fees and payment</h2>${ol([
+        'Fees are charged per approved Expert hour at the rates in the SOW, unless a fixed price is agreed.',
+        'Brightpeer invoices weekly or monthly, as stated in the SOW. Invoices are due within 14 days, in USD unless agreed otherwise, by bank transfer or another method Brightpeer offers.',
+        'Brightpeer may require a deposit or prepayment for new Clients.',
+        'Late payments bear interest of 5% per year and Brightpeer may pause the Project until payment.',
+        'Prices exclude VAT and other taxes, which are added where applicable.'])}
+      <h2>4. Timesheets and disputes</h2><p>The Client can see logged hours in the Brightpeer dashboard. Objections to hours or quality must be raised in writing within 7 days of the invoice date, with reasons. Otherwise the invoice counts as accepted.</p>
+      <h2>5. Non-solicitation</h2><p>During a Project and for 12 months after it, the Client may not hire or contract directly any Expert introduced by Brightpeer, except through Brightpeer. If it does, the Client pays a placement fee of 25% of that Expert's first-year compensation, or USD 10,000, whichever is higher.</p>
+      <h2>6. Confidentiality and data</h2><p>Both parties keep the other's confidential information secret and use it only for the Project. Experts are bound by equivalent confidentiality obligations. If Experts process personal data on the Client's behalf, the parties will sign a data processing agreement.</p>
+      <h2>7. Intellectual property</h2><p>Upon full payment, all rights in the work Experts create for the Client's Project pass to the Client. Brightpeer keeps its own tools, methods and know-how.</p>
+      <h2>8. Quality</h2><p>Brightpeer performs the services with due care using qualified Experts. If work does not meet the agreed criteria, Brightpeer will correct or replace it within a reasonable time at no extra cost. This is the Client's primary remedy.</p>
+      <h2>9. Liability</h2><p>To the extent permitted by law, Brightpeer is not liable for indirect or consequential loss, lost profit or lost data. Brightpeer's total liability per Project is limited to the fees paid for that Project in the 3 months before the claim. Nothing limits liability for intent or gross negligence.</p>
+      <h2>10. Term and termination</h2><p>Either party may end a Project with 7 days' written notice. The Client pays for all approved hours worked until the end. Either party may terminate immediately for material breach that is not fixed within 7 days of notice.</p>
+      <h2>11. Governing law and jurisdiction</h2><p>${law}.</p>
+      <p>Contact: ${mail}</p>`;
   } else if (which === 'privacy') {
-    body = `<h1 style="font-size:2.5rem">${t('privacy')}</h1>${note}
-      <p>This privacy policy explains how ${company} ("Brightpeer", "we") processes personal data. We comply with the Swiss Federal Act on Data Protection (FADP/DSG) and, where applicable, the EU General Data Protection Regulation (GDPR).</p>
-      <h2>1. Controller</h2><p>${company}, ${esc(C.email)}</p>
-      <h2>2. Data we process</h2><ul><li>Account data: name, email, country, password (stored encrypted).</li><li>Profile data: field, experience, CV, LinkedIn, expected rate.</li><li>Work data: applications, contracts, hours, invoices, payouts.</li><li>Payout data: IBAN or PayPal email.</li><li>Technical data needed to run the website (e.g. log data from our hosting providers).</li></ul>
-      <h2>3. Purposes</h2><p>To review applications, match experts with projects, record hours, invoice companies and pay experts, and to communicate with you.</p>
-      <h2>4. Legal basis</h2><p>Performance of a contract, our legitimate interests and, where required, your consent.</p>
-      <h2>5. Service providers</h2><p>We use Supabase (database, login, file storage; EU region) and GitHub Pages (website hosting). Data may be processed in countries outside Switzerland/EU with adequate safeguards (e.g. standard contractual clauses).</p>
-      <h2>6. Sharing with companies</h2><p>Companies only see your first name, field and the hours you log on their project.</p>
-      <h2>7. Retention</h2><p>We keep your data as long as your account exists and as required by law (e.g. 10 years for accounting records).</p>
-      <h2>8. Your rights</h2><p>You can request access, correction, deletion, restriction or a copy of your data, and object to processing. Contact ${esc(C.email)}. You may also complain to the Swiss FDPIC or your local data protection authority.</p>
-      <h2>9. Cookies</h2><p>We only use technically necessary storage (to keep you logged in and remember your language). No tracking cookies.</p>`;
+    body = `<h1 style="font-size:2.5rem">Privacy Policy</h1>${updated}
+      <p>This policy explains how Brightpeer collects and uses personal data. It complies with the Swiss Federal Act on Data Protection (nFADP) and, where applicable, the EU/UK General Data Protection Regulation (GDPR).</p>
+      <h2>1. Controller</h2><p>Brightpeer, ${esc(C.address)}. Privacy questions: ${mail}.</p>
+      <h2>2. Data we collect</h2>${tbl(['Category', 'Examples', 'Why', 'Legal basis (GDPR)'], [
+        ['Account', 'Name, email, password (encrypted), country, language', 'Create and secure your account', 'Contract'],
+        ['Profile and application', 'CV, education, licences, work history, skills, test results, LinkedIn link', 'Assess and match Experts to projects', 'Contract, legitimate interest'],
+        ['Identity checks', 'ID document, selfie for verification (if requested)', 'Prevent fraud, confirm identity', 'Legal obligation, legitimate interest'],
+        ['Work data', 'Logged hours, task outputs, quality reviews', 'Run projects, pay Experts, invoice Clients', 'Contract'],
+        ['Payment', 'Bank or PayPal details, invoices, tax information', 'Pay Experts, bill Clients', 'Contract, legal obligation'],
+        ['Client contacts', 'Name, company, role, email', 'Manage Client relationships', 'Contract, legitimate interest'],
+        ['Usage', 'IP address, device, browser (server logs of our hosting providers)', 'Security, running the site', 'Legitimate interest'],
+        ['Communication', 'Emails, support messages', 'Answer requests', 'Contract, legitimate interest']])}
+      <h2>3. Sharing</h2><p>We do not sell personal data. We share it only:</p><ul>
+        <li>with Clients, limited to what they need for their project (first name, field, logged hours and work outputs);</li>
+        <li>with service providers who process data for us: database, login and file storage (Supabase, EU region), website hosting (GitHub Pages), payments (banks, PayPal and other payment providers) and email delivery;</li>
+        <li>with authorities where required by law.</li></ul>
+      <h2>4. International transfers</h2><p>Brightpeer works worldwide, so data may be processed outside Switzerland and the EU, including in the USA. Where a country does not offer adequate protection, we use safeguards such as the EU Standard Contractual Clauses or the Swiss-US Data Privacy Framework.</p>
+      <h2>5. Retention</h2><p>We keep account data while your account is open. Rejected applications are deleted after 24 months. Payment and accounting records are kept for 10 years as required by Swiss law. Other data is deleted when no longer needed.</p>
+      <h2>6. Your rights</h2><p>You can request access to, correction or deletion of your data, restriction of or objection to processing, and a copy of your data in a portable format. You can withdraw consent at any time. Write to ${mail}. You may also complain to the Swiss Federal Data Protection and Information Commissioner (FDPIC) or your local data protection authority.</p>
+      <h2>7. Security</h2><p>We use encryption in transit, access controls and row-level database security. No system is completely secure; we will inform you of any breach as required by law.</p>
+      <h2>8. Automated decisions</h2><p>Multiple-choice test answers are scored automatically. Final decisions about accepting Experts are always made by a person. You can ask for a human review of any decision.</p>
+      <h2>9. Children</h2><p>Brightpeer is not for anyone under 18. We do not knowingly collect their data.</p>
+      <h2>10. Changes</h2><p>We may update this policy and will post the new date at the top. Material changes are announced by email.</p>`;
+  } else if (which === 'imprint') {
+    body = `<h1 style="font-size:2.5rem">Legal Notice (Imprint)</h1>
+      <p>Brightpeer is operated by:</p>
+      <p><b>Brightpeer</b>, sole proprietorship of Laura Hernandez<br>${esc(C.address)}<br>Email: ${mail}${C.uid ? `<br>VAT/UID: ${esc(C.uid)}` : ''}</p>
+      <p>Despite careful checks, we accept no liability for the content of external links. Their operators are responsible for them.</p>`;
   } else {
-    body = `<h1 style="font-size:2.5rem">${t('terms')}</h1>${note}
-      <p>These terms apply to the use of Brightpeer, operated by ${company}.</p>
-      <h2>1. Service</h2><p>Brightpeer connects independent experts with companies. Brightpeer contracts with companies, selects experts for projects, and pays experts for approved hours.</p>
-      <h2>2. Experts</h2><ul><li>Experts work as independent contractors, not employees. They are responsible for their own taxes and social security.</li><li>Signing up is free. Information in the profile must be true.</li><li>Hours must be logged honestly. Approved hours are paid weekly, without fees from Brightpeer.</li><li>Confidential information from projects must not be shared.</li></ul>
-      <h2>3. Companies</h2><ul><li>Companies pay the agreed rate per approved expert hour. Invoices are due within 14 days.</li><li>Companies may not hire experts introduced by Brightpeer directly within 12 months without written agreement.</li></ul>
-      <h2>4. Referral bonus</h2><p>When a referred expert completes their first 10 paid hours, both the referrer and the referred expert receive $100. Abuse leads to exclusion.</p>
-      <h2>5. Liability</h2><p>Brightpeer is liable only for intent and gross negligence, as far as permitted by law.</p>
-      <h2>6. Termination</h2><p>Either party can close their account at any time. Hours already approved will still be paid.</p>
-      <h2>7. Law and jurisdiction</h2><p>Swiss law applies. Place of jurisdiction is the registered office of ${esc(C.name)}.</p>`;
+    body = `<h1 style="font-size:2.5rem">Cookie Notice</h1>
+      <p>We only use technically necessary storage in your browser: to keep you logged in, keep the site secure and remember your language. These need no consent. We do not use analytics or advertising cookies.</p>
+      ${tbl(['Type', 'Purpose', 'Duration'], [['Necessary', 'Login session, security, language choice', 'Session to 12 months']])}`;
   }
   return `<section class="wrap section prose">${tabs}${body}</section>`;
 }

@@ -84,7 +84,7 @@ const en = {
   overview: 'Overview', experts: 'Experts', roles: 'Roles', requests: 'Requests', contracts: 'Contracts', hoursTab: 'Hours', invoices: 'Invoices', payouts: 'Payouts',
   // misc
   loading: 'Loading…', error: 'Something went wrong', notConfigured: 'Setup needed: connect Supabase in js/config.js to enable accounts. Until then, the site shows example content.',
-  footerTag: 'Expert work, made simple.', terms: 'Terms', privacy: 'Privacy', imprint: 'Imprint', rights: 'All rights reserved.',
+  footerTag: 'Expert work, made simple.', terms: 'Terms', clientTerms: 'Client terms', cookies: 'Cookies', privacy: 'Privacy', imprint: 'Imprint', rights: 'All rights reserved.',
   notFound: 'Page not found.', home: 'Home', required: 'Please fill in all required fields.',
 };
 
@@ -158,7 +158,7 @@ const de = {
   stNew: 'Neu', stInProgress: 'In Arbeit', stDone: 'Erledigt', stDeclined: 'Abgelehnt',
   overview: 'Übersicht', experts: 'Fachleute', roles: 'Stellen', requests: 'Anfragen', contracts: 'Verträge', hoursTab: 'Stunden', invoices: 'Rechnungen', payouts: 'Auszahlungen',
   loading: 'Lädt…', error: 'Etwas ist schiefgelaufen', notConfigured: 'Einrichtung nötig: Supabase in js/config.js eintragen, damit Konten funktionieren. Bis dahin zeigt die Seite Beispielinhalte.',
-  footerTag: 'Expertenarbeit, ganz einfach.', terms: 'AGB', privacy: 'Datenschutz', imprint: 'Impressum', rights: 'Alle Rechte vorbehalten.',
+  footerTag: 'Expertenarbeit, ganz einfach.', terms: 'AGB', clientTerms: 'AGB für Firmen', cookies: 'Cookies', privacy: 'Datenschutz', imprint: 'Impressum', rights: 'Alle Rechte vorbehalten.',
   notFound: 'Seite nicht gefunden.', home: 'Startseite', required: 'Bitte alle Pflichtfelder ausfüllen.',
 };
 
