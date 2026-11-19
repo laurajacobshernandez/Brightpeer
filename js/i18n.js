@@ -1,0 +1,256 @@
+// Brightpeer – translations. Language is picked automatically from the browser,
+// can be changed in the header, and falls back to English for any missing text.
+
+export const LANGS = { en: 'English', de: 'Deutsch', fr: 'Français', it: 'Italiano', es: 'Español' };
+
+const en = {
+  // nav
+  navRoles: 'Find work', navCompanies: 'For companies', navResearch: 'Research', navAbout: 'Company', navHelp: 'Help',
+  login: 'Log in', logout: 'Log out', dashboard: 'Dashboard', admin: 'Admin', applyNow: 'Apply as expert', hire: 'Hire experts',
+  language: 'Language',
+  // home
+  badge: 'Remote work for experts, worldwide',
+  h1: 'Get paid for your expertise.',
+  sub: 'Brightpeer connects doctors, lawyers, engineers, scientists and other professionals with companies that need expert knowledge – flexible, remote and paid weekly.',
+  s1: 'Hourly pay, depending on field', s2: 'To sign up – always free', s3v: 'Weekly', s3: 'Payouts with no fees (bank or PayPal)',
+  howExpertsH: 'How it works for experts',
+  he1h: 'Apply in 10 minutes', he1p: 'Create your profile, upload your CV and tell us about your expertise.',
+  he2h: 'Get matched', he2p: 'We review your profile and match you with paid projects that fit your field.',
+  he3h: 'Work remotely, get paid weekly', he3p: 'Log your hours. We pay you every week – no fees, by bank or PayPal.',
+  howCompaniesH: 'How it works for companies',
+  hc1h: 'Tell us what you need', hc1p: 'Describe the expertise, the hours and your budget.',
+  hc2h: 'We pick the experts', hc2p: 'We select vetted professionals and handle contracts and payments.',
+  hc3h: 'Pay one simple invoice', hc3p: 'You approve the hours and receive one invoice per week.',
+  featuredH: 'Open roles', featuredSub: 'Remote, flexible, paid by the hour.', allRoles: 'See all roles',
+  payH: 'What experts earn', payNote: 'Typical hourly pay. The exact rate is shown on each role.',
+  referralH: 'Invite a colleague – you both get $100',
+  referralP: 'Share your personal link. When your colleague completes their first 10 paid hours, you both receive a $100 bonus.',
+  ctaH: 'Ready to put your knowledge to work?', ctaP: 'Signing up is free and takes about 10 minutes.',
+  // fields
+  fMedicine: 'Medicine', fLaw: 'Law', fSoftware: 'Software', fSTEM: 'Chemistry & Math', fPharmacy: 'Pharmacy', fAccounting: 'Accounting', fTranslation: 'Translation (DE)', fOther: 'Other',
+  // roles
+  rolesH: 'Open roles', rolesSub: 'Find paid, remote projects in your field.', search: 'Search roles…', allFields: 'All fields',
+  perHour: '/ h', remote: 'Remote', apply: 'Apply', viewRole: 'View role', noRoles: 'No open roles match your search right now.',
+  aboutRole: 'About the role', requirements: 'Requirements', pay: 'Pay', hours: 'Hours', back: '← Back',
+  applied: 'You applied for this role.', applyNote: 'Short note (optional)', sendApplication: 'Send application',
+  loginToApply: 'Create a free account to apply.', mustBeExpert: 'Only expert accounts can apply for roles.',
+  // apply
+  applyH: 'Apply as an expert', applySub: 'Free, takes about 10 minutes. We review every profile personally.',
+  stepAccount: 'Your account', stepProfile: 'Your expertise',
+  email: 'Email', password: 'Password (min. 8 characters)', fullName: 'Full name', country: 'Country',
+  field: 'Field', years: 'Years of experience', linkedin: 'LinkedIn or website (optional)', rate: 'Expected hourly rate in USD (optional)',
+  bio: 'Tell us briefly about your experience', agree: 'I agree to the Terms and the Privacy Policy.',
+  createAccount: 'Create account', haveAccount: 'Already have an account?', orGoogle: 'Continue with Google',
+  checkEmail: 'Almost done! Please check your email and click the confirmation link. Then log in to upload your CV.',
+  // auth
+  loginH: 'Log in', forgot: 'Forgot password?', noAccount: 'No account yet?', resetH: 'Reset password',
+  sendReset: 'Send reset link', resetSent: 'If an account exists, we sent you a link to reset your password.',
+  newPassword: 'New password', savePassword: 'Save password', passwordSaved: 'Password saved.',
+  // company
+  companiesH: 'Expert knowledge, on demand.', companiesSub: 'Tell us what you need. We find vetted professionals, handle contracts and pay them – you get one simple weekly invoice.',
+  cp1h: 'Vetted experts', cp1p: 'Every expert is reviewed: CV, experience and an interview.',
+  cp2h: 'Fast start', cp2p: 'Most projects start within a few days.',
+  cp3h: 'No admin work', cp3p: 'We handle contracts, time tracking and payouts worldwide.',
+  cpPriceH: 'Pricing', cpPriceP: 'You pay per approved expert hour. We send you a clear quote for every project – no setup fees, no long-term commitment.',
+  companySignupH: 'Create a company account', companyName: 'Company name', website: 'Website (optional)', contactName: 'Your name',
+  // dashboard (expert)
+  welcome: 'Welcome', status: 'Status', stPending: 'In review', stApproved: 'Approved', stRejected: 'Not approved',
+  stPendingP: 'We are reviewing your profile. This usually takes a few days.',
+  stApprovedP: 'You are approved. Apply for roles and we will match you with projects.',
+  stRejectedP: 'Unfortunately we cannot offer you projects right now. You can update your profile and we will look again.',
+  cvH: 'Your CV', cvUpload: 'Upload CV (PDF, max. 10 MB)', cvUploaded: 'CV uploaded', cvMissing: 'Please upload your CV so we can review your profile.',
+  myApps: 'My applications', myContracts: 'My projects', logHours: 'Log hours', weekStart: 'Week (Monday)', hoursWorked: 'Hours', note: 'Note (optional)', submit: 'Submit',
+  myHours: 'My hours', earnings: 'Earnings', payoutsH: 'Payouts', payoutSettings: 'Payout settings', payoutMethod: 'Method', bank: 'Bank transfer (IBAN)', paypal: 'PayPal',
+  payoutDetails: 'IBAN + account holder, or PayPal email', save: 'Save', saved: 'Saved.',
+  referralLink: 'Your referral link', copy: 'Copy', copied: 'Copied!',
+  profileH: 'Profile', none: 'Nothing here yet.', delete: 'Delete', paid: 'Paid', pending: 'Pending', open: 'Open',
+  submitted: 'Submitted', approved: 'Approved', rejected: 'Rejected', active: 'Active', ended: 'Ended',
+  totalPaid: 'Paid out', totalPending: 'Upcoming',
+  // dashboard (company)
+  newRequest: 'New request', expertsNeeded: 'Number of experts', hoursPerWeek: 'Hours per week (each)', budget: 'Budget (optional)', description: 'What do you need?',
+  sendRequest: 'Send request', requestSent: 'Thank you! We will get back to you within 1–2 business days.',
+  myRequests: 'My requests', myExperts: 'My experts', approveHours: 'Hours to approve', approve: 'Approve', reject: 'Reject',
+  invoicesH: 'Invoices', amount: 'Amount', payNow: 'Pay now', payByBank: 'Pay by bank transfer',
+  stNew: 'New', stInProgress: 'In progress', stDone: 'Done', stDeclined: 'Declined',
+  // admin
+  overview: 'Overview', experts: 'Experts', roles: 'Roles', requests: 'Requests', contracts: 'Contracts', hoursTab: 'Hours', invoices: 'Invoices', payouts: 'Payouts',
+  // misc
+  loading: 'Loading…', error: 'Something went wrong', notConfigured: 'Setup needed: connect Supabase in js/config.js to enable accounts. Until then, the site shows example content.',
+  footerTag: 'Expert work, made simple.', terms: 'Terms', privacy: 'Privacy', imprint: 'Imprint', rights: 'All rights reserved.',
+  notFound: 'Page not found.', home: 'Home', required: 'Please fill in all required fields.',
+};
+
+const de = {
+  navRoles: 'Jobs finden', navCompanies: 'Für Firmen', navResearch: 'Research', navAbout: 'Über uns', navHelp: 'Hilfe',
+  login: 'Anmelden', logout: 'Abmelden', dashboard: 'Dashboard', admin: 'Admin', applyNow: 'Als Expert:in bewerben', hire: 'Fachleute finden',
+  language: 'Sprache',
+  badge: 'Remote-Arbeit für Fachleute, weltweit',
+  h1: 'Werde für dein Fachwissen bezahlt.',
+  sub: 'Brightpeer verbindet Ärzt:innen, Jurist:innen, Ingenieur:innen, Wissenschaftler:innen und weitere Fachleute mit Firmen, die Expertenwissen brauchen – flexibel, remote und wöchentlich bezahlt.',
+  s1: 'Stundenlohn, je nach Fachgebiet', s2: 'Anmeldung – immer gratis', s3v: 'Wöchentlich', s3: 'Auszahlung ohne Gebühren (Bank oder PayPal)',
+  howExpertsH: 'So funktioniert es für Fachleute',
+  he1h: 'In 10 Minuten bewerben', he1p: 'Profil erstellen, Lebenslauf hochladen und dein Fachwissen beschreiben.',
+  he2h: 'Passende Projekte', he2p: 'Wir prüfen dein Profil und vermitteln dir bezahlte Projekte in deinem Fachgebiet.',
+  he3h: 'Remote arbeiten, wöchentlich Geld', he3p: 'Stunden eintragen – wir zahlen jede Woche aus, ohne Gebühren, per Bank oder PayPal.',
+  howCompaniesH: 'So funktioniert es für Firmen',
+  hc1h: 'Bedarf melden', hc1p: 'Beschreibe Fachwissen, Stunden und Budget.',
+  hc2h: 'Wir wählen die Fachleute', hc2p: 'Wir wählen geprüfte Fachleute aus und kümmern uns um Verträge und Zahlungen.',
+  hc3h: 'Eine einfache Rechnung', hc3p: 'Du bestätigst die Stunden und bekommst eine Rechnung pro Woche.',
+  featuredH: 'Offene Stellen', featuredSub: 'Remote, flexibel, pro Stunde bezahlt.', allRoles: 'Alle Stellen',
+  payH: 'Was Fachleute verdienen', payNote: 'Typische Stundenlöhne. Der genaue Lohn steht bei jeder Stelle.',
+  referralH: 'Lade Kolleg:innen ein – ihr bekommt beide $100',
+  referralP: 'Teile deinen persönlichen Link. Sobald deine Kollegin oder dein Kollege die ersten 10 bezahlten Stunden geleistet hat, bekommt ihr beide $100 Bonus.',
+  ctaH: 'Bereit, dein Wissen einzusetzen?', ctaP: 'Die Anmeldung ist gratis und dauert etwa 10 Minuten.',
+  fMedicine: 'Medizin', fLaw: 'Recht', fSoftware: 'Software', fSTEM: 'Chemie & Mathe', fPharmacy: 'Apotheke', fAccounting: 'Buchhaltung', fTranslation: 'Übersetzung (DE)', fOther: 'Anderes',
+  rolesH: 'Offene Stellen', rolesSub: 'Bezahlte Remote-Projekte in deinem Fachgebiet.', search: 'Stellen suchen…', allFields: 'Alle Fachgebiete',
+  perHour: '/ Std.', remote: 'Remote', apply: 'Bewerben', viewRole: 'Stelle ansehen', noRoles: 'Gerade keine passenden offenen Stellen.',
+  aboutRole: 'Über die Stelle', requirements: 'Anforderungen', pay: 'Lohn', hours: 'Stunden', back: '← Zurück',
+  applied: 'Du hast dich für diese Stelle beworben.', applyNote: 'Kurze Nachricht (optional)', sendApplication: 'Bewerbung senden',
+  loginToApply: 'Erstelle ein Gratis-Konto, um dich zu bewerben.', mustBeExpert: 'Nur Expert:innen-Konten können sich bewerben.',
+  applyH: 'Als Expert:in bewerben', applySub: 'Gratis, dauert etwa 10 Minuten. Wir prüfen jedes Profil persönlich.',
+  stepAccount: 'Dein Konto', stepProfile: 'Dein Fachwissen',
+  email: 'E-Mail', password: 'Passwort (mind. 8 Zeichen)', fullName: 'Vor- und Nachname', country: 'Land',
+  field: 'Fachgebiet', years: 'Jahre Berufserfahrung', linkedin: 'LinkedIn oder Website (optional)', rate: 'Gewünschter Stundenlohn in USD (optional)',
+  bio: 'Beschreibe kurz deine Erfahrung', agree: 'Ich akzeptiere die AGB und die Datenschutzerklärung.',
+  createAccount: 'Konto erstellen', haveAccount: 'Schon ein Konto?', orGoogle: 'Weiter mit Google',
+  checkEmail: 'Fast geschafft! Bitte öffne deine E-Mails und klicke auf den Bestätigungslink. Danach anmelden und Lebenslauf hochladen.',
+  loginH: 'Anmelden', forgot: 'Passwort vergessen?', noAccount: 'Noch kein Konto?', resetH: 'Passwort zurücksetzen',
+  sendReset: 'Link senden', resetSent: 'Falls ein Konto existiert, haben wir dir einen Link zum Zurücksetzen geschickt.',
+  newPassword: 'Neues Passwort', savePassword: 'Passwort speichern', passwordSaved: 'Passwort gespeichert.',
+  companiesH: 'Expertenwissen auf Abruf.', companiesSub: 'Sag uns, was du brauchst. Wir finden geprüfte Fachleute, kümmern uns um Verträge und Auszahlungen – du bekommst eine einfache Rechnung pro Woche.',
+  cp1h: 'Geprüfte Fachleute', cp1p: 'Jede:r wird geprüft: Lebenslauf, Erfahrung und Gespräch.',
+  cp2h: 'Schneller Start', cp2p: 'Die meisten Projekte starten innerhalb weniger Tage.',
+  cp3h: 'Kein Aufwand', cp3p: 'Wir übernehmen Verträge, Zeiterfassung und Auszahlungen weltweit.',
+  cpPriceH: 'Preise', cpPriceP: 'Du zahlst pro bestätigter Expertenstunde. Für jedes Projekt bekommst du ein klares Angebot – ohne Einrichtungsgebühr, ohne lange Bindung.',
+  companySignupH: 'Firmenkonto erstellen', companyName: 'Firmenname', website: 'Website (optional)', contactName: 'Dein Name',
+  welcome: 'Willkommen', status: 'Status', stPending: 'In Prüfung', stApproved: 'Freigeschaltet', stRejected: 'Nicht freigeschaltet',
+  stPendingP: 'Wir prüfen dein Profil. Das dauert meistens ein paar Tage.',
+  stApprovedP: 'Du bist freigeschaltet. Bewirb dich auf Stellen – wir vermitteln dir Projekte.',
+  stRejectedP: 'Leider können wir dir gerade keine Projekte anbieten. Du kannst dein Profil ergänzen, dann schauen wir es erneut an.',
+  cvH: 'Dein Lebenslauf', cvUpload: 'Lebenslauf hochladen (PDF, max. 10 MB)', cvUploaded: 'Lebenslauf hochgeladen', cvMissing: 'Bitte lade deinen Lebenslauf hoch, damit wir dein Profil prüfen können.',
+  myApps: 'Meine Bewerbungen', myContracts: 'Meine Projekte', logHours: 'Stunden eintragen', weekStart: 'Woche (Montag)', hoursWorked: 'Stunden', note: 'Notiz (optional)', submit: 'Senden',
+  myHours: 'Meine Stunden', earnings: 'Verdienst', payoutsH: 'Auszahlungen', payoutSettings: 'Auszahlung', payoutMethod: 'Methode', bank: 'Banküberweisung (IBAN)', paypal: 'PayPal',
+  payoutDetails: 'IBAN + Kontoinhaber:in, oder PayPal-E-Mail', save: 'Speichern', saved: 'Gespeichert.',
+  referralLink: 'Dein Empfehlungslink', copy: 'Kopieren', copied: 'Kopiert!',
+  profileH: 'Profil', none: 'Noch nichts da.', delete: 'Löschen', paid: 'Bezahlt', pending: 'Offen', open: 'Offen',
+  submitted: 'Eingereicht', approved: 'Bestätigt', rejected: 'Abgelehnt', active: 'Aktiv', ended: 'Beendet',
+  totalPaid: 'Ausbezahlt', totalPending: 'Kommt noch',
+  newRequest: 'Neue Anfrage', expertsNeeded: 'Anzahl Fachleute', hoursPerWeek: 'Stunden pro Woche (je Person)', budget: 'Budget (optional)', description: 'Was brauchst du?',
+  sendRequest: 'Anfrage senden', requestSent: 'Danke! Wir melden uns innerhalb von 1–2 Arbeitstagen.',
+  myRequests: 'Meine Anfragen', myExperts: 'Meine Fachleute', approveHours: 'Stunden bestätigen', approve: 'Bestätigen', reject: 'Ablehnen',
+  invoicesH: 'Rechnungen', amount: 'Betrag', payNow: 'Jetzt bezahlen', payByBank: 'Per Banküberweisung bezahlen',
+  stNew: 'Neu', stInProgress: 'In Arbeit', stDone: 'Erledigt', stDeclined: 'Abgelehnt',
+  overview: 'Übersicht', experts: 'Fachleute', roles: 'Stellen', requests: 'Anfragen', contracts: 'Verträge', hoursTab: 'Stunden', invoices: 'Rechnungen', payouts: 'Auszahlungen',
+  loading: 'Lädt…', error: 'Etwas ist schiefgelaufen', notConfigured: 'Einrichtung nötig: Supabase in js/config.js eintragen, damit Konten funktionieren. Bis dahin zeigt die Seite Beispielinhalte.',
+  footerTag: 'Expertenarbeit, ganz einfach.', terms: 'AGB', privacy: 'Datenschutz', imprint: 'Impressum', rights: 'Alle Rechte vorbehalten.',
+  notFound: 'Seite nicht gefunden.', home: 'Startseite', required: 'Bitte alle Pflichtfelder ausfüllen.',
+};
+
+const fr = {
+  navRoles: 'Trouver une mission', navCompanies: 'Entreprises', navResearch: 'Recherche', navAbout: 'À propos', navHelp: 'Aide',
+  login: 'Connexion', logout: 'Déconnexion', dashboard: 'Tableau de bord', applyNow: 'Postuler comme expert', hire: 'Trouver des experts', language: 'Langue',
+  badge: 'Travail à distance pour experts, partout dans le monde',
+  h1: 'Soyez payé pour votre expertise.',
+  sub: 'Brightpeer met en relation médecins, juristes, ingénieurs, scientifiques et autres professionnels avec des entreprises qui ont besoin de leur savoir – flexible, à distance et payé chaque semaine.',
+  s1: 'Tarif horaire selon le domaine', s2: 'Inscription – toujours gratuite', s3v: 'Chaque semaine', s3: 'Paiements sans frais (banque ou PayPal)',
+  howExpertsH: 'Comment ça marche pour les experts',
+  he1h: 'Postulez en 10 minutes', he1p: 'Créez votre profil, téléversez votre CV et décrivez votre expertise.',
+  he2h: 'Recevez des missions', he2p: 'Nous examinons votre profil et vous proposons des missions payées dans votre domaine.',
+  he3h: 'Travaillez à distance, payé chaque semaine', he3p: 'Saisissez vos heures. Nous vous payons chaque semaine, sans frais.',
+  howCompaniesH: 'Comment ça marche pour les entreprises',
+  hc1h: 'Décrivez votre besoin', hc1p: 'Expertise, heures et budget.', hc2h: 'Nous choisissons les experts', hc2p: 'Professionnels vérifiés, contrats et paiements inclus.', hc3h: 'Une facture simple', hc3p: 'Vous validez les heures et recevez une facture par semaine.',
+  featuredH: 'Missions ouvertes', featuredSub: 'À distance, flexible, payé à l’heure.', allRoles: 'Toutes les missions',
+  payH: 'Ce que gagnent les experts', payNote: 'Tarifs horaires typiques. Le tarif exact figure sur chaque mission.',
+  referralH: 'Invitez un collègue – 100 $ pour chacun', referralP: 'Partagez votre lien. Après les 10 premières heures payées de votre collègue, vous recevez tous les deux 100 $.',
+  ctaH: 'Prêt à mettre votre savoir au travail ?', ctaP: 'L’inscription est gratuite et prend environ 10 minutes.',
+  fMedicine: 'Médecine', fLaw: 'Droit', fSoftware: 'Logiciel', fSTEM: 'Chimie & Maths', fPharmacy: 'Pharmacie', fAccounting: 'Comptabilité', fTranslation: 'Traduction (DE)', fOther: 'Autre',
+  rolesH: 'Missions ouvertes', rolesSub: 'Missions payées à distance dans votre domaine.', search: 'Rechercher…', allFields: 'Tous les domaines', perHour: '/ h', remote: 'À distance', apply: 'Postuler', viewRole: 'Voir', noRoles: 'Aucune mission ne correspond pour le moment.',
+  aboutRole: 'La mission', requirements: 'Exigences', pay: 'Rémunération', hours: 'Heures', back: '← Retour',
+  applyH: 'Postuler comme expert', applySub: 'Gratuit, environ 10 minutes. Chaque profil est examiné personnellement.',
+  email: 'E-mail', password: 'Mot de passe (min. 8 caractères)', fullName: 'Nom complet', country: 'Pays', field: 'Domaine', years: 'Années d’expérience', createAccount: 'Créer un compte',
+  loginH: 'Connexion', forgot: 'Mot de passe oublié ?', noAccount: 'Pas encore de compte ?',
+  companiesH: 'L’expertise, à la demande.', companiesSub: 'Dites-nous ce dont vous avez besoin. Nous trouvons des professionnels vérifiés et gérons contrats et paiements.',
+  footerTag: 'Le travail d’expert, simplement.', terms: 'Conditions', privacy: 'Confidentialité', imprint: 'Mentions légales', rights: 'Tous droits réservés.',
+};
+
+const it = {
+  navRoles: 'Trova lavoro', navCompanies: 'Per aziende', navResearch: 'Ricerca', navAbout: 'Chi siamo', navHelp: 'Aiuto',
+  login: 'Accedi', logout: 'Esci', dashboard: 'Dashboard', applyNow: 'Candidati come esperto', hire: 'Trova esperti', language: 'Lingua',
+  badge: 'Lavoro da remoto per esperti, in tutto il mondo',
+  h1: 'Fatti pagare per la tua competenza.',
+  sub: 'Brightpeer mette in contatto medici, avvocati, ingegneri, scienziati e altri professionisti con aziende che cercano competenze – flessibile, da remoto e pagato ogni settimana.',
+  s1: 'Paga oraria, secondo il settore', s2: 'Iscrizione – sempre gratuita', s3v: 'Settimanale', s3: 'Pagamenti senza commissioni (banca o PayPal)',
+  howExpertsH: 'Come funziona per gli esperti',
+  he1h: 'Candidati in 10 minuti', he1p: 'Crea il profilo, carica il CV e descrivi la tua competenza.',
+  he2h: 'Ricevi progetti', he2p: 'Esaminiamo il profilo e ti proponiamo progetti pagati nel tuo settore.',
+  he3h: 'Lavora da remoto, pagato ogni settimana', he3p: 'Registra le ore. Paghiamo ogni settimana, senza commissioni.',
+  howCompaniesH: 'Come funziona per le aziende',
+  hc1h: 'Descrivi il bisogno', hc1p: 'Competenze, ore e budget.', hc2h: 'Scegliamo gli esperti', hc2p: 'Professionisti verificati, contratti e pagamenti inclusi.', hc3h: 'Una fattura semplice', hc3p: 'Approvi le ore e ricevi una fattura a settimana.',
+  featuredH: 'Posizioni aperte', featuredSub: 'Da remoto, flessibile, pagato a ore.', allRoles: 'Tutte le posizioni',
+  payH: 'Quanto guadagnano gli esperti', payNote: 'Paghe orarie tipiche. La paga esatta è indicata in ogni posizione.',
+  referralH: 'Invita un collega – 100 $ a testa', referralP: 'Condividi il tuo link. Dopo le prime 10 ore pagate del collega, ricevete entrambi 100 $.',
+  ctaH: 'Pronto a mettere a frutto il tuo sapere?', ctaP: 'L’iscrizione è gratuita e richiede circa 10 minuti.',
+  fMedicine: 'Medicina', fLaw: 'Diritto', fSoftware: 'Software', fSTEM: 'Chimica & Matematica', fPharmacy: 'Farmacia', fAccounting: 'Contabilità', fTranslation: 'Traduzione (DE)', fOther: 'Altro',
+  rolesH: 'Posizioni aperte', rolesSub: 'Progetti pagati da remoto nel tuo settore.', search: 'Cerca…', allFields: 'Tutti i settori', perHour: '/ h', remote: 'Remoto', apply: 'Candidati', viewRole: 'Vedi', noRoles: 'Nessuna posizione corrisponde al momento.',
+  aboutRole: 'La posizione', requirements: 'Requisiti', pay: 'Paga', hours: 'Ore', back: '← Indietro',
+  applyH: 'Candidati come esperto', applySub: 'Gratis, circa 10 minuti. Ogni profilo viene esaminato personalmente.',
+  email: 'E-mail', password: 'Password (min. 8 caratteri)', fullName: 'Nome e cognome', country: 'Paese', field: 'Settore', years: 'Anni di esperienza', createAccount: 'Crea account',
+  loginH: 'Accedi', forgot: 'Password dimenticata?', noAccount: 'Non hai un account?',
+  companiesH: 'Competenze, su richiesta.', companiesSub: 'Dicci di cosa hai bisogno. Troviamo professionisti verificati e gestiamo contratti e pagamenti.',
+  footerTag: 'Lavoro da esperti, semplice.', terms: 'Termini', privacy: 'Privacy', imprint: 'Note legali', rights: 'Tutti i diritti riservati.',
+};
+
+const es = {
+  navRoles: 'Buscar trabajo', navCompanies: 'Para empresas', navResearch: 'Investigación', navAbout: 'Empresa', navHelp: 'Ayuda',
+  login: 'Iniciar sesión', logout: 'Cerrar sesión', dashboard: 'Panel', applyNow: 'Postular como experto', hire: 'Contratar expertos', language: 'Idioma',
+  badge: 'Trabajo remoto para expertos, en todo el mundo',
+  h1: 'Cobra por tu experiencia.',
+  sub: 'Brightpeer conecta a médicos, abogados, ingenieros, científicos y otros profesionales con empresas que necesitan su conocimiento – flexible, remoto y pagado cada semana.',
+  s1: 'Pago por hora, según el área', s2: 'Registro – siempre gratis', s3v: 'Semanal', s3: 'Pagos sin comisiones (banco o PayPal)',
+  howExpertsH: 'Cómo funciona para expertos',
+  he1h: 'Postula en 10 minutos', he1p: 'Crea tu perfil, sube tu CV y cuéntanos tu experiencia.',
+  he2h: 'Recibe proyectos', he2p: 'Revisamos tu perfil y te asignamos proyectos pagados en tu área.',
+  he3h: 'Trabaja remoto, cobra cada semana', he3p: 'Registra tus horas. Pagamos cada semana, sin comisiones.',
+  howCompaniesH: 'Cómo funciona para empresas',
+  hc1h: 'Cuéntanos qué necesitas', hc1p: 'Experiencia, horas y presupuesto.', hc2h: 'Elegimos a los expertos', hc2p: 'Profesionales verificados, contratos y pagos incluidos.', hc3h: 'Una factura simple', hc3p: 'Apruebas las horas y recibes una factura por semana.',
+  featuredH: 'Puestos abiertos', featuredSub: 'Remoto, flexible, pagado por hora.', allRoles: 'Ver todos',
+  payH: 'Lo que ganan los expertos', payNote: 'Pagos por hora típicos. El pago exacto aparece en cada puesto.',
+  referralH: 'Invita a un colega – 100 $ para cada uno', referralP: 'Comparte tu enlace. Tras las primeras 10 horas pagadas de tu colega, ambos reciben 100 $.',
+  ctaH: '¿Listo para poner tu conocimiento a trabajar?', ctaP: 'El registro es gratis y toma unos 10 minutos.',
+  fMedicine: 'Medicina', fLaw: 'Derecho', fSoftware: 'Software', fSTEM: 'Química y Matemáticas', fPharmacy: 'Farmacia', fAccounting: 'Contabilidad', fTranslation: 'Traducción (DE)', fOther: 'Otro',
+  rolesH: 'Puestos abiertos', rolesSub: 'Proyectos remotos pagados en tu área.', search: 'Buscar…', allFields: 'Todas las áreas', perHour: '/ h', remote: 'Remoto', apply: 'Postular', viewRole: 'Ver', noRoles: 'No hay puestos que coincidan ahora.',
+  aboutRole: 'Sobre el puesto', requirements: 'Requisitos', pay: 'Pago', hours: 'Horas', back: '← Volver',
+  applyH: 'Postular como experto', applySub: 'Gratis, unos 10 minutos. Revisamos cada perfil personalmente.',
+  email: 'Correo', password: 'Contraseña (mín. 8 caracteres)', fullName: 'Nombre completo', country: 'País', field: 'Área', years: 'Años de experiencia', createAccount: 'Crear cuenta',
+  loginH: 'Iniciar sesión', forgot: '¿Olvidaste tu contraseña?', noAccount: '¿Aún no tienes cuenta?',
+  companiesH: 'Experiencia, a demanda.', companiesSub: 'Dinos qué necesitas. Encontramos profesionales verificados y gestionamos contratos y pagos.',
+  footerTag: 'Trabajo experto, fácil.', terms: 'Términos', privacy: 'Privacidad', imprint: 'Aviso legal', rights: 'Todos los derechos reservados.',
+};
+
+const DICTS = { en, de, fr, it, es };
+
+function detect() {
+  try {
+    const saved = localStorage.getItem('bp_lang');
+    if (saved && DICTS[saved]) return saved;
+  } catch (e) { /* storage blocked */ }
+  const list = navigator.languages || [navigator.language || 'en'];
+  for (const l of list) {
+    const code = String(l).slice(0, 2).toLowerCase();
+    if (DICTS[code]) return code;
+  }
+  return 'en';
+}
+
+export let lang = detect();
+
+export function setLang(code) {
+  if (!DICTS[code]) return;
+  lang = code;
+  try { localStorage.setItem('bp_lang', code); } catch (e) { /* ignore */ }
+  document.documentElement.lang = code;
+}
+
+export function t(key) {
+  return (DICTS[lang] && DICTS[lang][key]) || en[key] || key;
+}
