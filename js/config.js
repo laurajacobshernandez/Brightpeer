@@ -6,7 +6,7 @@
 
 export const CONFIG = {
   SUPABASE_URL: 'https://wlslnfgfbcanfwlbxaap.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+  SUPABASE_ANON_KEY: 'sb_publishable_3HcZY0wfDpm6Vdj7zOIUoA_NiltZvGL',
 
   // Shown to companies on invoices ("Pay by bank transfer")
   BANK: {
