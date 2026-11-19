@@ -1,6 +1,6 @@
 :root{
   --bg:#FAFAF7; --ink:#0E0F12; --ink2:#45474F; --ink3:#5B5D66; --line:#E7E7E1; --line2:#DCDCD6;
-  --card:#FFFFFF; --accent:#2F5BFF; --accent-soft:#EEF1FF; --chip:#F1F1EC;
+  --card:#FFFFFF; --accent:#0F9D6B; --accent-soft:#E6F6EF; --chip:#F1F1EC;
   --ok:#137A3F; --ok-soft:#E6F4EC; --warn:#8A5A00; --warn-soft:#FFF4DB; --bad:#B42318; --bad-soft:#FDECEA;
   --radius:20px; --display:'Space Grotesk', system-ui, sans-serif;
 }
