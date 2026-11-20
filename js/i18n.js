@@ -31,7 +31,7 @@ const en = {
   howCompaniesH: 'How it works for companies',
   hc1h: 'Tell us what you need', hc1p: 'Describe the expertise, the hours and your budget.',
   hc2h: 'We pick the experts', hc2p: 'We select vetted professionals and handle contracts and payments.',
-  hc3h: 'Pay one simple invoice', hc3p: 'You approve the hours and receive one invoice per week.',
+  hc3h: 'Prepay, then approve hours', hc3p: 'You top up your balance in advance. Approved hours are paid from it every week.',
   featuredH: 'Open roles', featuredSub: 'Remote, flexible, paid by the hour.', allRoles: 'See all roles',
   payH: 'What experts earn', payNote: 'Typical hourly pay. The exact rate is shown on each role.',
   referralH: 'Invite a colleague – you both get $100',
@@ -58,11 +58,11 @@ const en = {
   sendReset: 'Send reset link', resetSent: 'If an account exists, we sent you a link to reset your password.',
   newPassword: 'New password', savePassword: 'Save password', passwordSaved: 'Password saved.',
   // company
-  companiesH: 'Expert knowledge, on demand.', companiesSub: 'Tell us what you need. We find vetted professionals, handle contracts and pay them – you get one simple weekly invoice.',
+  companiesH: 'Expert knowledge, on demand.', companiesSub: 'Tell us what you need. We find vetted professionals, handle contracts and pay them – you simply prepay your balance and approve the hours.',
   cp1h: 'Vetted experts', cp1p: 'Every expert is reviewed: CV, experience and an interview.',
   cp2h: 'Fast start', cp2p: 'Most projects start within a few days.',
   cp3h: 'No admin work', cp3p: 'We handle contracts, time tracking and payouts worldwide.',
-  cpPriceH: 'Pricing', cpPriceP: 'You pay per approved expert hour. We send you a clear quote for every project – no setup fees, no long-term commitment.',
+  cpPriceH: 'Pricing', cpPriceP: 'You pay per approved expert hour, by prepayment: top up your balance, and approved hours are deducted every week. We send you a clear quote for every project – no setup fees, no long-term commitment, unused balance refunded on request.',
   companySignupH: 'Create a company account', companyName: 'Company name', website: 'Website (optional)', contactName: 'Your name',
   // dashboard (expert)
   welcome: 'Welcome', status: 'Status', stPending: 'In review', stApproved: 'Approved', stRejected: 'Not approved',
@@ -117,7 +117,7 @@ const de = {
   howCompaniesH: 'So funktioniert es für Firmen',
   hc1h: 'Bedarf melden', hc1p: 'Beschreibe Fachwissen, Stunden und Budget.',
   hc2h: 'Wir wählen die Fachleute', hc2p: 'Wir wählen geprüfte Fachleute aus und kümmern uns um Verträge und Zahlungen.',
-  hc3h: 'Eine einfache Rechnung', hc3p: 'Du bestätigst die Stunden und bekommst eine Rechnung pro Woche.',
+  hc3h: 'Vorauszahlen, Stunden bestätigen', hc3p: 'Du lädst dein Guthaben im Voraus auf. Bestätigte Stunden werden jede Woche davon bezahlt.',
   featuredH: 'Offene Stellen', featuredSub: 'Remote, flexibel, pro Stunde bezahlt.', allRoles: 'Alle Stellen',
   payH: 'Was Fachleute verdienen', payNote: 'Typische Stundenlöhne. Der genaue Lohn steht bei jeder Stelle.',
   referralH: 'Lade Kolleg:innen ein – ihr bekommt beide $100',
@@ -139,11 +139,11 @@ const de = {
   loginH: 'Anmelden', forgot: 'Passwort vergessen?', noAccount: 'Noch kein Konto?', resetH: 'Passwort zurücksetzen',
   sendReset: 'Link senden', resetSent: 'Falls ein Konto existiert, haben wir dir einen Link zum Zurücksetzen geschickt.',
   newPassword: 'Neues Passwort', savePassword: 'Passwort speichern', passwordSaved: 'Passwort gespeichert.',
-  companiesH: 'Expertenwissen auf Abruf.', companiesSub: 'Sag uns, was du brauchst. Wir finden geprüfte Fachleute, kümmern uns um Verträge und Auszahlungen – du bekommst eine einfache Rechnung pro Woche.',
+  companiesH: 'Expertenwissen auf Abruf.', companiesSub: 'Sag uns, was du brauchst. Wir finden geprüfte Fachleute, kümmern uns um Verträge und Auszahlungen – du zahlst einfach im Voraus auf dein Guthaben und bestätigst die Stunden.',
   cp1h: 'Geprüfte Fachleute', cp1p: 'Jede:r wird geprüft: Lebenslauf, Erfahrung und Gespräch.',
   cp2h: 'Schneller Start', cp2p: 'Die meisten Projekte starten innerhalb weniger Tage.',
   cp3h: 'Kein Aufwand', cp3p: 'Wir übernehmen Verträge, Zeiterfassung und Auszahlungen weltweit.',
-  cpPriceH: 'Preise', cpPriceP: 'Du zahlst pro bestätigter Expertenstunde. Für jedes Projekt bekommst du ein klares Angebot – ohne Einrichtungsgebühr, ohne lange Bindung.',
+  cpPriceH: 'Preise', cpPriceP: 'Du zahlst pro bestätigter Expertenstunde, per Vorauszahlung: Guthaben aufladen, bestätigte Stunden werden jede Woche abgezogen. Für jedes Projekt bekommst du ein klares Angebot – ohne Einrichtungsgebühr, ohne lange Bindung, Restguthaben auf Wunsch zurück.',
   companySignupH: 'Firmenkonto erstellen', companyName: 'Firmenname', website: 'Website (optional)', contactName: 'Dein Name',
   welcome: 'Willkommen', status: 'Status', stPending: 'In Prüfung', stApproved: 'Freigeschaltet', stRejected: 'Nicht freigeschaltet',
   stPendingP: 'Wir prüfen dein Profil. Das dauert meistens ein paar Tage.',
@@ -182,7 +182,7 @@ const fr = {
   he2h: 'Recevez des missions', he2p: 'Nous examinons votre profil et vous proposons des missions payées dans votre domaine.',
   he3h: 'Travaillez à distance, payé chaque semaine', he3p: 'Saisissez vos heures. Nous vous payons chaque semaine, sans frais.',
   howCompaniesH: 'Comment ça marche pour les entreprises',
-  hc1h: 'Décrivez votre besoin', hc1p: 'Expertise, heures et budget.', hc2h: 'Nous choisissons les experts', hc2p: 'Professionnels vérifiés, contrats et paiements inclus.', hc3h: 'Une facture simple', hc3p: 'Vous validez les heures et recevez une facture par semaine.',
+  hc1h: 'Décrivez votre besoin', hc1p: 'Expertise, heures et budget.', hc2h: 'Nous choisissons les experts', hc2p: 'Professionnels vérifiés, contrats et paiements inclus.', hc3h: 'Prépayez, validez les heures', hc3p: 'Vous rechargez votre solde à l’avance. Les heures validées sont payées chaque semaine à partir de ce solde.',
   featuredH: 'Missions ouvertes', featuredSub: 'À distance, flexible, payé à l’heure.', allRoles: 'Toutes les missions',
   payH: 'Ce que gagnent les experts', payNote: 'Tarifs horaires typiques. Le tarif exact figure sur chaque mission.',
   referralH: 'Invitez un collègue – 100 $ pour chacun', referralP: 'Partagez votre lien. Après les 10 premières heures payées de votre collègue, vous recevez tous les deux 100 $.',
@@ -211,7 +211,7 @@ const it = {
   he2h: 'Ricevi progetti', he2p: 'Esaminiamo il profilo e ti proponiamo progetti pagati nel tuo settore.',
   he3h: 'Lavora da remoto, pagato ogni settimana', he3p: 'Registra le ore. Paghiamo ogni settimana, senza commissioni.',
   howCompaniesH: 'Come funziona per le aziende',
-  hc1h: 'Descrivi il bisogno', hc1p: 'Competenze, ore e budget.', hc2h: 'Scegliamo gli esperti', hc2p: 'Professionisti verificati, contratti e pagamenti inclusi.', hc3h: 'Una fattura semplice', hc3p: 'Approvi le ore e ricevi una fattura a settimana.',
+  hc1h: 'Descrivi il bisogno', hc1p: 'Competenze, ore e budget.', hc2h: 'Scegliamo gli esperti', hc2p: 'Professionisti verificati, contratti e pagamenti inclusi.', hc3h: 'Prepaga, approva le ore', hc3p: 'Ricarichi il saldo in anticipo. Le ore approvate vengono pagate ogni settimana dal saldo.',
   featuredH: 'Posizioni aperte', featuredSub: 'Da remoto, flessibile, pagato a ore.', allRoles: 'Tutte le posizioni',
   payH: 'Quanto guadagnano gli esperti', payNote: 'Paghe orarie tipiche. La paga esatta è indicata in ogni posizione.',
   referralH: 'Invita un collega – 100 $ a testa', referralP: 'Condividi il tuo link. Dopo le prime 10 ore pagate del collega, ricevete entrambi 100 $.',
@@ -240,7 +240,7 @@ const es = {
   he2h: 'Recibe proyectos', he2p: 'Revisamos tu perfil y te asignamos proyectos pagados en tu área.',
   he3h: 'Trabaja remoto, cobra cada semana', he3p: 'Registra tus horas. Pagamos cada semana, sin comisiones.',
   howCompaniesH: 'Cómo funciona para empresas',
-  hc1h: 'Cuéntanos qué necesitas', hc1p: 'Experiencia, horas y presupuesto.', hc2h: 'Elegimos a los expertos', hc2p: 'Profesionales verificados, contratos y pagos incluidos.', hc3h: 'Una factura simple', hc3p: 'Apruebas las horas y recibes una factura por semana.',
+  hc1h: 'Cuéntanos qué necesitas', hc1p: 'Experiencia, horas y presupuesto.', hc2h: 'Elegimos a los expertos', hc2p: 'Profesionales verificados, contratos y pagos incluidos.', hc3h: 'Prepaga, aprueba horas', hc3p: 'Recargas tu saldo por adelantado. Las horas aprobadas se pagan cada semana desde ese saldo.',
   featuredH: 'Puestos abiertos', featuredSub: 'Remoto, flexible, pagado por hora.', allRoles: 'Ver todos',
   payH: 'Lo que ganan los expertos', payNote: 'Pagos por hora típicos. El pago exacto aparece en cada puesto.',
   referralH: 'Invita a un colega – 100 $ para cada uno', referralP: 'Comparte tu enlace. Tras las primeras 10 horas pagadas de tu colega, ambos reciben 100 $.',
@@ -277,11 +277,11 @@ Object.assign(de, {"sv1h": "Human Data & Evals", "sv1a": "Geprüfte Fachleute: �
 Object.assign(fr, {"sv1h": "Données humaines & évaluations", "sv1a": "Des experts vérifiés : médecins, juristes, ingénieurs, traducteurs.", "sv1b": "Jeux de tests et benchmarks issus de vrais travaux professionnels.", "sv1c": "Chaque réponse est vérifiée par un professionnel qualifié.", "sv1l": "Nous contacter", "sv2h": "Monétisation des données", "sv2a": "Gagnez de l’argent avec les données que votre entreprise produit déjà.", "sv2b": "Les informations personnelles et sensibles sont retirées avant tout partage.", "sv2c": "Vous décidez exactement de ce qui est partagé.", "sv2l": "Demander une estimation", "sv3h": "IA pour entreprises", "sv3a": "Identifiez où l’IA peut faire gagner du temps dans vos processus.", "sv3b": "Des experts testent votre IA avant et après le lancement.", "sv3c": "Des rapports clairs avec des améliorations concrètes.", "sv3l": "Planifier un appel"});
 Object.assign(it, {"sv1h": "Dati umani & valutazioni", "sv1a": "Esperti verificati: medici, avvocati, ingegneri, traduttori.", "sv1b": "Set di test e benchmark basati su lavoro professionale reale.", "sv1c": "Ogni risposta è controllata da un professionista qualificato.", "sv1l": "Contattaci", "sv2h": "Monetizzazione dei dati", "sv2a": "Guadagna con i dati che la tua azienda già produce.", "sv2b": "Le informazioni personali e sensibili vengono rimosse prima di ogni condivisione.", "sv2c": "Decidi tu esattamente cosa condividere.", "sv2l": "Chiedi una stima", "sv3h": "IA per aziende", "sv3a": "Scopri dove l’IA può far risparmiare tempo nei tuoi processi.", "sv3b": "Gli esperti testano la tua IA prima e dopo il lancio.", "sv3c": "Report chiari con miglioramenti concreti.", "sv3l": "Prenota una chiamata"});
 Object.assign(es, {"sv1h": "Datos humanos y evaluaciones", "sv1a": "Expertos verificados: médicos, abogados, ingenieros, traductores.", "sv1b": "Conjuntos de prueba y benchmarks basados en trabajo profesional real.", "sv1c": "Cada respuesta la revisa un profesional cualificado.", "sv1l": "Contáctanos", "sv2h": "Monetización de datos", "sv2a": "Gana dinero con los datos que tu empresa ya genera.", "sv2b": "La información personal y sensible se elimina antes de compartir nada.", "sv2c": "Tú decides exactamente qué se comparte.", "sv2l": "Pedir una estimación", "sv3h": "IA para empresas", "sv3a": "Descubre dónde la IA puede ahorrar tiempo en tus procesos.", "sv3b": "Expertos prueban tu IA antes y después del lanzamiento.", "sv3c": "Informes claros con mejoras concretas.", "sv3l": "Reservar una llamada"});
-Object.assign(en, {"ddFields": "Fields", "ddOverview": "Overview", "ddEvals": "Build evals & evaluate AI", "ddResearchP": "How expert knowledge makes AI more accurate and safer.", "ddCompaniesP": "Vetted experts for your AI projects – with one simple invoice.", "ddExpertsP": "Paid, remote work for professionals – paid weekly.", "ddCompanyP": "Who we are and how to reach us."});
-Object.assign(de, {"ddFields": "Fachbereiche", "ddOverview": "Überblick", "ddEvals": "Evals erstellen & KI bewerten", "ddResearchP": "Wie Fachwissen KI genauer und sicherer macht.", "ddCompaniesP": "Geprüfte Fachleute für deine KI-Projekte – mit einer einfachen Rechnung.", "ddExpertsP": "Bezahlte Remote-Arbeit für Fachleute – wöchentlich ausgezahlt.", "ddCompanyP": "Wer wir sind und wie du uns erreichst."});
-Object.assign(fr, {"ddFields": "Domaines", "ddOverview": "Aperçu", "ddEvals": "Créer des évaluations & évaluer l’IA", "ddResearchP": "Comment l’expertise rend l’IA plus précise et plus sûre.", "ddCompaniesP": "Des experts vérifiés pour vos projets IA – avec une seule facture.", "ddExpertsP": "Missions rémunérées à distance pour professionnels – payées chaque semaine.", "ddCompanyP": "Qui nous sommes et comment nous joindre."});
-Object.assign(it, {"ddFields": "Settori", "ddOverview": "Panoramica", "ddEvals": "Creare valutazioni & valutare l’IA", "ddResearchP": "Come le competenze rendono l’IA più precisa e sicura.", "ddCompaniesP": "Esperti verificati per i tuoi progetti di IA – con una sola fattura.", "ddExpertsP": "Lavoro retribuito da remoto per professionisti – pagato ogni settimana.", "ddCompanyP": "Chi siamo e come contattarci."});
-Object.assign(es, {"ddFields": "Áreas", "ddOverview": "Resumen", "ddEvals": "Crear evaluaciones y evaluar IA", "ddResearchP": "Cómo el conocimiento experto hace la IA más precisa y segura.", "ddCompaniesP": "Expertos verificados para tus proyectos de IA – con una sola factura.", "ddExpertsP": "Trabajo remoto pagado para profesionales – pago semanal.", "ddCompanyP": "Quiénes somos y cómo contactarnos."});
+Object.assign(en, {"ddFields": "Fields", "ddOverview": "Overview", "ddEvals": "Build evals & evaluate AI", "ddResearchP": "How expert knowledge makes AI more accurate and safer.", "ddCompaniesP": "Vetted experts for your AI projects – simple prepaid billing.", "ddExpertsP": "Paid, remote work for professionals – paid weekly.", "ddCompanyP": "Who we are and how to reach us."});
+Object.assign(de, {"ddFields": "Fachbereiche", "ddOverview": "Überblick", "ddEvals": "Evals erstellen & KI bewerten", "ddResearchP": "Wie Fachwissen KI genauer und sicherer macht.", "ddCompaniesP": "Geprüfte Fachleute für deine KI-Projekte – einfach per Vorauszahlung.", "ddExpertsP": "Bezahlte Remote-Arbeit für Fachleute – wöchentlich ausgezahlt.", "ddCompanyP": "Wer wir sind und wie du uns erreichst."});
+Object.assign(fr, {"ddFields": "Domaines", "ddOverview": "Aperçu", "ddEvals": "Créer des évaluations & évaluer l’IA", "ddResearchP": "Comment l’expertise rend l’IA plus précise et plus sûre.", "ddCompaniesP": "Des experts vérifiés pour vos projets IA – avec un simple prépaiement.", "ddExpertsP": "Missions rémunérées à distance pour professionnels – payées chaque semaine.", "ddCompanyP": "Qui nous sommes et comment nous joindre."});
+Object.assign(it, {"ddFields": "Settori", "ddOverview": "Panoramica", "ddEvals": "Creare valutazioni & valutare l’IA", "ddResearchP": "Come le competenze rendono l’IA più precisa e sicura.", "ddCompaniesP": "Esperti verificati per i tuoi progetti di IA – con un semplice prepagamento.", "ddExpertsP": "Lavoro retribuito da remoto per professionisti – pagato ogni settimana.", "ddCompanyP": "Chi siamo e come contattarci."});
+Object.assign(es, {"ddFields": "Áreas", "ddOverview": "Resumen", "ddEvals": "Crear evaluaciones y evaluar IA", "ddResearchP": "Cómo el conocimiento experto hace la IA más precisa y segura.", "ddCompaniesP": "Expertos verificados para tus proyectos de IA – con un simple prepago.", "ddExpertsP": "Trabajo remoto pagado para profesionales – pago semanal.", "ddCompanyP": "Quiénes somos y cómo contactarnos."});
 
 const DICTS = { en, de, fr, it, es };
 

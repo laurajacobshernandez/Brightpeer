@@ -253,3 +253,21 @@ details.faq p{margin-top:10px;color:var(--ink2)}
   .dd-links a{font-size:1rem}
   .dd-text{display:none}
 }
+
+/* solutions (business areas like Mercor, 20.11.2026) */
+.svc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 40px}
+.svc{display:flex;flex-direction:column;gap:8px;padding:22px 0 26px;border-top:1px solid var(--line2);text-decoration:none;color:var(--ink)}
+.svc:hover{color:var(--ink)}
+.svc:hover h3{color:var(--accent)}
+.svc .muted{flex:1}
+.svc-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;padding:40px 0;border-top:1px solid var(--line2);scroll-margin-top:88px}
+.svc-row h2{font-size:clamp(1.5rem,3vw,2.1rem)}
+.svc-jump .chip{text-decoration:none}
+.svc-jump .chip:hover{color:var(--accent)}
+@media (max-width:900px){.svc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.svc-grid{grid-template-columns:1fr}.svc-row{grid-template-columns:1fr;gap:16px}}
+
+/* social icons in the footer */
+.socials{display:flex;gap:10px;margin-top:6px}
+.footer-inner a.social{width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;color:var(--ink2);transition:color .2s,border-color .2s}
+.footer-inner a.social:hover{color:var(--accent);border-color:var(--accent)}

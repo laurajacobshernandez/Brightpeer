@@ -28,4 +28,17 @@ export const CONFIG = {
   // provider is switched on in Supabase → Authentication → Providers (Google / Azure). Set false to hide one.
   GOOGLE_LOGIN: true,
   MICROSOFT_LOGIN: true,
+
+  // Billing: for the start companies only pay in advance (prepaid balance). Set false to use weekly invoices again.
+  PREPAYMENT_ONLY: true,
+  LOW_BALANCE: 500, // USD – below this the balance is shown as low
+
+  // Social media (footer icons). Create the accounts first, then check the links.
+  // Leave a value empty ('') to hide that icon.
+  SOCIAL: {
+    instagram: 'https://www.instagram.com/brightpeer',
+    linkedin: 'https://www.linkedin.com/company/brightpeer',
+    x: 'https://x.com/brightpeer',
+    youtube: 'https://www.youtube.com/@brightpeer',
+  },
 };

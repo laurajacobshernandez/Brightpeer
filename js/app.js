@@ -187,6 +187,7 @@ function renderHeader() {
       ${dd('research', t('navResearch'), t('ddResearchP'), [['/research', t('ddFields')], ['/info', t('infoH')]])}
       ${dd('companies', t('fCompanies'), t('ddCompaniesP'), [['/companies', t('ddOverview')], ['/info', t('ddEvals')], ['/info', t('o1h')], ['/company-signup', t('fCompanyAccount')]])}
       ${dd('experts', t('fExperts'), t('ddExpertsP'), [['/roles', t('navRoles')], ['/apply', t('applyNow')], ['/info', t('payH')]])}
+      ${dd('solutions', 'Solutions', 'Everything companies need to build better AI with real experts.', [['/services', 'All solutions'], ...SERVICES.map((x) => ['/services/' + x.id, x.nav])])}
       ${dd('company', t('fCompany'), t('ddCompanyP'), [['/about', t('navAbout')], ['/help', t('navHelp')], [`mailto:${CONFIG.COMPANY.email}`, t('fContact')]])}
       ${right}
     </div>
@@ -212,11 +213,12 @@ function renderFooter() {
         <a class="brand" href="#/" style="color:var(--ink)"><span class="logo"></span>Brightpeer</a>
         <p class="muted">${t('footerTag')}</p>
         <a class="btn btn-accent btn-sm" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a>
+        ${socialIcons()}
       </div>
       <div class="footer-cols">
         ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/info', t('navInfo')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
         ${col(t('fCompanies'), [['#/companies', t('hire')], ['#/company-signup', t('fCompanyAccount')], ['#/legal/client', t('clientTerms')]])}
-        ${col(t('navResearch'), [['#/research', t('navResearch')]])}
+        ${col('Solutions', [...SERVICES.map((x) => [`#/services/${x.id}`, x.nav]), ['#/research', t('navResearch')]])}
         ${col(t('fCompany'), [['#/about', t('navAbout')], [`mailto:${esc(CONFIG.COMPANY.email)}`, t('fContact')], ['#/help', t('navHelp')]])}
       </div>
     </div>
@@ -227,6 +229,59 @@ function renderFooter() {
       </div>
     </div>
   </div>`;
+}
+
+// Social media icons in the footer (owner, 20.11.2026: like Mercor – Instagram, LinkedIn, X, YouTube).
+const SOCIAL_ICONS = {
+  instagram: ['Instagram', '<path d="M12 2.2c3.2 0 3.6 0 4.8.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 4.7a5.1 5.1 0 1 0 0 10.2 5.1 5.1 0 0 0 0-10.2zm0 8.4a3.3 3.3 0 1 1 0-6.6 3.3 3.3 0 0 1 0 6.6zm5.3-9.8a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/>'],
+  linkedin: ['LinkedIn', '<path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3V9.5zm6.5 0h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.1c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4V9.5z"/>'],
+  x: ['X', '<path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/>'],
+  youtube: ['YouTube', '<path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1-5.8 3.1z"/>'],
+};
+function socialIcons() {
+  const s = CONFIG.SOCIAL || {};
+  const links = Object.entries(SOCIAL_ICONS).filter(([k]) => s[k]).map(([k, [label, path]]) =>
+    `<a class="social" href="${esc(s[k])}" target="_blank" rel="noopener" aria-label="Brightpeer on ${label}"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">${path}</svg></a>`).join('');
+  return links ? `<div class="socials">${links}</div>` : '';
+}
+
+// Business areas like Mercor (owner, 20.11.2026: "Brightpeer soll das auch alles haben").
+const SERVICES = [
+  { id: 'experts', nav: 'Expert network', title: 'Hire vetted experts', short: 'Doctors, lawyers, engineers, scientists and finance professionals – reviewed by us and ready to work on your AI projects.',
+    points: ['Professionals from medicine, law, software, engineering, finance, science and consulting', 'Every expert is screened, tested in their field and interviewed', 'Remote, flexible teams – from one specialist to hundreds', 'We handle contracts, quality checks and weekly payouts'] },
+  { id: 'training', nav: 'AI training data', title: 'Train AI with expert knowledge', short: 'Experts write realistic tasks, ideal answers and step-by-step reasoning so your models learn to think like professionals.',
+    points: ['A doctor writes clinical cases and checks medical answers', 'A lawyer reviews legal answers and contract analysis', 'A developer grades and fixes generated code', 'A finance expert checks reports, models and tax answers'] },
+  { id: 'evaluations', nav: 'Model evaluations', title: 'Evaluate and compare AI models', short: 'Side-by-side reviews by real professionals show which model gets it right – and where it still fails.',
+    points: ['Compare models on your own tasks and documents', 'Expert grading for accuracy, safety and reasoning', 'Clear reports with examples, scores and error types', 'Repeatable test runs after every model update'] },
+  { id: 'benchmarks', nav: 'Brightpeer Bench', title: 'Brightpeer Bench', short: 'Our own benchmarks measure how well AI handles real professional work – not trivia, but the tasks experts do every day.',
+    points: ['Tasks written and checked by working professionals', 'Covers medicine, law, software, science, accounting and translation', 'Hard, realistic cases that show where models still fall short', 'Custom private benchmarks for your company on request'] },
+  { id: 'enterprise', nav: 'Enterprise AI', title: 'Build AI for your company', short: 'We help larger companies put AI to work – with experts who know your field.',
+    points: ['Build and test your own AI agents', 'Automate everyday workflows', 'Turn your team’s expert knowledge into AI systems', 'Test and improve AI before it goes live'] },
+  { id: 'data', nav: 'Data services', title: 'Turn your data into value', short: 'We help companies prepare, anonymize and – if they wish – license their work data for AI training.',
+    points: ['Clean up and structure existing work data', 'Remove personal and confidential details', 'Expert review so the data is accurate and useful', 'Optional licensing to AI companies – always with your approval'] },
+];
+
+function servicesGrid() {
+  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><span class="step-n">0${i + 1}</span><h3>${esc(s.title)}</h3><p class="muted">${esc(s.short)}</p><span class="rate">Learn more →</span></a>`).join('')}</div>`;
+}
+
+function pageServices(focus) {
+  return {
+    html: `<section class="wrap section stack" style="padding-bottom:24px">
+      <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Solutions</h1>
+      <p style="font-size:1.15rem;color:var(--ink2);max-width:42rem">Everything companies need to build better AI with real experts – from hiring specialists to training, testing and benchmarking models.</p>
+      <div class="row svc-jump">${SERVICES.map((s) => `<a class="chip" href="#/services/${s.id}">${esc(s.nav)}</a>`).join('')}</div>
+    </section>
+    <section class="wrap" style="padding-bottom:48px">${SERVICES.map((s, i) => `<div class="svc-row" id="svc-${s.id}">
+        <div class="stack" style="gap:8px"><span class="step-n">0${i + 1} · ${esc(s.nav)}</span><h2>${esc(s.title)}</h2><p class="muted" style="font-size:1.05rem">${esc(s.short)}</p></div>
+        <ul class="ticks">${s.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
+      </div>`).join('')}</section>
+    <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>Talk to us about your project</h2><p class="muted">Tell us what you need. We reply within 1–2 business days with a plan and a quote.</p></div><div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a><a class="btn btn-ghost" href="mailto:${esc(CONFIG.COMPANY.email)}">${t('fContact')}</a></div></div></section>`,
+    mount() {
+      const el = focus && document.getElementById('svc-' + focus);
+      if (el) setTimeout(() => el.scrollIntoView({ block: 'start' }), 0);
+    },
+  };
 }
 
 // ---------------------------------------------------------------- public pages
@@ -252,6 +307,10 @@ async function pageHome() {
     <h1 style="max-width:15ch">${t('h1')}</h1>
     <p style="font-size:1.25rem;color:var(--ink2);max-width:40rem">${t('sub')}</p>
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
+  </section>
+  <section class="wrap section stack-lg" style="padding-top:0">
+    <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Six ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
+    ${servicesGrid()}
   </section>
   <section class="wrap section stack-lg">
     <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
@@ -777,6 +836,7 @@ function pageHelp() {
     ['How many hours do I need to work?', 'It depends on the project – most roles are 5 to 30 hours per week, and you can choose what fits you.'],
     ['How does the referral bonus work?', 'Share your link from your dashboard. When your colleague completes their first 10 paid hours, you both get $100.'],
     ['I am a company – how do I start?', 'Create a company account and send a request. We will contact you within 1–2 business days with a quote.'],
+    ['How do companies pay?', 'By prepayment. You top up your Brightpeer balance by card or bank transfer, and approved expert hours are paid from it every week. You can see your balance in your dashboard at any time, and unused balance is refunded on request.'],
     ['How do I delete my account or data?', `Write to ${CONFIG.COMPANY.email} and we will delete your data.`],
   ];
   return `<section class="wrap section narrow stack-lg">
@@ -840,11 +900,12 @@ function pageLegal(which) {
         'Brightpeer selects the Experts. The Client may ask for an Expert to be replaced; Brightpeer will do so within a reasonable time.'])}
       <h2>3. Fees and payment</h2>${ol([
         'Fees are charged per approved Expert hour at the rates in the SOW, unless a fixed price is agreed.',
-        'Brightpeer invoices weekly or monthly, as stated in the SOW. Invoices are due within 14 days, in USD unless agreed otherwise, by bank transfer or another method Brightpeer offers.',
-        'Brightpeer may require a deposit or prepayment for new Clients.',
-        'Late payments bear interest of 5% per year and Brightpeer may pause the Project until payment.',
+        'Brightpeer works with prepayment. Before a Project starts, the Client tops up a prepaid balance in USD (unless agreed otherwise) by card, bank transfer or another method Brightpeer offers.',
+        'Approved Expert hours are deducted from the balance every week. The Client can see the balance in the Brightpeer dashboard.',
+        'If the balance does not cover the expected hours, Brightpeer may pause the Project until the Client tops up again.',
+        'Unused balance is refunded on request within 30 days, minus fees for hours already approved.',
         'Prices exclude VAT and other taxes, which are added where applicable.'])}
-      <h2>4. Timesheets and disputes</h2><p>The Client can see logged hours in the Brightpeer dashboard. Objections to hours or quality must be raised in writing within 7 days of the invoice date, with reasons. Otherwise the invoice counts as accepted.</p>
+      <h2>4. Timesheets and disputes</h2><p>The Client can see logged hours in the Brightpeer dashboard and approves them there. Objections to hours or quality must be raised in writing within 7 days of the hours being logged, with reasons. Otherwise the hours count as accepted.</p>
       <h2>5. Non-solicitation</h2><p>During a Project and for 12 months after it, the Client may not hire or contract directly any Expert introduced by Brightpeer, except through Brightpeer. If it does, the Client pays a placement fee of 25% of that Expert's first-year compensation, or USD 10,000, whichever is higher.</p>
       <h2>6. Confidentiality and data</h2><p>Both parties keep the other's confidential information secret and use it only for the Project. Experts are bound by equivalent confidentiality obligations. If Experts process personal data on the Client's behalf, the parties will sign a data processing agreement.</p>
       <h2>7. Intellectual property</h2><p>Upon full payment, all rights in the work Experts create for the Client's Project pass to the Client. Brightpeer keeps its own tools, methods and know-how.</p>
@@ -861,8 +922,8 @@ function pageLegal(which) {
         ['Account', 'Name, email, password (encrypted), country, language', 'Create and secure your account', 'Contract'],
         ['Profile and application', 'CV, education, licences, work history, skills, test results, LinkedIn link', 'Assess and match Experts to projects', 'Contract, legitimate interest'],
         ['Identity checks', 'ID document, selfie for verification (if requested)', 'Prevent fraud, confirm identity', 'Legal obligation, legitimate interest'],
-        ['Work data', 'Logged hours, task outputs, quality reviews', 'Run projects, pay Experts, invoice Clients', 'Contract'],
-        ['Payment', 'Bank or PayPal details, invoices, tax information', 'Pay Experts, bill Clients', 'Contract, legal obligation'],
+        ['Work data', 'Logged hours, task outputs, quality reviews', 'Run projects, pay Experts, collect Client prepayments', 'Contract'],
+        ['Payment', 'Bank or PayPal details, prepayments, receipts, tax information', 'Pay Experts, collect Client prepayments', 'Contract, legal obligation'],
         ['Client contacts', 'Name, company, role, email', 'Manage Client relationships', 'Contract, legitimate interest'],
         ['Usage', 'IP address, device, browser (server logs of our hosting providers)', 'Security, running the site', 'Legitimate interest'],
         ['Communication', 'Emails, support messages', 'Answer requests', 'Contract, legitimate interest']])}
@@ -1197,21 +1258,39 @@ async function pageInterview() {
 // ---------------------------------------------------------------- company dashboard
 async function companyDashboard() {
   const uid = session.user.id;
-  const [co, reqs, cons, ts, inv] = await Promise.all([
+  const [co, reqs, cons, ts, inv, bal, prep] = await Promise.all([
     sb.from('companies').select('*').eq('id', uid).maybeSingle(),
     sb.from('requests').select('*').eq('company_id', uid).order('created_at', { ascending: false }),
     sb.rpc('company_contracts'),
     sb.rpc('company_timesheets'),
     sb.from('invoices').select('*').eq('company_id', uid).order('week_start', { ascending: false }),
+    sb.rpc('company_balance'),
+    sb.from('prepayments').select('*').eq('company_id', uid).order('created_at', { ascending: false }),
   ]);
   const c = co.data || {};
   const sheets = ts.data || [];
   const B = CONFIG.BANK;
   const toApprove = sheets.filter((s) => s.status === 'submitted');
+  const b = (bal.data && bal.data[0]) || { paid: 0, used: 0, balance: 0 };
+  const balance = Number(b.balance) || 0;
+  const low = balance < (CONFIG.LOW_BALANCE || 500);
+  const bankRef = (id) => `<details><summary class="link">${t('payByBank')}</summary><p class="small" style="margin-top:6px">${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Ref: PRE-${esc(id.slice(0, 8).toUpperCase())}</p></details>`;
+  const prepAction = (p) => p.status === 'open' ? (p.payment_link ? `<a class="btn btn-accent btn-sm" href="${esc(p.payment_link)}" target="_blank" rel="noopener">${t('payNow')}</a>` : bankRef(p.id)) : p.status === 'requested' ? '<span class="muted small">We will send the payment details shortly</span>' : '';
+  const showInvoices = !CONFIG.PREPAYMENT_ONLY && (inv.data || []).length;
 
   return {
     html: `<section class="wrap section stack-lg">
       <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
+
+      <div class="card stack ${low ? 'offer' : ''}" id="balance">
+        <div class="row between" style="align-items:flex-start;gap:20px">
+          <div class="stack" style="gap:4px"><p class="muted small">Prepaid balance</p><p class="stat-v" style="color:${balance < 0 ? 'var(--bad)' : 'var(--ink)'}">${money(balance)}</p>
+            <p class="muted small">Paid in: ${money(b.paid)} · Used for approved hours: ${money(b.used)}</p></div>
+          <form id="topF" class="row" style="align-items:flex-end"><label class="f" style="width:160px">Amount (USD)<input name="amount" type="number" min="100" max="1000000" step="1" value="1000" required></label><button class="btn btn-accent" type="submit">Top up balance</button></form>
+        </div>
+        <p class="small ${low ? '' : 'muted'}">${low ? '<b>Your balance is low.</b> Experts only start or continue working while your balance covers their hours. ' : ''}Brightpeer works with prepayment: you top up your balance first, and approved expert hours are paid from it each week. Unused balance is refunded on request.</p>
+        ${(prep.data || []).length ? table(['Date', t('amount'), t('status'), ''], prep.data.map((p) => [dateStr(p.created_at), money(p.amount), pill(p.status), prepAction(p)])) : ''}
+      </div>
 
       <form id="reqF" class="card stack"><h3>${t('newRequest')}</h3>
         <div class="form-grid">
@@ -1238,12 +1317,20 @@ async function companyDashboard() {
         ${toApprove.length ? '' : ''}
       </div>
 
-      <div class="stack"><h2 style="font-size:1.6rem">${t('invoicesH')}</h2>
+      ${showInvoices ? `<div class="stack"><h2 style="font-size:1.6rem">${t('invoicesH')}</h2>
         ${table([t('weekStart'), t('hoursWorked'), t('amount'), t('status'), ''], (inv.data || []).map((i) => [dateStr(i.week_start), esc(i.hours), money(i.amount), pill(i.status),
           i.status === 'open' ? (i.payment_link ? `<a class="btn btn-accent btn-sm" href="${esc(i.payment_link)}" target="_blank" rel="noopener">${t('payNow')}</a>` : `<details><summary class="link">${t('payByBank')}</summary><p class="small" style="margin-top:6px">${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Ref: INV-${esc(i.id.slice(0, 8).toUpperCase())}</p></details>`) : '']))}
-      </div>
+      </div>` : ''}
     </section>`,
     mount() {
+      const tf = document.getElementById('topF');
+      tf.onsubmit = async (ev) => {
+        ev.preventDefault(); const amount = Number(formData(tf).amount); if (!(amount >= 100)) return toast('Minimum top-up is $100', true);
+        busy(tf, true);
+        const { error } = await sb.from('prepayments').insert({ company_id: uid, amount });
+        busy(tf, false); if (error) return fail(error);
+        toast('Top-up requested – we will send the payment details shortly'); render();
+      };
       const f = document.getElementById('reqF');
       f.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(f); busy(f, true);
@@ -1287,8 +1374,9 @@ async function pageAdmin() {
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
   await deleteQueuedFiles();
-  const TABS = ['overview', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'invoices', 'payouts'];
-  const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${t(k)}</button>`).join('')}</div>`;
+  const TABS = ['overview', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts'];
+  if (!TABS.includes(adminTab)) adminTab = 'overview';
+  const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${k === 'prepayTab' ? 'Prepayments' : t(k)}</button>`).join('')}</div>`;
   const view = await ADMIN[adminTab]();
   return {
     html: `<section class="wrap section stack-lg"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('admin')}</h1>${tabBar}<div id="adminView">${view.html}</div></section>`,
@@ -1311,6 +1399,51 @@ async function deleteQueuedFiles() {
 }
 
 const ADMIN = {
+  // Prepayments (owner, 20.11.2026: at the start companies only pay in advance)
+  async prepayTab() {
+    const [{ data, error }, { data: cos }] = await Promise.all([
+      sb.from('prepayments').select('*, companies(company_name, profiles(email))').order('created_at', { ascending: false }),
+      sb.from('companies').select('id, company_name').order('company_name'),
+    ]);
+    if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    const ids = [...new Set((cos || []).map((c) => c.id))];
+    const bals = await Promise.all(ids.map((id) => sb.rpc('company_balance', { p_company: id }).then((r) => [id, (r.data && r.data[0]) || {}])));
+    const name = Object.fromEntries((cos || []).map((c) => [c.id, c.company_name || '–']));
+    return {
+      html: `<div class="stack-lg">
+        <div class="stack"><h3>Balances</h3>
+          ${table(['Company', 'Paid in', 'Used', 'Balance'], bals.map(([id, b]) => [esc(name[id]), money(b.paid || 0), money(b.used || 0), `<b style="color:${Number(b.balance) < (CONFIG.LOW_BALANCE || 500) ? 'var(--bad)' : 'var(--ok)'}">${money(b.balance || 0)}</b>`]))}
+          <p class="muted small">Only let experts work (and approve hours) while the company's balance covers them. Red = low or negative.</p>
+        </div>
+        <form id="addPrep" class="card row" style="align-items:flex-end">
+          <label class="f" style="flex:1 1 200px">Company<select name="company_id" required>${(cos || []).map((c) => `<option value="${c.id}">${esc(c.company_name || c.id)}</option>`).join('')}</select></label>
+          <label class="f" style="width:150px">Amount (USD)<input name="amount" type="number" min="1" required></label>
+          <button class="btn btn-accent" type="submit">Create prepayment request</button>
+        </form>
+        <p class="muted small">Flow: company requests a top-up (or you create one) → paste a Stripe Payment Link for the amount (stripe.com → Payment Links) → status becomes “open” and the company sees “Pay now” → when the money has arrived, click “Mark paid”. Without a link the company sees your bank details.</p>
+        ${table(['Company', 'Date', t('amount'), 'Payment link', t('status'), ''], (data || []).map((p) => [
+          `${esc(p.companies?.company_name || '')}<br><span class="small muted">${esc(p.companies?.profiles?.email || '')}</span>`, dateStr(p.created_at), money(p.amount),
+          p.status === 'paid' || p.status === 'cancelled' ? esc(p.payment_link || '') : `<input data-plink="${p.id}" value="${esc(p.payment_link || '')}" placeholder="https://buy.stripe.com/…" style="min-width:200px;min-height:36px;padding:4px 8px">`,
+          pill(p.status),
+          p.status === 'requested' || p.status === 'open' ? `<div class="row">${p.status === 'requested' ? `<button class="btn btn-ghost btn-sm" data-popen="${p.id}">Send bank details</button>` : ''}<button class="btn btn-sm" data-ppaid="${p.id}">Mark paid</button><button class="btn btn-danger btn-sm" data-pcancel="${p.id}">Cancel</button></div>` : '',
+        ]))}
+      </div>`,
+      mount() {
+        const f = document.getElementById('addPrep');
+        f.onsubmit = async (ev) => {
+          ev.preventDefault(); const d = formData(f); busy(f, true);
+          const { error: er } = await sb.from('prepayments').insert({ company_id: d.company_id, amount: Number(d.amount), status: 'open' });
+          busy(f, false); if (er) return fail(er); toast(t('saved')); render();
+        };
+        const upd = async (id, patch) => { const { error: er } = await sb.from('prepayments').update(patch).eq('id', id); if (er) return fail(er); render(); };
+        $app.querySelectorAll('[data-plink]').forEach((inp) => { inp.onchange = () => { const v = inp.value.trim() || null; upd(inp.dataset.plink, v ? { payment_link: v, status: 'open' } : { payment_link: null }); }; });
+        $app.querySelectorAll('[data-popen]').forEach((b) => { b.onclick = () => upd(b.dataset.popen, { status: 'open' }); });
+        $app.querySelectorAll('[data-ppaid]').forEach((b) => { b.onclick = () => upd(b.dataset.ppaid, { status: 'paid', paid_at: new Date().toISOString() }); });
+        $app.querySelectorAll('[data-pcancel]').forEach((b) => { b.onclick = () => upd(b.dataset.pcancel, { status: 'cancelled' }); });
+      },
+    };
+  },
+
   async overview() {
     const { data, error } = await sb.rpc('admin_stats');
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
@@ -1812,6 +1945,7 @@ async function render() {
       case 'login': page = pageLogin(); break;
       case 'reset': page = pageReset(); break;
       case 'companies': page = pageCompanies(); break;
+      case 'services': page = pageServices(parts[1]); break;
       case 'research': page = pageResearch(); break;
       case 'info': page = pageInfo(); break;
       case 'about': page = pageAbout(); break;
@@ -1832,9 +1966,9 @@ async function render() {
   renderHeader();
   renderFooter();
   $app.innerHTML = page.html;
+  window.scrollTo(0, 0);
   if (page.mount) page.mount();
   floatingVideo(parts[0] === undefined);
-  window.scrollTo(0, 0);
   document.getElementById('loader').classList.add('hide');
 }
 
