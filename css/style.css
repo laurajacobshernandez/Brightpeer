@@ -158,3 +158,28 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 /* Google / Microsoft sign-in buttons */
 .oauth-btn{width:100%;justify-content:center;gap:10px}
 .oauth-btn svg{flex:none}
+
+/* Mercor-like job pages (20.11.2026) */
+.filters{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.filters #q{grid-column:1/-1}}
+.role-pay{font-family:var(--display);font-size:1.4rem;font-weight:600;color:var(--accent)}
+.chip-sm{font-size:.75rem;padding:3px 8px}
+.role-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
+.role-side{position:sticky;top:88px;gap:12px}
+@media (max-width:900px){.role-layout{grid-template-columns:minmax(0,1fr)}.role-side{position:static}}
+.ticks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.ticks li{position:relative;padding-left:26px}
+.ticks li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:700}
+.steps-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--ink2)}
+.cv-drop{border:1px dashed var(--line2);border-radius:14px;padding:14px;background:var(--accent-soft)}
+.filled{border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--accent-soft)}
+.progress{height:8px;border-radius:999px;background:var(--chip);overflow:hidden}
+.progress span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.checklist li{display:flex;align-items:center;gap:10px}
+.checklist li.ok{color:var(--ink3)}
+.checklist li.ok span:last-child{text-decoration:line-through}
+.cbox{width:22px;height:22px;border-radius:50%;border:2px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex:none}
+.checklist li.ok .cbox{background:var(--accent);border-color:var(--accent);color:#fff}
+.offer{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.wrap.section{padding:72px 24px}

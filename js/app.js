@@ -53,13 +53,13 @@ function toast(msg, isErr = false) {
 function fail(e) { console.error(e); toast((e && e.message) || t('error'), true); }
 
 const PILL = {
-  pending: 'warn', submitted: 'warn', new: 'warn', open: 'warn', in_progress: 'info', shortlisted: 'info',
+  pending: 'warn', submitted: 'warn', new: 'warn', open: 'warn', in_progress: 'info', shortlisted: 'info', offered: 'info', reviewed: 'ok',
   approved: 'ok', accepted: 'ok', active: 'ok', paid: 'ok', done: 'ok',
   rejected: 'bad', declined: 'bad', ended: 'grey', closed: 'grey', passed: 'ok', failed: 'bad',
 };
 const STATUS_LABEL = {
   pending: 'pending', submitted: 'submitted', new: 'stNew', open: 'open', in_progress: 'stInProgress', approved: 'approved',
-  accepted: 'approved', active: 'active', paid: 'paid', done: 'stDone', rejected: 'rejected', declined: 'stDeclined', ended: 'ended', passed: 'stPassed', failed: 'stFailed',
+  accepted: 'approved', active: 'active', offered: 'stOffered', reviewed: 'stReviewed', shortlisted: 'stShortlisted', paid: 'paid', done: 'stDone', rejected: 'rejected', declined: 'stDeclined', ended: 'ended', passed: 'stPassed', failed: 'stFailed',
 };
 const pill = (s) => `<span class="pill pill-${PILL[s] || 'grey'}">${esc(STATUS_LABEL[s] ? t(STATUS_LABEL[s]) : s)}</span>`;
 
@@ -210,11 +210,17 @@ function renderFooter() {
 }
 
 // ---------------------------------------------------------------- public pages
+const skillList = (v) => String(v || '').split(',').map((x) => x.trim()).filter(Boolean);
+const lines = (v) => String(v || '').split('\n').map((x) => x.replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
+
+// Job card like Mercor: pay first, then title, field, commitment and a few skills.
 function roleCard(r) {
-  return `<a class="card card-link" href="#/roles/${esc(r.id)}">
-    <span class="chip">${esc(fieldName(r.field))}</span>
+  return `<a class="card card-link role-card" href="#/roles/${esc(r.id)}">
+    <div class="row between" style="gap:8px"><span class="chip">${esc(fieldName(r.field))}</span><span class="muted small">${t('remote')}</span></div>
     <span style="font-size:1.15rem;font-weight:600;line-height:1.3">${esc(r.title)}</span>
-    <span class="muted small">${money(r.rate_min)}–${money(r.rate_max)} ${t('perHour')} · ${t('remote')} · ${esc(r.hours_per_week || '')}</span>
+    <span class="role-pay">${money(r.rate_min)}–${money(r.rate_max)} <span class="muted small">${t('perHour')}</span></span>
+    <span class="muted small">${esc(r.hours_per_week || '')}</span>
+    ${skillList(r.skills).length ? `<div class="row" style="gap:6px">${skillList(r.skills).slice(0, 3).map((k) => `<span class="chip chip-sm">${esc(k)}</span>`).join('')}</div>` : ''}
     <span class="rate">${t('apply')} →</span>
   </a>`;
 }
@@ -251,20 +257,31 @@ async function pageHome() {
 
 async function pageRoles() {
   const roles = await getRoles();
+  const q0 = parseHash().query;
   return {
     html: `<section class="wrap section stack-lg">
       <div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('rolesH')}</h1><p class="muted">${t('rolesSub')}</p></div>
-      <div class="row"><input id="q" type="search" placeholder="${esc(t('search'))}" style="flex:2 1 260px"><select id="ff" style="flex:1 1 200px"><option value="">${t('allFields')}</option>${fieldOptions()}</select></div>
+      <div class="filters">
+        <input id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(q0.get('q') || '')}">
+        <select id="ff"><option value="">${t('allFields')}</option>${fieldOptions(q0.get('field') || '')}</select>
+        <select id="fp"><option value="0">${t('anyPay')}</option>${[50, 80, 100, 120].map((v) => `<option value="${v}">${money(v)}+ ${t('perHour')}</option>`).join('')}</select>
+        <select id="fs"><option value="new">${t('sortNew')}</option><option value="pay">${t('sortPay')}</option></select>
+      </div>
+      <p class="muted small" id="roleCount"></p>
       <div class="grid" id="roleList"></div>
     </section>`,
     mount() {
-      const q = document.getElementById('q'); const ff = document.getElementById('ff'); const list = document.getElementById('roleList');
+      const q = document.getElementById('q'); const ff = document.getElementById('ff'); const fp = document.getElementById('fp'); const fs = document.getElementById('fs');
+      const list = document.getElementById('roleList'); const count = document.getElementById('roleCount');
       const draw = () => {
-        const s = q.value.trim().toLowerCase(); const f = ff.value;
-        const res = roles.filter((r) => (!f || r.field === f) && (!s || (r.title + ' ' + r.field + ' ' + (r.description || '')).toLowerCase().includes(s)));
+        const s = q.value.trim().toLowerCase(); const f = ff.value; const minPay = Number(fp.value);
+        let res = roles.filter((r) => (!f || r.field === f) && Number(r.rate_max) >= minPay
+          && (!s || [r.title, r.field, fieldName(r.field), r.description, r.skills].join(' ').toLowerCase().includes(s)));
+        if (fs.value === 'pay') res = [...res].sort((a, b) => Number(b.rate_max) - Number(a.rate_max));
+        count.textContent = t('rolesCount').replace('{n}', res.length);
         list.innerHTML = res.length ? res.map(roleCard).join('') : `<p class="muted">${t('noRoles')}</p>`;
       };
-      q.oninput = draw; ff.onchange = draw; draw();
+      [q, ff, fp, fs].forEach((el) => { el.oninput = draw; el.onchange = draw; }); draw();
     },
   };
 }
@@ -276,36 +293,51 @@ async function pageRole(id) {
     role = data;
   } else role = DEMO_ROLES.find((r) => r.id === id);
   if (!role) return pageNotFound();
+  const others = (await getRoles()).filter((r) => r.id !== role.id).sort((a, b) => (b.field === role.field) - (a.field === role.field)).slice(0, 3);
 
+  // Apply in one step (like Mercor): signed-out visitors create their account and the application is sent right after.
   let action = '';
-  let existing = null;
   if (!session) {
-    action = `<p class="muted">${t('loginToApply')}</p><div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/login">${t('login')}</a></div>`;
+    action = `<a class="btn btn-accent" href="#/apply?role=${esc(role.id)}" id="applyStart">${t('applyNow')}</a>
+      <p class="muted small">${t('applyOneStep')}</p><a class="small" href="#/login">${t('haveAccount')} ${t('login')}</a>`;
   } else if (profile?.role !== 'expert') {
     action = `<p class="muted">${t('mustBeExpert')}</p>`;
   } else {
-    const { data } = await sb.from('applications').select('id,status').eq('role_id', role.id).eq('expert_id', session.user.id).maybeSingle();
-    existing = data;
+    const { data: existing } = await sb.from('applications').select('id,status').eq('role_id', role.id).eq('expert_id', session.user.id).maybeSingle();
     action = existing
-      ? `<div class="form-msg ok">${t('applied')} ${pill(existing.status)}</div>`
-      : `<form id="applyRole" class="stack"><label class="f">${t('applyNote')}<textarea name="note" maxlength="2000"></textarea></label><button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('sendApplication')}</button></form>`;
+      ? `<div class="form-msg ok">${t('applied')} ${pill(existing.status)}</div><a class="btn btn-ghost btn-sm" href="#/dashboard">${t('nextSteps')} →</a>`
+      : `<form id="applyRole" class="stack"><button class="btn btn-accent" type="submit">${t('applyOneClick')}</button>
+          <details><summary class="link small">${t('addNote')}</summary><textarea name="note" maxlength="2000" style="margin-top:8px"></textarea></details></form>`;
   }
+  const resp = lines(role.responsibilities); const skills = skillList(role.skills);
 
   return {
-    html: `<section class="wrap section narrow stack-lg">
+    html: `<section class="wrap section stack-lg">
       <a href="#/roles">${t('back')}</a>
-      <span class="chip">${esc(fieldName(role.field))}</span>
-      <h1 style="font-size:clamp(2rem,5vw,3.2rem)">${esc(role.title)}</h1>
-      <div class="grid-sm">
-        <div class="card"><p class="muted small">${t('pay')}</p><p class="rate" style="font-size:1.25rem">${money(role.rate_min)}–${money(role.rate_max)} ${t('perHour')}</p></div>
-        <div class="card"><p class="muted small">${t('hours')}</p><p style="font-weight:600">${esc(role.hours_per_week || '')}</p></div>
-        <div class="card"><p class="muted small">${t('remote')}</p><p style="font-weight:600">🌍</p></div>
+      <div class="role-layout">
+        <div class="stack-lg" style="min-width:0">
+          <div class="stack" style="gap:12px"><span class="chip">${esc(fieldName(role.field))}</span>
+            <h1 style="font-size:clamp(2rem,5vw,3.2rem)">${esc(role.title)}</h1>
+            <p class="muted">${money(role.rate_min)}–${money(role.rate_max)} ${t('perHour')} · ${t('remote')} · ${esc(role.hours_per_week || '')}</p></div>
+          <div class="stack"><h3>${t('aboutRole')}</h3><p style="white-space:pre-line">${esc(role.description)}</p></div>
+          ${resp.length ? `<div class="stack"><h3>${t('responsibilities')}</h3><ul class="ticks">${resp.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+          <div class="stack"><h3>${t('requirements')}</h3><p style="white-space:pre-line">${esc(role.requirements)}</p></div>
+          ${skills.length ? `<div class="stack"><h3>${t('skillsH')}</h3><div class="row" style="gap:8px">${skills.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div></div>` : ''}
+          <div class="card stack"><h3>${t('howApplyH')}</h3><ol class="steps-list"><li>${t('howApply1')}</li><li>${t('howApply2')}</li><li>${t('howApply3')}</li><li>${t('howApply4')}</li></ol></div>
+        </div>
+        <aside class="card stack role-side">
+          <p class="muted small">${t('pay')}</p><p class="role-pay">${money(role.rate_min)}–${money(role.rate_max)} <span class="muted small">${t('perHour')}</span></p>
+          <div class="row between small"><span class="muted">${t('hours')}</span><b>${esc(role.hours_per_week || '')}</b></div>
+          <div class="row between small"><span class="muted">${t('location')}</span><b>${t('remote')} 🌍</b></div>
+          <div class="row between small"><span class="muted">${t('paidH')}</span><b>${t('weekly')}</b></div>
+          ${action}
+        </aside>
       </div>
-      <div class="stack"><h3>${t('aboutRole')}</h3><p style="white-space:pre-line">${esc(role.description)}</p></div>
-      <div class="stack"><h3>${t('requirements')}</h3><p style="white-space:pre-line">${esc(role.requirements)}</p></div>
-      <div class="card stack">${action}</div>
+      ${others.length ? `<div class="stack"><h2 style="font-size:1.6rem">${t('similarRoles')}</h2><div class="grid">${others.map(roleCard).join('')}</div></div>` : ''}
     </section>`,
     mount() {
+      const st = document.getElementById('applyStart');
+      if (st) st.onclick = () => { try { localStorage.setItem(APPLY_KEY, JSON.stringify({ role: role.id, at: Date.now() })); } catch { /* ignore */ } };
       const f = document.getElementById('applyRole');
       if (f) f.onsubmit = async (e) => {
         e.preventDefault(); busy(f, true);
@@ -318,6 +350,102 @@ async function pageRole(id) {
   };
 }
 
+// A role chosen before signing up is applied for automatically once the expert account exists (one-step apply).
+const APPLY_KEY = 'bp-apply-role';
+async function finishPendingApply() {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem(APPLY_KEY) || 'null'); } catch { p = null; }
+  if (!p || !sb || !session || profile?.role !== 'expert') return;
+  try { localStorage.removeItem(APPLY_KEY); } catch { /* ignore */ }
+  if (Date.now() - (p.at || 0) > 7 * 864e5 || String(p.role).startsWith('demo-')) return;
+  const { error } = await sb.from('applications').insert({ role_id: p.role, expert_id: session.user.id });
+  if (!error) toast(t('applied'));
+}
+
+// ---------------------------------------------------------------- CV → profile (like Mercor, 20.11.2026)
+// The PDF is read in the browser (pdf.js); nothing is sent anywhere. The result only fills form fields –
+// the person checks and saves them.
+let pdfjsLib = null;
+async function loadPdfJs() {
+  if (pdfjsLib) return pdfjsLib;
+  const base = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/';
+  pdfjsLib = await import(base + 'pdf.min.mjs');
+  try {
+    const blob = new Blob([`import "${base}pdf.worker.min.mjs";`], { type: 'text/javascript' });
+    pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(URL.createObjectURL(blob), { type: 'module' });
+  } catch { pdfjsLib.GlobalWorkerOptions.workerSrc = base + 'pdf.worker.min.mjs'; }
+  return pdfjsLib;
+}
+
+async function pdfText(file) {
+  const lib = await loadPdfJs();
+  const doc = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  let out = '';
+  for (let i = 1; i <= Math.min(doc.numPages, 6); i++) {
+    const c = await (await doc.getPage(i)).getTextContent();
+    out += c.items.map((it) => it.str + (it.hasEOL ? '\n' : ' ')).join('') + '\n';
+  }
+  return out;
+}
+
+const FIELD_WORDS = {
+  'Medicine': ['physician', 'doctor', 'medical', 'medicine', 'clinic', 'hospital', 'resident', 'surgeon', 'md', 'arzt', 'ärztin', 'medizin', 'spital', 'médecin', 'medico'],
+  'Law': ['lawyer', 'attorney', 'legal', 'law', 'counsel', 'jurist', 'rechtsanwalt', 'anwalt', 'recht', 'avocat', 'avvocato', 'abogado'],
+  'Software': ['software', 'developer', 'engineer', 'python', 'javascript', 'typescript', 'java', 'react', 'backend', 'frontend', 'devops', 'programmer', 'entwickler'],
+  'Chemistry & Math': ['chemistry', 'chemist', 'mathematics', 'mathematician', 'physics', 'statistics', 'chemie', 'mathematik', 'physik', 'phd'],
+  'Pharmacy': ['pharmacist', 'pharmacy', 'pharmaceutical', 'apotheke', 'apotheker', 'pharmacien', 'farmacista'],
+  'Accounting': ['accountant', 'accounting', 'cpa', 'tax', 'audit', 'auditor', 'bookkeeping', 'buchhaltung', 'treuhand', 'steuer', 'comptable'],
+  'Translation (DE)': ['translator', 'translation', 'localization', 'interpreter', 'übersetzer', 'übersetzung', 'dolmetscher', 'traducteur'],
+};
+const SKILL_WORDS = ['Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'C#', 'Golang', 'Rust', 'SQL', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
+  'Machine Learning', 'Data analysis', 'Excel', 'SAP', 'IFRS', 'US GAAP', 'Tax', 'Audit', 'Contract law', 'Corporate law', 'Litigation', 'Compliance',
+  'GDPR', 'Clinical research', 'Diagnosis', 'Surgery', 'Pharmacology', 'Patient care', 'Statistics', 'LaTeX', 'MATLAB', 'Organic chemistry',
+  'Translation', 'Proofreading', 'Localization', 'SDL Trados', 'German', 'English', 'French', 'Italian', 'Spanish', 'Project management', 'Research', 'Teaching'];
+
+function parseCvText(text) {
+  const low = text.toLowerCase();
+  const words = low.match(/[a-zäöüéèàç+#.]+/g) || [];
+  const count = (list) => list.reduce((n, w) => n + words.filter((x) => x === w || (w.length > 5 && x.startsWith(w))).length, 0);
+  const scores = Object.entries(FIELD_WORDS).map(([f, list]) => [f, count(list)]).sort((a, b) => b[1] - a[1]);
+  const field = scores[0][1] >= 2 ? scores[0][0] : '';
+  const li = text.match(/(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/[\w\-%.]+\/?/i);
+  // Experience: earliest start year of "2015 – 2023" / "03/2016 - present" ranges, preferably inside the experience section.
+  const sec = (() => {
+    const m = low.search(/(work )?experience|employment|berufserfahrung|erfahrung|expérience|esperienza|experiencia/);
+    if (m < 0) return low;
+    const rest = low.slice(m);
+    const e = rest.slice(20).search(/education|ausbildung|studium|formation|istruzione|educación|skills|kenntnisse/);
+    return e < 0 ? rest : rest.slice(0, e + 20);
+  })();
+  const now = new Date().getFullYear();
+  const starts = [...sec.matchAll(/((?:19|20)\d{2})\s*(?:[-–—]|to|bis|à|a)\s*(?:\d{1,2}[./])?((?:19|20)\d{2}|present|current|today|now|heute|jetzt|aujourd|oggi|attuale|actual)/g)]
+    .map((m) => Number(m[1])).filter((y) => y > 1960 && y <= now);
+  const years = starts.length ? Math.min(60, now - Math.min(...starts)) : null;
+  const skills = SKILL_WORDS.filter((k) => new RegExp(`(^|[^a-z])${k.toLowerCase().replace(/[.+#]/g, (c) => '\\' + c)}([^a-z]|$)`).test(low)).slice(0, 12);
+  const firstLines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 3 && l.length < 90).slice(0, 15);
+  const fw = field ? FIELD_WORDS[field] : [];
+  const headline = firstLines.find((l) => fw.some((w) => l.toLowerCase().includes(w))) || '';
+  const sm = text.match(/(?:summary|profile|about me|profil|über mich|zusammenfassung|à propos|sommario|perfil)\s*[:\n]\s*([\s\S]{40,700}?)(?:\n\s*\n|experience|berufserfahrung|education|ausbildung)/i);
+  const bio = sm ? sm[1].replace(/\s+/g, ' ').trim().slice(0, 600) : '';
+  return { field, years, linkedin: li ? (li[0].startsWith('http') ? li[0] : 'https://' + li[0]) : '', skills: skills.join(', '), headline, bio };
+}
+
+async function readCv(file) {
+  try { return parseCvText(await pdfText(file)); } catch (e) { console.warn('CV could not be read', e); return null; }
+}
+
+// Fills empty fields of a form (or all when overwrite) from the parsed CV; returns how many were filled.
+function fillFromCv(form, cv, map, overwrite = false) {
+  let n = 0;
+  Object.entries(map).forEach(([key, name]) => {
+    const el = form.querySelector(`[name=${name}]`); const v = cv[key];
+    if (!el || v === null || v === undefined || v === '') return;
+    if (!overwrite && el.value && !(el.tagName === 'SELECT' && el.selectedIndex === 0)) return;
+    el.value = v; el.classList.add('filled'); n++;
+  });
+  return n;
+}
+
 function authForm(kind) {
   // kind: 'expert' | 'company'
   const q = parseHash().query;
@@ -325,6 +453,7 @@ function authForm(kind) {
   const google = oauthHtml();
   const expertFields = `
     <h3>${t('stepProfile')}</h3>
+    <label class="f cv-drop">${t('cvAutoL')}<input name="cv_file" type="file" accept="application/pdf"><span class="muted small" id="cvAutoMsg">${t('cvAutoP')}</span></label>
     <div class="form-grid">
       <label class="f">${t('field')} *<select name="field" required>${fieldOptions()}</select></label>
       <label class="f">${t('years')} *<input name="years" type="number" min="0" max="60" required></label>
@@ -361,10 +490,22 @@ function authForm(kind) {
 function mountSignup(kind) {
   const f = document.getElementById('signup');
   mountOAuth(f, kind);
+  let cvFile = null;
+  const cvIn = f.querySelector('[name=cv_file]');
+  if (cvIn) cvIn.onchange = async () => {
+    const file = cvIn.files[0]; const msg = document.getElementById('cvAutoMsg');
+    if (!file) return;
+    if (file.type !== 'application/pdf' || file.size > 10 * 1024 * 1024) { cvFile = null; msg.textContent = 'PDF, max. 10 MB'; return; }
+    cvFile = file; msg.textContent = t('cvReading');
+    const cv = await readCv(file);
+    const n = cv ? fillFromCv(f, cv, { field: 'field', years: 'years', linkedin: 'linkedin', bio: 'bio' }) : 0;
+    msg.textContent = n ? t('cvFilled') : t('cvNotRead');
+  };
   f.onsubmit = async (e) => {
     e.preventDefault();
     if (!sb) return toast(t('notConfigured'), true);
     const d = formData(f);
+    delete d.cv_file;
     const meta = { role: kind, full_name: d.full_name, country: d.country };
     if (kind === 'expert') Object.assign(meta, { field: d.field, years: d.years, rate: d.rate, linkedin: d.linkedin, bio: d.bio, ref: d.ref });
     else Object.assign(meta, { company_name: d.company_name, website: d.website });
@@ -373,7 +514,15 @@ function mountSignup(kind) {
     busy(f, false);
     const msg = document.getElementById('signupMsg');
     if (error) { msg.innerHTML = `<div class="form-msg err">${esc(error.message)}</div>`; return; }
-    if (data.session) { go('#/dashboard'); return; }
+    if (data.session) {
+      // Keep the CV chosen in the form (when the account is usable right away).
+      if (cvFile) {
+        const path = `${data.session.user.id}/cv-${Date.now()}.pdf`;
+        const up = await sb.storage.from('cvs').upload(path, cvFile, { contentType: 'application/pdf' });
+        if (!up.error) await sb.from('experts').update({ cv_path: path }).eq('id', data.session.user.id);
+      }
+      go('#/dashboard'); return;
+    }
     f.innerHTML = `<div class="form-msg ok">${t('checkEmail')}</div>`;
   };
 }
@@ -382,7 +531,11 @@ function pageApply() {
   if (session) return { html: '', mount() { go('#/dashboard'); } };
   return {
     html: `<section class="wrap section narrow stack-lg"><div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('applyH')}</h1><p class="muted">${t('applySub')}</p></div>${authForm('expert')}</section>`,
-    mount() { mountSignup('expert'); },
+    mount() {
+      const role = parseHash().query.get('role');
+      if (role) { try { localStorage.setItem(APPLY_KEY, JSON.stringify({ role, at: Date.now() })); } catch { /* ignore */ } }
+      mountSignup('expert');
+    },
   };
 }
 
@@ -625,12 +778,13 @@ function needLogin() {
 // ---------------------------------------------------------------- expert dashboard
 async function expertDashboard() {
   const uid = session.user.id;
-  const [ex, apps, cons, ts, pays] = await Promise.all([
+  const [ex, apps, cons, ts, pays, ivq] = await Promise.all([
     sb.from('experts').select('*').eq('id', uid).maybeSingle(),
     sb.from('applications').select('id,status,created_at,roles(title)').eq('expert_id', uid).order('created_at', { ascending: false }),
     sb.rpc('expert_contracts'),
     sb.from('timesheets').select('*').eq('expert_id', uid).order('week_start', { ascending: false }),
     sb.from('payouts').select('*').eq('expert_id', uid).order('week_start', { ascending: false }),
+    sb.from('interviews').select('status').eq('expert_id', uid).maybeSingle(),
   ]);
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
   const { data: myPayout } = await sb.rpc('my_payout_details');
@@ -645,14 +799,45 @@ async function expertDashboard() {
   const refLink = `${location.origin}${location.pathname}#/apply?ref=${e.referral_code || ''}`;
   const conTitle = Object.fromEntries(contracts.map((c) => [c.id, c.title]));
   const active = contracts.filter((c) => c.status === 'active');
+  const offers = contracts.filter((c) => c.status === 'offered');
+  const ivStatus = ivq.data?.status || '';
+  // Next steps like Mercor's onboarding: profile → CV → interview → payout details → apply.
+  const steps = [
+    [!!(e.field && e.bio), t('ns1'), '#profileF'],
+    [!!e.cv_path, t('ns2'), '#cvCard'],
+    [ivStatus === 'submitted' || ivStatus === 'reviewed', ivStatus === 'in_progress' ? t('ns3c') : t('ns3'), '#/interview'],
+    [!!(e.payout_method && myPayout), t('ns4'), '#payoutF'],
+    [(apps.data || []).length > 0, t('ns5'), '#/roles'],
+  ];
+  const doneN = steps.filter((x) => x[0]).length;
+  const nextCard = doneN === steps.length ? '' : `<div class="card stack" id="nextSteps">
+    <div class="row between"><h3>${t('nextSteps')}</h3><span class="muted small">${doneN} / ${steps.length}</span></div>
+    <div class="progress"><span style="width:${Math.round((doneN / steps.length) * 100)}%"></span></div>
+    <ul class="checklist">${steps.map(([ok, label, href]) => `<li class="${ok ? 'ok' : ''}"><span class="cbox">${ok ? '✓' : ''}</span>${ok ? `<span>${label}</span>` : `<a href="${href}" ${href.startsWith('#/') ? '' : 'data-scroll'}>${label} →</a>`}</li>`).join('')}</ul>
+  </div>`;
+  const offerCards = offers.map((c) => `<form class="card stack offer" data-offer="${c.id}">
+    <p class="badge"><span class="d"></span>${t('offerNew')}</p>
+    <h3>${esc(c.title || '')}</h3>
+    <div class="grid-sm">
+      <div><p class="muted small">${t('pay')}</p><p class="role-pay">${money(c.expert_rate)} <span class="muted small">${t('perHour')}</span></p></div>
+      ${c.hours_per_week ? `<div><p class="muted small">${t('hours')}</p><p style="font-weight:600">${esc(c.hours_per_week)}</p></div>` : ''}
+      ${c.start_date ? `<div><p class="muted small">${t('startDate')}</p><p style="font-weight:600">${dateStr(c.start_date)}</p></div>` : ''}
+    </div>
+    ${c.offer_note ? `<p style="white-space:pre-line">${esc(c.offer_note)}</p>` : ''}
+    <label class="check"><input type="checkbox" name="agree" required> <span>${t('offerAgree')} <a href="#/legal/terms">${t('terms')}</a></span></label>
+    <label class="f">${t('offerSign')}<input name="sign" required minlength="3" autocomplete="name" placeholder="${esc(profile.full_name || '')}"></label>
+    <div class="row"><button class="btn btn-accent" type="submit">${t('offerAccept')}</button><button class="btn btn-ghost" type="button" data-decline="${c.id}">${t('offerDecline')}</button></div>
+  </form>`).join('');
 
   return {
     html: `<section class="wrap section stack-lg">
       <div class="row between"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc((profile.full_name || '').split(' ')[0])}</h1><span>${t('status')}: ${pill(st)}</span></div>
       <div class="card stack" style="gap:6px"><h3>${t(stKey)}</h3><p class="muted">${t(stKey + 'P')}</p></div>
+      ${offerCards}
+      ${nextCard}
 
       <div class="grid">
-        <div class="card stack">
+        <div class="card stack" id="cvCard">
           <h3>${t('cvH')}</h3>
           ${e.cv_path ? `<p class="form-msg ok">✓ ${t('cvUploaded')}</p>` : `<p class="form-msg err">${t('cvMissing')}</p>`}
           <label class="f">${t('cvUpload')}<input type="file" id="cvFile" accept="application/pdf"></label>
@@ -712,6 +897,8 @@ async function expertDashboard() {
             <label class="f">${t('years')}<input name="years_experience" type="number" min="0" max="60" value="${esc(e.years_experience ?? '')}"></label>
             <label class="f">${t('rate')}<input name="rate_expectation" type="number" min="1" value="${esc(e.rate_expectation ?? '')}"></label>
             <label class="f">${t('linkedin')}<input name="linkedin" value="${esc(e.linkedin || '')}"></label>
+            <label class="f">${t('headlineL')}<input name="headline" maxlength="120" value="${esc(e.headline || '')}"></label>
+            <label class="f">${t('skillsL')}<input name="skills" maxlength="500" value="${esc(e.skills || '')}"></label>
           </div>
           <label class="f">${t('bio')}<textarea name="bio">${esc(e.bio || '')}</textarea></label>
           <button class="btn" type="submit" style="align-self:flex-start">${t('save')}</button>
@@ -719,6 +906,17 @@ async function expertDashboard() {
       </div>
     </section>`,
     mount() {
+      $app.querySelectorAll('[data-scroll]').forEach((a) => { a.onclick = (ev) => { ev.preventDefault(); const el = document.querySelector(a.getAttribute('href')); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+      $app.querySelectorAll('[data-offer]').forEach((f) => { f.onsubmit = async (ev) => {
+        ev.preventDefault(); const d = formData(f); busy(f, true);
+        const { error } = await sb.rpc('respond_offer', { p_id: f.dataset.offer, p_accept: true, p_name: d.sign });
+        busy(f, false); if (error) return fail(error); toast(t('offerAccepted')); render();
+      }; });
+      $app.querySelectorAll('[data-decline]').forEach((b) => { b.onclick = async () => {
+        if (!window.confirm(t('offerDeclineQ'))) return;
+        const { error } = await sb.rpc('respond_offer', { p_id: b.dataset.decline, p_accept: false });
+        if (error) return fail(error); render();
+      }; });
       document.getElementById('copyRef').onclick = async () => {
         try { await navigator.clipboard.writeText(refLink); toast(t('copied')); } catch (err) { document.getElementById('refLink').select(); }
       };
@@ -731,7 +929,12 @@ async function expertDashboard() {
         if (up.error) return fail(up.error);
         const { error } = await sb.from('experts').update({ cv_path: path }).eq('id', uid);
         if (error) return fail(error);
-        toast(t('cvUploaded')); render();
+        // Like Mercor: the CV fills in the profile; the expert checks and saves.
+        const cv = await readCv(file);
+        const prf = document.getElementById('profileF');
+        const n = cv && prf ? fillFromCv(prf, cv, { field: 'field', years: 'years_experience', linkedin: 'linkedin', bio: 'bio', skills: 'skills', headline: 'headline' }) : 0;
+        if (n) { toast(t('cvFilledSave')); prf.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        else { toast(t('cvUploaded')); render(); }
       };
       const hf = document.getElementById('hoursF');
       if (hf) hf.onsubmit = async (ev) => {
@@ -753,9 +956,116 @@ async function expertDashboard() {
       prf.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(prf); busy(prf, true);
         const r1 = await sb.from('profiles').update({ full_name: d.full_name, country: d.country }).eq('id', uid);
-        const r2 = await sb.from('experts').update({ field: d.field, years_experience: d.years_experience ? Number(d.years_experience) : null, rate_expectation: d.rate_expectation ? Number(d.rate_expectation) : null, linkedin: d.linkedin, bio: d.bio }).eq('id', uid);
+        const r2 = await sb.from('experts').update({ field: d.field, years_experience: d.years_experience ? Number(d.years_experience) : null, rate_expectation: d.rate_expectation ? Number(d.rate_expectation) : null, linkedin: d.linkedin, bio: d.bio, headline: d.headline || null, skills: d.skills || null }).eq('id', uid);
         busy(prf, false); if (r1.error || r2.error) return fail(r1.error || r2.error);
         await loadProfile(); toast(t('saved'));
+      };
+    },
+  };
+}
+
+// ---------------------------------------------------------------- Interview (like Mercor's interview, 20.11.2026)
+// Five short questions (two general, three for the expert's field), answered by text or voice (max. 3 min each).
+// Answers are saved after every question, so the interview can be resumed; the admin reviews and scores it.
+const INTERVIEW_GENERAL = [
+  'Tell us about your professional background and what you are best at.',
+  'Describe a complex problem from your work and how you solved it, step by step.',
+];
+const INTERVIEW_FIELD = {
+  'Medicine': ['A 58-year-old presents with chest pain radiating to the left arm. Walk us through your first steps and your differential diagnosis.', 'An AI answer says ibuprofen is safe for every patient with a headache. What is wrong with this answer and how would you correct it?', 'How do you keep up with new clinical guidelines?'],
+  'Law': ['Explain the difference between a warranty and an indemnity in a commercial contract.', 'An AI answer says a verbal contract is never binding. How would you correct it?', 'How do you research a legal question you have never seen before?'],
+  'Software': ['How would you design a rate limiter for a public API?', 'An AI wrote a function that works but is very slow on large inputs. How do you review and improve it?', 'Describe a bug that was hard to find and how you found it.'],
+  'Chemistry & Math': ['Explain to a high-school student why the angles of a triangle add up to 180°.', 'An AI answer claims that adding a catalyst shifts a chemical equilibrium. What is wrong?', 'How would you write a hard problem that tests real understanding instead of memorisation?'],
+  'Pharmacy': ['What should a patient taking warfarin know about common painkillers?', 'An AI answer recommends doubling a missed dose. How do you respond?', 'How do you check a drug interaction you are unsure about?'],
+  'Accounting': ['Explain the difference between cash and accrual accounting with an example.', 'An AI answer says depreciation reduces cash. What is wrong?', 'How do you make sure the numbers in a financial report are correct?'],
+  'Translation (DE)': ['Translate into German and explain your choices: "Please don\'t hesitate to reach out if you have any questions."', 'An AI translated "I am hot" (about the weather) as "Ich bin heiß". What is the problem?', 'How do you handle terms that have no direct translation?'],
+  'Other': ['What kind of expert tasks would you like to do at Brightpeer?', 'How would you check whether an AI answer in your field is correct?', 'Give an example of how you explain something complex in simple words.'],
+};
+const interviewQuestions = (field) => [...INTERVIEW_GENERAL, ...(INTERVIEW_FIELD[field] || INTERVIEW_FIELD.Other)];
+const MAX_REC_S = 180;
+
+async function pageInterview() {
+  if (!session) return needLogin();
+  if (profile?.role !== 'expert') return { html: `<section class="wrap section narrow"><p class="muted">${t('mustBeExpert')}</p></section>` };
+  const uid = session.user.id;
+  const [{ data: ex }, { data: iv }] = await Promise.all([
+    sb.from('experts').select('field').eq('id', uid).maybeSingle(),
+    sb.from('interviews').select('*').eq('expert_id', uid).maybeSingle(),
+  ]);
+  const field = iv?.field || ex?.field || 'Other';
+  const qs = interviewQuestions(field);
+  if (iv && iv.status !== 'in_progress') {
+    return { html: `<section class="wrap section narrow stack-lg"><h1 style="font-size:2.5rem">${t('ivDoneH')}</h1><p class="muted">${t('ivDoneP')}</p><a class="btn" href="#/dashboard" style="align-self:flex-start">${t('dashboard')}</a></section>` };
+  }
+  const answers = Array.isArray(iv?.answers) ? iv.answers : [];
+  const idx = Math.min(answers.length, qs.length - 1);
+  if (!iv) {
+    return {
+      html: `<section class="wrap section narrow stack-lg">
+        <h1 style="font-size:clamp(2rem,5vw,3rem)">${t('ivH')}</h1>
+        <p class="muted">${t('ivP')}</p>
+        <div class="card stack"><ul class="ticks"><li>${t('ivRule1').replace('{n}', qs.length)}</li><li>${t('ivRule2')}</li><li>${t('ivRule3')}</li><li>${t('ivRule4')}</li></ul></div>
+        <p class="small muted">${t('field')}: <b>${esc(fieldName(field))}</b> · <a href="#/dashboard">${t('ivChangeField')}</a></p>
+        <button class="btn btn-accent" id="ivStart" style="align-self:flex-start">${t('ivStart')}</button>
+      </section>`,
+      mount() {
+        document.getElementById('ivStart').onclick = async () => {
+          const { error } = await sb.from('interviews').insert({ expert_id: uid, field, answers: [] });
+          if (error) return fail(error); render();
+        };
+      },
+    };
+  }
+  const last = idx === qs.length - 1;
+  return {
+    html: `<section class="wrap section narrow stack-lg">
+      <div class="row between"><p class="muted small">${t('ivQuestion')} ${idx + 1} / ${qs.length}</p><div class="progress" style="flex:0 0 160px"><span style="width:${Math.round((idx / qs.length) * 100)}%"></span></div></div>
+      <h2 style="font-size:clamp(1.4rem,3.5vw,2rem)">${esc(qs[idx])}</h2>
+      <form id="ivF" class="stack">
+        <label class="f">${t('ivType')}<textarea name="text" maxlength="5000" style="min-height:180px"></textarea></label>
+        <div class="card stack" style="gap:10px">
+          <p class="small"><b>${t('ivOrVoice')}</b> <span class="muted">(${t('ivMax3')})</span></p>
+          <div class="row"><button type="button" class="btn btn-ghost btn-sm" id="recBtn">● ${t('ivRecord')}</button><span class="muted small" id="recTime"></span></div>
+          <audio id="recPlay" controls style="display:none;width:100%"></audio>
+        </div>
+        <div id="ivMsg"></div>
+        <button class="btn btn-accent" type="submit" style="align-self:flex-start">${last ? t('ivSubmit') : t('ivNext')}</button>
+      </form>
+    </section>`,
+    mount() {
+      const f = document.getElementById('ivF'); const recBtn = document.getElementById('recBtn'); const recTime = document.getElementById('recTime'); const play = document.getElementById('recPlay');
+      let blob = null; let rec = null; let timer = null; let sec = 0;
+      if (!window.MediaRecorder || !navigator.mediaDevices) recBtn.disabled = true;
+      const stop = () => { if (rec && rec.state === 'recording') rec.stop(); clearInterval(timer); recBtn.textContent = '● ' + t('ivRecordAgain'); };
+      recBtn.onclick = async () => {
+        if (rec && rec.state === 'recording') return stop();
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const chunks = []; rec = new MediaRecorder(stream);
+          rec.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
+          rec.onstop = () => { stream.getTracks().forEach((tr) => tr.stop()); blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' }); play.src = URL.createObjectURL(blob); play.style.display = 'block'; };
+          rec.start(); sec = 0; recBtn.textContent = '■ ' + t('ivStop');
+          timer = setInterval(() => { sec++; recTime.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; if (sec >= MAX_REC_S) stop(); }, 1000);
+        } catch (err) { toast(t('ivNoMic'), true); }
+      };
+      f.onsubmit = async (ev) => {
+        ev.preventDefault(); stop();
+        const text = (formData(f).text || '').trim();
+        if (!text && !blob) { document.getElementById('ivMsg').innerHTML = `<div class="form-msg err">${t('ivEmpty')}</div>`; return; }
+        busy(f, true);
+        let audio = null;
+        if (blob) {
+          const ext = (blob.type.includes('mp4') ? 'm4a' : 'webm');
+          const path = `${uid}/q${idx + 1}-${Date.now()}.${ext}`;
+          const up = await sb.storage.from('interviews').upload(path, blob, { contentType: blob.type || 'audio/webm' });
+          if (up.error) { busy(f, false); return fail(up.error); }
+          audio = path;
+        }
+        const next = [...answers.slice(0, idx), { q: qs[idx], text, audio }];
+        const { error } = await sb.from('interviews').update({ answers: next, status: last ? 'submitted' : 'in_progress' }).eq('expert_id', uid);
+        busy(f, false); if (error) return fail(error);
+        if (last) toast(t('ivDoneH'));
+        render(); window.scrollTo(0, 0);
       };
     },
   };
@@ -848,7 +1158,7 @@ async function pageAdmin() {
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
   await deleteQueuedFiles();
-  const TABS = ['overview', 'experts', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'invoices', 'payouts'];
+  const TABS = ['overview', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'invoices', 'payouts'];
   const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${t(k)}</button>`).join('')}</div>`;
   const view = await ADMIN[adminTab]();
   return {
@@ -1014,6 +1324,40 @@ const ADMIN = {
     };
   },
 
+  async interviewsTab() {
+    const { data, error } = await sb.from('interviews').select('*, experts(field, profiles(full_name,email))').order('submitted_at', { ascending: false, nullsFirst: false });
+    if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    return {
+      html: `<div class="stack-lg">${(data || []).length ? '' : `<p class="muted">${t('ivNone')}</p>`}
+        ${(data || []).map((iv) => `<div class="card stack">
+          <div class="row between"><div class="stack" style="gap:2px"><h3>${esc(iv.experts?.profiles?.full_name || '')}</h3><p class="muted small">${esc(iv.experts?.profiles?.email || '')} · ${esc(fieldName(iv.field))} · ${iv.submitted_at ? dateStr(iv.submitted_at) : t('stInProgress')}</p></div>${pill(iv.status)}</div>
+          <details ${iv.status === 'submitted' ? 'open' : ''}><summary class="link">${t('ivAnswers')} (${(iv.answers || []).length})</summary>
+            <div class="stack" style="margin-top:12px">${(iv.answers || []).map((a, i) => `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px">
+              <p class="small"><b>${i + 1}. ${esc(a.q)}</b></p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}
+              ${a.audio ? `<button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-audio="${esc(a.audio)}">▶ ${t('ivPlay')}</button>` : ''}</div>`).join('')}</div>
+          </details>
+          <form class="row" data-ivform="${iv.id}">
+            <select name="score" style="flex:0 0 140px"><option value="">${t('ivScore')}</option>${[5, 4, 3, 2, 1].map((n) => `<option value="${n}" ${iv.score === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select>
+            <input name="admin_note" placeholder="${esc(t('note'))}" value="${esc(iv.admin_note || '')}" style="flex:1 1 220px">
+            <button class="btn btn-sm" type="submit">${t('ivReviewed')}</button>
+          </form>
+        </div>`).join('')}
+      </div>`,
+      mount() {
+        $app.querySelectorAll('[data-audio]').forEach((b) => { b.onclick = async () => {
+          const { data: u, error: er } = await sb.storage.from('interviews').createSignedUrl(b.dataset.audio, 600);
+          if (er) return fail(er);
+          const au = document.createElement('audio'); au.controls = true; au.src = u.signedUrl; au.style.width = '100%'; b.replaceWith(au); au.play().catch(() => {});
+        }; });
+        $app.querySelectorAll('[data-ivform]').forEach((f) => { f.onsubmit = async (ev) => {
+          ev.preventDefault(); const d = formData(f);
+          const { error: er } = await sb.from('interviews').update({ score: d.score ? Number(d.score) : null, admin_note: d.admin_note || null, status: 'reviewed' }).eq('id', f.dataset.ivform);
+          if (er) return fail(er); toast(t('saved')); render();
+        }; });
+      },
+    };
+  },
+
   async contracts() {
     const [{ data: cons }, { data: exps }, { data: cos }, { data: roles }] = await Promise.all([
       sb.from('contracts').select('*, experts(profiles(full_name)), companies(company_name), roles(title)').order('created_at', { ascending: false }),
@@ -1024,7 +1368,7 @@ const ADMIN = {
     const margin = (cons || []).reduce((a, c) => a + (c.status === 'active' ? Number(c.client_rate) - Number(c.expert_rate) : 0), 0);
     return {
       html: `<div class="stack-lg">
-        <form id="conF" class="card stack"><h3>New contract</h3>
+        <form id="conF" class="card stack"><h3>${t('offerNewAdmin')}</h3>
           ${(exps || []).length && (cos || []).length ? '' : '<p class="form-msg err small">You need at least one approved expert and one company.</p>'}
           <div class="form-grid">
             <label class="f">Expert *<select name="expert_id" required>${(exps || []).map((e) => `<option value="${e.id}">${esc(e.profiles?.full_name || '')} – ${esc(fieldName(e.field))}</option>`).join('')}</select></label>
@@ -1033,14 +1377,17 @@ const ADMIN = {
             <label class="f">Title (optional)<input name="title"></label>
             <label class="f">Expert pay ($/h) *<input name="expert_rate" id="erate" type="number" min="1" step="0.01" required></label>
             <label class="f">Company price ($/h) *<input name="client_rate" id="crate" type="number" min="1" step="0.01" required></label>
+            <label class="f">${t('startDate')}<input name="start_date" type="date"></label>
           </div>
+          <label class="f">${t('offerNoteL')}<textarea name="offer_note" maxlength="2000" style="min-height:70px"></textarea></label>
+          <p class="muted small">${t('offerAdminP')}</p>
           <p class="muted small">Tip: company price = expert pay + 30 % is filled in automatically.</p>
-          <button class="btn btn-accent" type="submit" style="align-self:flex-start">Create contract</button>
+          <button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('offerSend')}</button>
         </form>
         <p class="muted">Margin per hour across active contracts: <b>${money(margin)}</b></p>
         ${table(['Expert', 'Company', 'Role', 'Expert pay', 'Company price', 'Margin', t('status'), ''], (cons || []).map((c) => [
           esc(c.experts?.profiles?.full_name || ''), esc(c.companies?.company_name || ''), esc(c.title || c.roles?.title || ''), money(c.expert_rate), money(c.client_rate),
-          money(Number(c.client_rate) - Number(c.expert_rate)), pill(c.status),
+          money(Number(c.client_rate) - Number(c.expert_rate)), pill(c.status) + (c.accepted_at ? `<div class="muted small">✍ ${esc(c.accepted_name || '')} · ${dateStr(c.accepted_at)}</div>` : ''),
           c.status === 'active' ? `<button class="btn btn-ghost btn-sm" data-endcon="${c.id}">End</button>` : '',
         ]))}
       </div>`,
@@ -1050,7 +1397,7 @@ const ADMIN = {
         const f = document.getElementById('conF');
         f.onsubmit = async (ev) => {
           ev.preventDefault(); const d = formData(f); busy(f, true);
-          const { error } = await sb.from('contracts').insert({ expert_id: d.expert_id, company_id: d.company_id, role_id: d.role_id || null, title: d.title || null, expert_rate: Number(d.expert_rate), client_rate: Number(d.client_rate) });
+          const { error } = await sb.from('contracts').insert({ expert_id: d.expert_id, company_id: d.company_id, role_id: d.role_id || null, title: d.title || null, expert_rate: Number(d.expert_rate), client_rate: Number(d.client_rate), status: 'offered', start_date: d.start_date || null, offer_note: d.offer_note || null });
           busy(f, false); if (error) return fail(error); toast(t('saved')); render();
         };
         $app.querySelectorAll('[data-endcon]').forEach((b) => { b.onclick = async () => { const { error } = await sb.from('contracts').update({ status: 'ended' }).eq('id', b.dataset.endcon); if (error) return fail(error); render(); }; });
@@ -1336,6 +1683,7 @@ async function render() {
       case 'dashboard': page = await pageDashboard(); break;
       case 'admin': page = await pageAdmin(); break;
       case 'test': page = await pageTest(parts[1]); break;
+      case 'interview': page = await pageInterview(); break;
       default: page = pageNotFound();
     }
   } catch (e) {
@@ -1368,6 +1716,7 @@ async function init() {
       session = data.session;
       await loadProfile();
       await Promise.all([loadOAuthProviders(), finishOAuth()]);
+      await finishPendingApply();
       if (oauthError) { history.replaceState(null, '', location.pathname + location.hash); setTimeout(() => toast(oauthError, true), 300); }
       if (hadCode || isReset) {
         history.replaceState(null, '', location.pathname + location.hash);
@@ -1380,7 +1729,7 @@ async function init() {
         if (event === 'PASSWORD_RECOVERY') { window.__bpRecovery = true; session = s; location.hash = '#/reset'; return; }
         if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') { session = s; return; }
         session = s; await loadProfile();
-        if (event === 'SIGNED_IN') await finishOAuth();
+        if (event === 'SIGNED_IN') { await finishOAuth(); await finishPendingApply(); }
         if (event === 'SIGNED_IN' && !parseHash().parts.length) { location.hash = '#/dashboard'; return; }
         render();
       };
