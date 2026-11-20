@@ -215,3 +215,10 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .cta-end{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;border-top:1px solid var(--ink);padding-top:32px}
 @media (max-width:800px){.steps{grid-template-columns:1fr;gap:24px}.benefits{grid-template-columns:1fr}.benefit{grid-template-columns:1fr;gap:4px}}
 .label-new{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.options{display:grid;grid-template-columns:repeat(4,1fr);gap:0 24px}
+.option{display:flex;flex-direction:column;gap:8px;padding:20px 0 4px;border-top:2px solid var(--ink);text-decoration:none;color:var(--ink)}
+.option:hover{border-top-color:var(--accent);color:var(--ink)}
+.option p{flex:1}
+.option-l{font-weight:600;color:var(--accent)}
+@media (max-width:900px){.options{grid-template-columns:1fr 1fr;gap:24px}}
+@media (max-width:520px){.options{grid-template-columns:1fr}}

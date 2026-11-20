@@ -250,6 +250,7 @@ function pageInfo() {
   return `
   <section class="wrap section stack-lg" style="padding-bottom:40px">
     <div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('infoH')}</h1><p class="muted" style="font-size:1.1rem">${t('infoSub')}</p></div>
+    <div class="options">${[['o1', `mailto:${esc(CONFIG.COMPANY.email)}`], ['o2', '#/companies'], ['o3', '#/companies'], ['o4', '#/roles']].map(([k, href]) => `<a class="option" href="${href}"><h3>${t(k + 'h')}</h3><p class="muted">${t(k + 'p')}</p><span class="option-l">${t(k + 'l')} →</span></a>`).join('')}</div>
     <div class="grid" style="border-top:1px solid var(--line);padding-top:24px;margin-top:8px">
       <div><p class="stat-v">$40–250 / h</p><p class="muted">${t('s1')}</p></div>
       <div><p class="stat-v">$0</p><p class="muted">${t('s2')}</p></div>
