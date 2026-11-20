@@ -222,3 +222,10 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .option-l{font-weight:600;color:var(--accent)}
 @media (max-width:900px){.options{grid-template-columns:1fr 1fr;gap:24px}}
 @media (max-width:520px){.options{grid-template-columns:1fr}}
+.services{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line2)}
+.service{display:flex;flex-direction:column;gap:16px;padding:32px 32px 8px 0}
+.service+.service{border-left:1px solid var(--line2);padding-left:32px}
+.service h2{font-size:clamp(1.4rem,2.4vw,1.9rem)}
+.service ul{margin:0;padding-left:18px;color:var(--ink2);display:flex;flex-direction:column;gap:10px;flex:1}
+.service .btn{align-self:flex-start}
+@media (max-width:900px){.services{grid-template-columns:1fr}.service{padding:28px 0}.service+.service{border-left:0;border-top:1px solid var(--line2);padding-left:0}}
