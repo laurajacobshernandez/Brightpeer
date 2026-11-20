@@ -1710,6 +1710,13 @@ function openBigVideo() {
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 async function render() {
+  // A failed Google/Microsoft login comes back as #error=...: show a message instead of a 404.
+  if (/^#error=/.test(location.hash)) {
+    const q = new URLSearchParams(location.hash.slice(1));
+    console.warn('Login error:', q.get('error_description'));
+    history.replaceState(null, '', location.pathname + '#/login');
+    setTimeout(() => toast(t('oauthError')), 300);
+  }
   const seq = ++renderSeq;
   document.documentElement.lang = lang;
   const { parts } = parseHash();
