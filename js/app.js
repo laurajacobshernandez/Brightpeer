@@ -24,16 +24,7 @@ const PAY = [
 const ICON_MUTE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
 const ICON_LOUD = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 // Homepage "Why experts choose Brightpeer" (owner, 20.11.2026) – only things Brightpeer really offers
-const BENEFITS = [
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>`, 'Weekly payouts', 'Paid every week by bank transfer or PayPal – no fees.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>`, 'Work from anywhere', 'Fully remote, from any country.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`, 'Your own hours', 'Choose when and how much you work – no minimum.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>`, 'Professional rates', '$40–250 per hour, shown on every role.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>`, 'Free to join', 'No sign-up fees, ever.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10 3 7.5 4.5 9 8 12 8zm0 0s2-5 4.5-3.5S15 8 12 8z"/></svg>`, 'Referral bonus', '$100 for you and $100 for your colleague.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg>`, 'Meaningful AI work', 'Help AI give safer, more accurate answers in your field.'],
-  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M16 4.5a3.5 3.5 0 0 1 0 7M22 20c0-3-2-5.2-5-5.8"/></svg>`, 'Real people', 'A real person reviews your application and supports you.'],
-];
+const BENEFITS = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => [`b${i}h`, `b${i}p`]);
 
 // Example roles shown when the database is not connected yet
 const DEMO_ROLES = [
@@ -187,7 +178,7 @@ function renderHeader() {
     <a class="brand" href="#/"><span class="logo" aria-hidden="true"></span>Brightpeer</a>
     <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
     <div class="nav-links" id="navLinks">
-      ${a('/roles', t('navRoles'))}${a('/companies', t('navCompanies'))}${a('/research', t('navResearch'))}${a('/about', t('navAbout'))}${a('/help', t('navHelp'))}
+      ${a('/roles', t('navRoles'))}${a('/companies', t('navCompanies'))}${a('/info', t('navInfo'))}${a('/research', t('navResearch'))}${a('/about', t('navAbout'))}${a('/help', t('navHelp'))}
       ${right}
     </div>
   </nav>`;
@@ -208,7 +199,7 @@ function renderFooter() {
         <a class="btn btn-accent btn-sm" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a>
       </div>
       <div class="footer-cols">
-        ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
+        ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/info', t('navInfo')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
         ${col(t('fCompanies'), [['#/companies', t('hire')], ['#/company-signup', t('fCompanyAccount')], ['#/legal/client', t('clientTerms')]])}
         ${col(t('navResearch'), [['#/research', t('navResearch')]])}
         ${col(t('fCompany'), [['#/about', t('navAbout')], [`mailto:${esc(CONFIG.COMPANY.email)}`, t('fContact')], ['#/help', t('navHelp')]])}
@@ -241,36 +232,44 @@ function roleCard(r) {
 
 async function pageHome() {
   const roles = (await getRoles()).slice(0, 3);
-  const steps = (k) => [1, 2, 3].map((i) => `<div class="stack" style="gap:8px"><span class="icon-circle">${i}</span><h3>${t(k + i + 'h')}</h3><p class="muted">${t(k + i + 'p')}</p></div>`).join('');
   return `
   <section class="wrap section stack-lg">
-    <p class="badge"><span class="d"></span>${t('badge')}</p>
     <h1 style="max-width:15ch">${t('h1')}</h1>
     <p style="font-size:1.25rem;color:var(--ink2);max-width:40rem">${t('sub')}</p>
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
+  </section>
+  <section class="wrap section stack-lg">
+    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
+    <div class="grid">${roles.map(roleCard).join('')}</div>
+  </section>
+  <section class="wrap section"><div class="cta-end"><div class="stack" style="gap:8px"><h2>${t('ctaH')}</h2><p class="muted">${t('ctaP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>`;
+}
+
+function pageInfo() {
+  const steps = (k) => [1, 2, 3].map((i) => `<div class="step"><span class="step-n">0${i}</span><h3>${t(k + i + 'h')}</h3><p class="muted">${t(k + i + 'p')}</p></div>`).join('');
+  return `
+  <section class="wrap section stack-lg" style="padding-bottom:40px">
+    <div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('infoH')}</h1><p class="muted" style="font-size:1.1rem">${t('infoSub')}</p></div>
     <div class="grid" style="border-top:1px solid var(--line);padding-top:24px;margin-top:8px">
       <div><p class="stat-v">$40–250 / h</p><p class="muted">${t('s1')}</p></div>
       <div><p class="stat-v">$0</p><p class="muted">${t('s2')}</p></div>
       <div><p class="stat-v">${t('s3v')}</p><p class="muted">${t('s3')}</p></div>
     </div>
   </section>
-  <section class="wrap"><div class="dark stack-lg"><h2>${t('howExpertsH')}</h2><div class="grid">${steps('he')}</div></div></section>
-  <section class="wrap section stack-lg">
-    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
-    <div class="grid">${roles.map(roleCard).join('')}</div>
-  </section>
+  <section class="wrap"><div class="dark stack-lg"><h2>${t('howExpertsH')}</h2><div class="steps">${steps('he')}</div></div></section>
+  <section class="wrap section" style="padding-bottom:0"></section>
   <section class="wrap"><div class="soft stack-lg">
     <h2>${t('payH')}</h2>
     <div class="grid-sm">${PAY.map(([f, a, b]) => `<div class="card"><p class="muted small">${esc(fieldName(f))}</p><p class="stat-v" style="font-size:1.5rem">$${a}–${b}</p><p class="muted small">${t('perHour')}</p></div>`).join('')}</div>
     <p class="muted small">${t('payNote')}</p>
   </div></section>
-  <section class="wrap section"><div class="card stack-lg" style="padding:40px"><h2>${t('howCompaniesH')}</h2><div class="grid">${steps('hc')}</div><a class="btn" style="align-self:flex-start" href="#/companies">${t('hire')}</a></div></section>
-  <section class="wrap section stack-lg" style="padding-top:0">
-    <h2>Why experts choose Brightpeer</h2>
-    <div class="grid">${BENEFITS.map(([i, h, p]) => `<div class="card stack" style="gap:10px"><span class="benefit-ic" aria-hidden="true">${i}</span><h3>${h}</h3><p class="muted">${p}</p></div>`).join('')}</div>
+  <section class="wrap section"><div class="stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${steps('hc')}</div><a class="btn" style="align-self:flex-start" href="#/companies">${t('hire')}</a></div></section>
+  <section class="wrap section stack-lg">
+    <h2>${t('whyH')}</h2>
+    <div class="benefits">${BENEFITS.map(([h, p]) => `<div class="benefit"><h3>${t(h)}</h3><p class="muted">${t(p)}</p></div>`).join('')}</div>
   </section>
   <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>${t('referralH')}</h2><p class="muted">${t('referralP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>
-  <section class="wrap section stack" style="align-items:center;text-align:center"><h2>${t('ctaH')}</h2><p class="muted">${t('ctaP')}</p><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></section>`;
+  <section class="wrap section"></section>`;
 }
 
 async function pageRoles() {
@@ -641,22 +640,22 @@ function pageCompanies() {
 // Research page: one colored card per field, scrolling right to left (owner, 20.11.2026).
 // No partner logos or model scores – Brightpeer has none.
 const FIELD_CARDS = [
-  ['Medicine', '#0B6B4A', '#fff', 'Clinical reasoning', 'Write real clinical cases and grade AI answers on diagnosis, treatment and drug safety.'],
-  ['Law', '#3B342E', '#fff', 'Legal analysis', 'Review AI answers on contracts, case law and compliance the way a practising lawyer would.'],
-  ['Software', '#111318', '#fff', 'Software engineering', 'Test AI agents on real coding tasks – from bug fixes to full features and code review.'],
-  ['Chemistry & Math', '#2F6FED', '#fff', 'Science & math', 'Create hard problems and check step-by-step reasoning in chemistry, physics and mathematics.'],
-  ['Pharmacy', '#D7F25B', '#0E0F12', 'Pharmacology', 'Check dosing, interactions and patient advice for accuracy and safety.'],
-  ['Accounting', '#E8F0EA', '#0E0F12', 'Accounting & finance', 'Evaluate AI on bookkeeping, reporting and tax tasks across spreadsheets and documents.'],
-  ['Translation (DE)', '#0F9D6B', '#fff', 'Translation', 'Rate and improve German translations for meaning, tone and terminology.'],
+  ['Medicine', '#0B6B4A', '#fff', 'fc1h', 'fc1p'],
+  ['Law', '#3B342E', '#fff', 'fc2h', 'fc2p'],
+  ['Software', '#111318', '#fff', 'fc3h', 'fc3p'],
+  ['Chemistry & Math', '#2F6FED', '#fff', 'fc4h', 'fc4p'],
+  ['Pharmacy', '#D7F25B', '#0E0F12', 'fc5h', 'fc5p'],
+  ['Accounting', '#E8F0EA', '#0E0F12', 'fc6h', 'fc6p'],
+  ['Translation (DE)', '#0F9D6B', '#fff', 'fc7h', 'fc7p'],
 ];
 function fieldCarousel() {
   const card = ([f, bg, fg, title, text]) => {
     const p = PAY.find((x) => x[0] === f);
     return `<div class="fcard" style="background:${bg};color:${fg}">
       <p class="fcard-tag">${esc(fieldName(f))}</p>
-      <h3>${esc(title)}</h3>
-      <p class="fcard-text">${esc(text)}</p>
-      <div class="fcard-foot"><b>${p ? `$${p[1]}–${p[2]} / h` : ''}</b><a href="#/roles?field=${encodeURIComponent(f)}" style="color:${fg}">View roles →</a></div>
+      <h3>${esc(t(title))}</h3>
+      <p class="fcard-text">${esc(t(text))}</p>
+      <div class="fcard-foot"><b>${p ? `$${p[1]}–${p[2]} / h` : ''}</b><a href="#/roles?field=${encodeURIComponent(f)}" style="color:${fg}">${t('viewRoles')} →</a></div>
     </div>`;
   };
   const cards = FIELD_CARDS.map(card).join('');
@@ -667,7 +666,7 @@ function fieldCarousel() {
 function pageResearch() {
   return `<section class="wrap section stack" style="padding-bottom:24px">
     <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Research</h1>
-    <p style="font-size:1.15rem;color:var(--ink2);max-width:40rem">Expert work across every field – here is where Brightpeer experts help AI get it right.</p>
+    <p style="font-size:1.15rem;color:var(--ink2);max-width:40rem">${t('researchIntro')}</p>
   </section>
   ${fieldCarousel()}
   <section class="wrap section narrow prose">
@@ -1725,6 +1724,7 @@ async function render() {
       case 'reset': page = pageReset(); break;
       case 'companies': page = pageCompanies(); break;
       case 'research': page = pageResearch(); break;
+      case 'info': page = pageInfo(); break;
       case 'about': page = pageAbout(); break;
       case 'help': page = pageHelp(); break;
       case 'legal': page = pageLegal(parts[1] || 'terms'); break;
