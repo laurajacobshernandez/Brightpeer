@@ -4,7 +4,7 @@
 export const LANGS = { en: 'English', de: 'Deutsch', fr: 'Français', it: 'Italiano', es: 'Español' };
 
 const en = {
-  fvLabel: 'How Brightpeer works (video)', fvClose: 'Close video',
+  fvLabel: 'How Brightpeer works (video)', fvClose: 'Close video', fvSound: 'Sound on/off',
   payoutEncrypted: 'Your payout details are stored encrypted.', testsTab: 'Tests', testsH: 'Skill tests', testsP: 'Take the short test for your field. It helps us match you faster. You can take each test once.',
   testStart: 'Start test', testContinue: 'Continue test', testYourField: 'Your field', testQuestion: 'Question',
   testRule1: 'You have {m} minutes. The timer keeps running if you leave the page.', testRule2: 'You can take this test only once.',
@@ -90,7 +90,7 @@ const en = {
 };
 
 const de = {
-  fvLabel: 'So funktioniert Brightpeer (Video)', fvClose: 'Video schliessen',
+  fvLabel: 'So funktioniert Brightpeer (Video)', fvClose: 'Video schliessen', fvSound: 'Ton an/aus',
   payoutEncrypted: 'Deine Auszahlungsdaten werden verschlüsselt gespeichert.', testsTab: 'Tests', testsH: 'Fachtests', testsP: 'Mach den kurzen Test für dein Fachgebiet. So können wir dich schneller vermitteln. Jeder Test geht nur einmal.',
   testStart: 'Test starten', testContinue: 'Test fortsetzen', testYourField: 'Dein Fachgebiet', testQuestion: 'Frage',
   testRule1: 'Du hast {m} Minuten. Die Zeit läuft weiter, auch wenn du die Seite verlässt.', testRule2: 'Du kannst diesen Test nur einmal machen.',

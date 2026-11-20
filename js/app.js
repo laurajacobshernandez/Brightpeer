@@ -1189,13 +1189,22 @@ function floatingVideo(show) {
   el = document.createElement('div');
   el.id = 'fv'; el.className = 'fv';
   el.innerHTML = `<video src="media/how-it-works.mp4" poster="media/how-it-works.jpg" muted playsinline loop preload="metadata" ${still ? '' : 'autoplay'} aria-label="${esc(t('fvLabel'))}"></video>
-    <button type="button" class="fv-x" aria-label="${esc(t('fvClose'))}">×</button>`;
+    <button type="button" class="fv-x" aria-label="${esc(t('fvClose'))}">×</button>
+    <button type="button" class="fv-snd" aria-label="${esc(t('fvSound'))}" aria-pressed="false">🔇</button>`;
   document.body.appendChild(el);
   const x = el.querySelector('.fv-x');
+  const snd = el.querySelector('.fv-snd');
+  const vid = el.querySelector('video');
+  snd.onclick = (ev) => {
+    ev.stopPropagation();
+    vid.muted = !vid.muted;
+    if (!vid.muted) { vid.currentTime = 0; vid.play().catch(() => {}); }
+    snd.textContent = vid.muted ? '🔇' : '🔊'; snd.setAttribute('aria-pressed', String(!vid.muted));
+  };
   x.onclick = (ev) => { ev.stopPropagation(); el.hidden = true; try { sessionStorage.setItem('bp_fv_closed', '1'); } catch (e) { /* ignore */ } };
   let start = null, moved = false;
   el.addEventListener('pointerdown', (ev) => {
-    if (ev.target === x) return;
+    if (ev.target === x || ev.target === snd) return;
     const r = el.getBoundingClientRect();
     start = { x: ev.clientX, y: ev.clientY, l: r.left, t: r.top }; moved = false;
     el.setPointerCapture(ev.pointerId);
@@ -1210,7 +1219,7 @@ function floatingVideo(show) {
     el.style.top = Math.min(window.innerHeight - h - 8, Math.max(8, start.t + dy)) + 'px';
     el.style.right = 'auto'; el.style.bottom = 'auto';
   });
-  el.addEventListener('pointerup', () => { if (start && !moved) openBigVideo(); start = null; });
+  el.addEventListener('pointerup', () => { if (start && !moved) { vid.muted = true; snd.textContent = '🔇'; snd.setAttribute('aria-pressed', 'false'); openBigVideo(); } start = null; });
 }
 
 function openBigVideo() {
