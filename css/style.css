@@ -229,3 +229,27 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .service ul{margin:0;padding-left:18px;color:var(--ink2);display:flex;flex-direction:column;gap:10px;flex:1}
 .service .btn{align-self:flex-start}
 @media (max-width:900px){.services{grid-template-columns:1fr}.service{padding:28px 0}.service+.service{border-left:0;border-top:1px solid var(--line2);padding-left:0}}
+/* drop-down menus */
+.site-header{position:sticky}
+.dd{position:static}
+.dd-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;font:inherit;color:var(--ink);cursor:pointer;padding:24px 0;margin:-16px 0}
+.dd-btn:hover,.dd-btn.active,.dd.open .dd-btn,.dd:hover .dd-btn{color:var(--accent)}
+.dd-btn svg{transition:transform .15s}
+.dd.open .dd-btn svg,.dd:hover .dd-btn svg{transform:rotate(180deg)}
+.dd-panel{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 18px 30px rgba(14,15,18,.06);z-index:30}
+.dd:hover .dd-panel,.dd:focus-within .dd-panel,.dd.open .dd-panel{display:block}
+.dd-inner{max-width:1200px;margin:0 auto;padding:28px 24px 32px;display:grid;grid-template-columns:minmax(220px,1fr) 1fr;gap:40px}
+.dd-links{display:flex;flex-direction:column;gap:12px}
+.dd-links a{font-size:1.15rem;text-decoration:none;color:var(--ink)}
+.dd-links a:hover{color:var(--accent)}
+.dd-text{color:var(--ink3);max-width:30rem;border-left:1px solid var(--line);padding-left:32px}
+@media (max-width:900px){
+  .dd{width:100%}
+  .dd-btn{padding:4px 0;margin:0}
+  .dd-panel{position:static;box-shadow:none;border:0;background:none}
+  .dd:hover .dd-panel{display:none}
+  .dd.open .dd-panel{display:block}
+  .dd-inner{grid-template-columns:1fr;padding:8px 0 4px 12px;gap:8px}
+  .dd-links a{font-size:1rem}
+  .dd-text{display:none}
+}

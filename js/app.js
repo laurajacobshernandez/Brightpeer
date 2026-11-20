@@ -167,6 +167,12 @@ function renderHeader() {
   const { parts } = parseHash();
   const cur = '/' + (parts[0] || '');
   const a = (href, label) => `<a href="#${href}" class="${cur === href ? 'active' : ''}">${esc(label)}</a>`;
+  // Drop-down menus like Mercor (owner, 20.11.2026): open on hover/focus, tap to open on touch screens.
+  const dd = (id, label, text, links) => {
+    const on = links.some(([h]) => h === cur);
+    return `<div class="dd" data-dd="${id}"><button type="button" class="dd-btn ${on ? 'active' : ''}" aria-expanded="false">${esc(label)}<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      <div class="dd-panel"><div class="dd-inner"><div class="dd-links">${links.map(([h, l]) => `<a href="${h.startsWith('mailto:') ? esc(h) : '#' + h}">${esc(l)}</a>`).join('')}</div><p class="dd-text">${esc(text)}</p></div></div></div>`;
+  };
   let right;
   if (session) {
     right = `${profile?.role === 'admin' ? a('/admin', t('admin')) : ''}${a('/dashboard', t('dashboard'))}<button class="btn btn-ghost btn-sm" id="logoutBtn">${t('logout')}</button>`;
@@ -178,10 +184,19 @@ function renderHeader() {
     <a class="brand" href="#/"><span class="logo" aria-hidden="true"></span>Brightpeer</a>
     <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
     <div class="nav-links" id="navLinks">
-      ${a('/roles', t('navRoles'))}${a('/companies', t('navCompanies'))}${a('/info', t('navInfo'))}${a('/research', t('navResearch'))}${a('/about', t('navAbout'))}${a('/help', t('navHelp'))}
+      ${dd('research', t('navResearch'), t('ddResearchP'), [['/research', t('ddFields')], ['/info', t('infoH')]])}
+      ${dd('companies', t('fCompanies'), t('ddCompaniesP'), [['/companies', t('ddOverview')], ['/info', t('ddEvals')], ['/info', t('o1h')], ['/company-signup', t('fCompanyAccount')]])}
+      ${dd('experts', t('fExperts'), t('ddExpertsP'), [['/roles', t('navRoles')], ['/apply', t('applyNow')], ['/info', t('payH')]])}
+      ${dd('company', t('fCompany'), t('ddCompanyP'), [['/about', t('navAbout')], ['/help', t('navHelp')], [`mailto:${CONFIG.COMPANY.email}`, t('fContact')]])}
       ${right}
     </div>
   </nav>`;
+  $header.querySelectorAll('.dd-btn').forEach((b) => b.addEventListener('click', () => {
+    const d = b.parentElement; const open = !d.classList.contains('open');
+    $header.querySelectorAll('.dd.open').forEach((x) => { x.classList.remove('open'); x.querySelector('.dd-btn').setAttribute('aria-expanded', 'false'); });
+    if (open) { d.classList.add('open'); b.setAttribute('aria-expanded', 'true'); }
+  }));
+  $header.querySelectorAll('.dd-panel a').forEach((l) => l.addEventListener('click', () => $header.querySelectorAll('.dd.open').forEach((x) => x.classList.remove('open'))));
   const mb = document.getElementById('menuBtn');
   mb.onclick = () => { const nl = document.getElementById('navLinks'); nl.classList.toggle('open'); mb.setAttribute('aria-expanded', nl.classList.contains('open')); };
   const lo = document.getElementById('logoutBtn');
