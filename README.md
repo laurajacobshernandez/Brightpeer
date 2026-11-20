@@ -55,7 +55,10 @@ Firmen sehen nie den Lohn der Fachleute, Fachleute nie den Firmenpreis.
 **Auszahlungen:** im Admin unter *Auszahlungen* – per Wise oder PayPal überweisen, dann „Mark paid“.
 
 ## Optional
-- **Google-Login:** Supabase → Authentication → Providers → Google einrichten, dann in `js/config.js` `GOOGLE_LOGIN: true`.
+- **Anmelden mit Google und Microsoft:** Die Knöpfe erscheinen von selbst, sobald der Anbieter in Supabase eingeschaltet ist (vorher sieht man nur E-Mail + Passwort). Rückleitungs-Adresse für beide: `https://wlslnfgfbcanfwlbxaap.supabase.co/auth/v1/callback`.
+  - **Google:** [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → *Create credentials → OAuth client ID* → Typ *Web application* → bei *Authorized redirect URIs* die Rückleitungs-Adresse eintragen → Client-ID und Client-Secret kopieren → Supabase → Authentication → Providers → **Google** → einschalten, beide Werte einfügen → Save. (Vorher in der Console den *OAuth consent screen* mit App-Name „Brightpeer“ ausfüllen und auf *In production* stellen.)
+  - **Microsoft:** [Azure Portal → App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) → *New registration* → Name „Brightpeer“, Kontotyp *Accounts in any organizational directory and personal Microsoft accounts* → Redirect URI (Web) = Rückleitungs-Adresse → Register. Dann *Certificates & secrets → New client secret* → den **Value** kopieren. Supabase → Authentication → Providers → **Azure** → einschalten, *Application (client) ID* und Secret-Value einfügen, *Azure Tenant URL* leer lassen → Save.
+  - Firmen, die sich mit Google/Microsoft registrieren, geben zuerst den Firmennamen ein; das Konto wird danach automatisch ein Firmenkonto (`supabase/oauth.sql`, schon eingespielt).
 - **Eigene E-Mails (Absender Brightpeer):** Supabase → Authentication → SMTP (z. B. mit Resend).
 - **Rechtstexte** unter `#/legal/...` sind Vorlagen – bitte von einer Fachperson prüfen lassen.
 

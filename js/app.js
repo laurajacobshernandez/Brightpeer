@@ -87,6 +87,67 @@ async function loadProfile() {
   profile = data;
 }
 
+// ---------------------------------------------------------------- Google / Microsoft sign-in (20.11.2026)
+// Buttons appear only for providers that are switched on in Supabase (Authentication → Providers),
+// so nothing broken is ever shown. Microsoft is Supabase's "azure" provider.
+let oauthOn = { google: false, azure: false };
+const OAUTH_KEY = 'bp-oauth';
+
+async function loadOAuthProviders() {
+  try {
+    const r = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: CONFIG.SUPABASE_ANON_KEY } });
+    const ext = (await r.json()).external || {};
+    oauthOn = { google: !!ext.google && CONFIG.GOOGLE_LOGIN !== false, azure: !!ext.azure && CONFIG.MICROSOFT_LOGIN !== false };
+  } catch { /* settings not reachable: keep e-mail login only */ }
+}
+
+const G_ICON = '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6C6.6 42.6 14.6 48 24 48z"/></svg>';
+const MS_ICON = '<svg width="18" height="18" viewBox="0 0 23 23" aria-hidden="true"><path fill="#F35325" d="M1 1h10v10H1z"/><path fill="#81BC06" d="M12 1h10v10H12z"/><path fill="#05A6F0" d="M1 12h10v10H1z"/><path fill="#FFBA08" d="M12 12h10v10H12z"/></svg>';
+
+function oauthHtml() {
+  const b = [];
+  if (oauthOn.google) b.push(`<button type="button" class="btn btn-ghost oauth-btn" data-provider="google">${G_ICON}<span>${t('orGoogle')}</span></button>`);
+  if (oauthOn.azure) b.push(`<button type="button" class="btn btn-ghost oauth-btn" data-provider="azure">${MS_ICON}<span>${t('orMicrosoft')}</span></button>`);
+  return b.length ? `<div class="stack" style="gap:10px">${b.join('')}</div><div class="divider">${t('or')}</div>` : '';
+}
+
+// kind: 'login' | 'expert' | 'company'. Company sign-up needs the company name first (kept through the redirect).
+function mountOAuth(root, kind) {
+  root.querySelectorAll('.oauth-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      if (!sb) return toast(t('notConfigured'), true);
+      const pending = { kind, at: Date.now() };
+      if (kind === 'company') {
+        const name = (root.querySelector('[name=company_name]') || {}).value || '';
+        if (!name.trim()) { toast(t('oauthCompanyName'), true); const i = root.querySelector('[name=company_name]'); if (i) i.focus(); return; }
+        pending.company_name = name.trim();
+        pending.website = ((root.querySelector('[name=website]') || {}).value || '').trim();
+      }
+      if (kind === 'expert') pending.ref = parseHash().query.get('ref') || '';
+      try { localStorage.setItem(OAUTH_KEY, JSON.stringify(pending)); } catch { /* private mode */ }
+      const provider = btn.dataset.provider;
+      const { error } = await sb.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: location.origin + location.pathname, ...(provider === 'azure' && { scopes: 'openid email profile' }) },
+      });
+      if (error) toast(error.message, true);
+    };
+  });
+}
+
+// After returning from Google/Microsoft: a company sign-up turns the new account into a company account,
+// an expert sign-up keeps the referral link. Runs once (the note is removed), harmless for normal logins.
+async function finishOAuth() {
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem(OAUTH_KEY) || 'null'); } catch { pending = null; }
+  if (!pending || !sb || !session) return;
+  try { localStorage.removeItem(OAUTH_KEY); } catch { /* ignore */ }
+  if (Date.now() - (pending.at || 0) > 3600e3 || pending.kind === 'login') return;
+  const { data, error } = await sb.rpc('oauth_finish', { kind: pending.kind, company_name: pending.company_name || null, website: pending.website || null, ref: pending.ref || null });
+  if (error) { console.error('oauth_finish', error); return; }
+  if (data === 'company') await loadProfile();
+}
+
 async function getRoles() {
   if (!sb) return DEMO_ROLES;
   const { data, error } = await sb.from('roles').select('*').eq('status', 'open').order('created_at', { ascending: false });
@@ -245,7 +306,7 @@ function authForm(kind) {
   // kind: 'expert' | 'company'
   const q = parseHash().query;
   const ref = q.get('ref') || '';
-  const google = CONFIG.GOOGLE_LOGIN ? `<button type="button" class="btn btn-ghost" id="googleBtn">${t('orGoogle')}</button><div class="divider">or</div>` : '';
+  const google = oauthHtml();
   const expertFields = `
     <h3>${t('stepProfile')}</h3>
     <div class="form-grid">
@@ -261,7 +322,10 @@ function authForm(kind) {
       <label class="f">${t('companyName')} *<input name="company_name" required></label>
       <label class="f">${t('website')}<input name="website" type="url" placeholder="https://"></label>
     </div>`;
+  // Company sign-up with Google/Microsoft: company name first, then the buttons (owner, 20.11.2026).
+  const companyFirst = kind === 'company' && google ? `${companyFields}` : '';
   return `<form id="signup" class="card stack" style="padding:32px">
+    ${companyFirst}
     ${google}
     <h3>${t('stepAccount')}</h3>
     <div class="form-grid">
@@ -270,7 +334,7 @@ function authForm(kind) {
       <label class="f">${t('email')} *<input name="email" type="email" required autocomplete="email"></label>
       <label class="f">${t('password')} *<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
     </div>
-    ${kind === 'company' ? companyFields : expertFields}
+    ${kind === 'company' ? (companyFirst ? '' : companyFields) : expertFields}
     <label class="check"><input type="checkbox" required> <span>${t('agree')} <a href="#/legal/${kind === 'company' ? 'client' : 'terms'}">${t('terms')}</a> · <a href="#/legal/privacy">${t('privacy')}</a></span></label>
     <div id="signupMsg"></div>
     <button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('createAccount')}</button>
@@ -280,8 +344,7 @@ function authForm(kind) {
 
 function mountSignup(kind) {
   const f = document.getElementById('signup');
-  const g = document.getElementById('googleBtn');
-  if (g) g.onclick = () => sb && sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+  mountOAuth(f, kind);
   f.onsubmit = async (e) => {
     e.preventDefault();
     if (!sb) return toast(t('notConfigured'), true);
@@ -317,7 +380,7 @@ function pageCompanySignup() {
 
 function pageLogin() {
   if (session) return { html: '', mount() { go('#/dashboard'); } };
-  const google = CONFIG.GOOGLE_LOGIN ? `<button type="button" class="btn btn-ghost" id="googleBtn">${t('orGoogle')}</button><div class="divider">or</div>` : '';
+  const google = oauthHtml();
   return {
     html: `<section class="wrap section stack-lg" style="max-width:480px">
       <h1 style="font-size:2.5rem">${t('loginH')}</h1>
@@ -332,8 +395,7 @@ function pageLogin() {
     </section>`,
     mount() {
       const f = document.getElementById('loginF');
-      const g = document.getElementById('googleBtn');
-      if (g) g.onclick = () => sb && sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+      mountOAuth(f, 'login');
       f.onsubmit = async (e) => {
         e.preventDefault();
         if (!sb) return toast(t('notConfigured'), true);
@@ -1283,11 +1345,14 @@ async function init() {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
       const qs = new URLSearchParams(location.search);
       const hadCode = qs.has('code');
+      const oauthError = qs.get('error_description');
       const isReset = qs.get('reset') === '1';
       sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce' } });
       const { data } = await sb.auth.getSession();
       session = data.session;
       await loadProfile();
+      await Promise.all([loadOAuthProviders(), finishOAuth()]);
+      if (oauthError) { history.replaceState(null, '', location.pathname + location.hash); setTimeout(() => toast(oauthError, true), 300); }
       if (hadCode || isReset) {
         history.replaceState(null, '', location.pathname + location.hash);
         if (session && isReset) { window.__bpRecovery = true; location.hash = '#/reset'; }
@@ -1299,6 +1364,7 @@ async function init() {
         if (event === 'PASSWORD_RECOVERY') { window.__bpRecovery = true; session = s; location.hash = '#/reset'; return; }
         if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') { session = s; return; }
         session = s; await loadProfile();
+        if (event === 'SIGNED_IN') await finishOAuth();
         if (event === 'SIGNED_IN' && !parseHash().parts.length) { location.hash = '#/dashboard'; return; }
         render();
       };

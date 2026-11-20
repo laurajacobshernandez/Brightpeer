@@ -24,6 +24,8 @@ export const CONFIG = {
     uid: '', // optional: CHE-XXX.XXX.XXX (leave empty if you have none),
   },
 
-  // Show "Continue with Google" (enable Google in Supabase → Authentication → Providers first)
-  GOOGLE_LOGIN: false,
+  // "Continue with Google" / "Continue with Microsoft": the buttons appear by themselves as soon as the
+  // provider is switched on in Supabase → Authentication → Providers (Google / Azure). Set false to hide one.
+  GOOGLE_LOGIN: true,
+  MICROSOFT_LOGIN: true,
 };
