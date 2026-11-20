@@ -4,6 +4,7 @@
 export const LANGS = { en: 'English', de: 'Deutsch', fr: 'Français', it: 'Italiano', es: 'Español' };
 
 const en = {
+  fExperts: 'Experts', fCompanies: 'Companies', fCompany: 'Company', fHelpCenter: 'Help center', fCompanyAccount: 'Create company account', fContact: 'Contact', 
   fvLabel: 'How Brightpeer works (video)', fvClose: 'Close video', fvSound: 'Sound on/off',
   payoutEncrypted: 'Your payout details are stored encrypted.', testsTab: 'Tests', testsH: 'Skill tests', testsP: 'Take the short test for your field. It helps us match you faster. You can take each test once.',
   testStart: 'Start test', testContinue: 'Continue test', testYourField: 'Your field', testQuestion: 'Question',
@@ -90,6 +91,7 @@ const en = {
 };
 
 const de = {
+  fExperts: 'Fachleute', fCompanies: 'Firmen', fCompany: 'Unternehmen', fHelpCenter: 'Hilfe-Center', fCompanyAccount: 'Firmenkonto erstellen', fContact: 'Kontakt', 
   fvLabel: 'So funktioniert Brightpeer (Video)', fvClose: 'Video schliessen', fvSound: 'Ton an/aus',
   payoutEncrypted: 'Deine Auszahlungsdaten werden verschlüsselt gespeichert.', testsTab: 'Tests', testsH: 'Fachtests', testsP: 'Mach den kurzen Test für dein Fachgebiet. So können wir dich schneller vermitteln. Jeder Test geht nur einmal.',
   testStart: 'Test starten', testContinue: 'Test fortsetzen', testYourField: 'Dein Fachgebiet', testQuestion: 'Frage',
@@ -165,6 +167,7 @@ const de = {
 };
 
 const fr = {
+  fExperts: 'Experts', fCompanies: 'Entreprises', fCompany: 'Société', fHelpCenter: 'Centre d’aide', fCompanyAccount: 'Créer un compte entreprise', fContact: 'Contact', 
   orGoogle: 'Continuer avec Google', orMicrosoft: 'Continuer avec Microsoft', or: 'ou', oauthCompanyName: "Veuillez d'abord saisir le nom de l'entreprise.", oauthSoon: 'Bientôt disponible – utilisez pour l’instant e-mail et mot de passe.',
   navRoles: 'Trouver une mission', navCompanies: 'Entreprises', navResearch: 'Recherche', navAbout: 'À propos', navHelp: 'Aide',
   login: 'Connexion', logout: 'Déconnexion', dashboard: 'Tableau de bord', applyNow: 'Postuler comme expert', hire: 'Trouver des experts', language: 'Langue',
@@ -193,6 +196,7 @@ const fr = {
 };
 
 const it = {
+  fExperts: 'Esperti', fCompanies: 'Aziende', fCompany: 'Azienda', fHelpCenter: 'Centro assistenza', fCompanyAccount: 'Crea account aziendale', fContact: 'Contatti', 
   orGoogle: 'Continua con Google', orMicrosoft: 'Continua con Microsoft', or: 'oppure', oauthCompanyName: "Inserisci prima il nome dell'azienda.", oauthSoon: 'Presto disponibile – per ora accedi con e-mail e password.',
   navRoles: 'Trova lavoro', navCompanies: 'Per aziende', navResearch: 'Ricerca', navAbout: 'Chi siamo', navHelp: 'Aiuto',
   login: 'Accedi', logout: 'Esci', dashboard: 'Dashboard', applyNow: 'Candidati come esperto', hire: 'Trova esperti', language: 'Lingua',
@@ -221,6 +225,7 @@ const it = {
 };
 
 const es = {
+  fExperts: 'Expertos', fCompanies: 'Empresas', fCompany: 'Compañía', fHelpCenter: 'Centro de ayuda', fCompanyAccount: 'Crear cuenta de empresa', fContact: 'Contacto', 
   orGoogle: 'Continuar con Google', orMicrosoft: 'Continuar con Microsoft', or: 'o', oauthCompanyName: 'Introduce primero el nombre de la empresa.', oauthSoon: 'Próximamente: por ahora entra con e-mail y contraseña.',
   navRoles: 'Buscar trabajo', navCompanies: 'Para empresas', navResearch: 'Investigación', navAbout: 'Empresa', navHelp: 'Ayuda',
   login: 'Iniciar sesión', logout: 'Cerrar sesión', dashboard: 'Panel', applyNow: 'Postular como experto', hire: 'Contratar expertos', language: 'Idioma',

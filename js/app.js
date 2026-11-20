@@ -184,14 +184,28 @@ function renderHeader() {
 }
 
 function renderFooter() {
+  // Footer in columns like Mercor (owner, 20.11.2026): brand on the left, link columns, legal row at the bottom.
+  const col = (title, links) => `<div class="fcol"><p class="fcol-h">${title}</p>${links.map(([href, label]) => `<a href="${href}">${label}</a>`).join('')}</div>`;
   $footer.innerHTML = `<div class="footer-inner">
-    <div class="stack" style="gap:8px"><a class="brand" href="#/" style="color:var(--ink)"><span class="logo"></span>Brightpeer</a><p class="muted">${t('footerTag')}</p></div>
-    <div class="footer-links">
-      <a href="#/roles">${t('navRoles')}</a><a href="#/companies">${t('navCompanies')}</a><a href="#/research">${t('navResearch')}</a>
-      <a href="#/about">${t('navAbout')}</a><a href="#/help">${t('navHelp')}</a>
-      <a href="#/legal/terms">${t('terms')}</a><a href="#/legal/client">${t('clientTerms')}</a><a href="#/legal/privacy">${t('privacy')}</a><a href="#/legal/cookies">${t('cookies')}</a><a href="#/legal/imprint">${t('imprint')}</a>
+    <div class="footer-top">
+      <div class="footer-brand stack" style="gap:10px">
+        <a class="brand" href="#/" style="color:var(--ink)"><span class="logo"></span>Brightpeer</a>
+        <p class="muted">${t('footerTag')}</p>
+        <a class="btn btn-accent btn-sm" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a>
+      </div>
+      <div class="footer-cols">
+        ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
+        ${col(t('fCompanies'), [['#/companies', t('hire')], ['#/company-signup', t('fCompanyAccount')], ['#/legal/client', t('clientTerms')]])}
+        ${col(t('navResearch'), [['#/research', t('navResearch')]])}
+        ${col(t('fCompany'), [['#/about', t('navAbout')], [`mailto:${esc(CONFIG.COMPANY.email)}`, t('fContact')], ['#/help', t('navHelp')]])}
+      </div>
     </div>
-    <p class="muted small" style="width:100%">© ${new Date().getFullYear()} Brightpeer. ${t('rights')}</p>
+    <div class="footer-bottom">
+      <p class="muted small">© ${new Date().getFullYear()} Brightpeer. ${t('rights')}</p>
+      <div class="footer-legal small">
+        <a href="#/legal/terms">${t('terms')}</a><a href="#/legal/privacy">${t('privacy')}</a><a href="#/legal/cookies">${t('cookies')}</a><a href="#/legal/imprint">${t('imprint')}</a>
+      </div>
+    </div>
   </div>`;
 }
 
