@@ -49,7 +49,7 @@ const en = {
   email: 'Email', password: 'Password (min. 8 characters)', fullName: 'Full name', country: 'Country',
   field: 'Field', years: 'Years of experience', linkedin: 'LinkedIn or website (optional)', rate: 'Expected hourly rate in USD (optional)',
   bio: 'Tell us briefly about your experience', agree: 'I agree to the Terms and the Privacy Policy.',
-  createAccount: 'Create account', haveAccount: 'Already have an account?', orGoogle: 'Continue with Google', orMicrosoft: 'Continue with Microsoft', or: 'or', oauthCompanyName: 'Please enter your company name first.',
+  createAccount: 'Create account', haveAccount: 'Already have an account?', orGoogle: 'Continue with Google', orMicrosoft: 'Continue with Microsoft', or: 'or', oauthCompanyName: 'Please enter your company name first.', oauthSoon: 'Coming soon – please use e-mail and password for now.',
   checkEmail: 'Almost done! Please check your email and click the confirmation link. Then log in to upload your CV.',
   // auth
   loginH: 'Log in', forgot: 'Forgot password?', noAccount: 'No account yet?', resetH: 'Reset password',
@@ -130,7 +130,7 @@ const de = {
   email: 'E-Mail', password: 'Passwort (mind. 8 Zeichen)', fullName: 'Vor- und Nachname', country: 'Land',
   field: 'Fachgebiet', years: 'Jahre Berufserfahrung', linkedin: 'LinkedIn oder Website (optional)', rate: 'Gewünschter Stundenlohn in USD (optional)',
   bio: 'Beschreibe kurz deine Erfahrung', agree: 'Ich akzeptiere die AGB und die Datenschutzerklärung.',
-  createAccount: 'Konto erstellen', haveAccount: 'Schon ein Konto?', orGoogle: 'Weiter mit Google', orMicrosoft: 'Weiter mit Microsoft', or: 'oder', oauthCompanyName: 'Bitte zuerst den Firmennamen eingeben.',
+  createAccount: 'Konto erstellen', haveAccount: 'Schon ein Konto?', orGoogle: 'Weiter mit Google', orMicrosoft: 'Weiter mit Microsoft', or: 'oder', oauthCompanyName: 'Bitte zuerst den Firmennamen eingeben.', oauthSoon: 'Bald verfügbar – bitte vorerst mit E-Mail und Passwort anmelden.',
   checkEmail: 'Fast geschafft! Bitte öffne deine E-Mails und klicke auf den Bestätigungslink. Danach anmelden und Lebenslauf hochladen.',
   loginH: 'Anmelden', forgot: 'Passwort vergessen?', noAccount: 'Noch kein Konto?', resetH: 'Passwort zurücksetzen',
   sendReset: 'Link senden', resetSent: 'Falls ein Konto existiert, haben wir dir einen Link zum Zurücksetzen geschickt.',
@@ -165,7 +165,7 @@ const de = {
 };
 
 const fr = {
-  orGoogle: 'Continuer avec Google', orMicrosoft: 'Continuer avec Microsoft', or: 'ou', oauthCompanyName: "Veuillez d'abord saisir le nom de l'entreprise.",
+  orGoogle: 'Continuer avec Google', orMicrosoft: 'Continuer avec Microsoft', or: 'ou', oauthCompanyName: "Veuillez d'abord saisir le nom de l'entreprise.", oauthSoon: 'Bientôt disponible – utilisez pour l’instant e-mail et mot de passe.',
   navRoles: 'Trouver une mission', navCompanies: 'Entreprises', navResearch: 'Recherche', navAbout: 'À propos', navHelp: 'Aide',
   login: 'Connexion', logout: 'Déconnexion', dashboard: 'Tableau de bord', applyNow: 'Postuler comme expert', hire: 'Trouver des experts', language: 'Langue',
   badge: 'Travail à distance pour experts, partout dans le monde',
@@ -193,7 +193,7 @@ const fr = {
 };
 
 const it = {
-  orGoogle: 'Continua con Google', orMicrosoft: 'Continua con Microsoft', or: 'oppure', oauthCompanyName: "Inserisci prima il nome dell'azienda.",
+  orGoogle: 'Continua con Google', orMicrosoft: 'Continua con Microsoft', or: 'oppure', oauthCompanyName: "Inserisci prima il nome dell'azienda.", oauthSoon: 'Presto disponibile – per ora accedi con e-mail e password.',
   navRoles: 'Trova lavoro', navCompanies: 'Per aziende', navResearch: 'Ricerca', navAbout: 'Chi siamo', navHelp: 'Aiuto',
   login: 'Accedi', logout: 'Esci', dashboard: 'Dashboard', applyNow: 'Candidati come esperto', hire: 'Trova esperti', language: 'Lingua',
   badge: 'Lavoro da remoto per esperti, in tutto il mondo',
@@ -221,7 +221,7 @@ const it = {
 };
 
 const es = {
-  orGoogle: 'Continuar con Google', orMicrosoft: 'Continuar con Microsoft', or: 'o', oauthCompanyName: 'Introduce primero el nombre de la empresa.',
+  orGoogle: 'Continuar con Google', orMicrosoft: 'Continuar con Microsoft', or: 'o', oauthCompanyName: 'Introduce primero el nombre de la empresa.', oauthSoon: 'Próximamente: por ahora entra con e-mail y contraseña.',
   navRoles: 'Buscar trabajo', navCompanies: 'Para empresas', navResearch: 'Investigación', navAbout: 'Empresa', navHelp: 'Ayuda',
   login: 'Iniciar sesión', logout: 'Cerrar sesión', dashboard: 'Panel', applyNow: 'Postular como experto', hire: 'Contratar expertos', language: 'Idioma',
   badge: 'Trabajo remoto para expertos, en todo el mundo',

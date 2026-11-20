@@ -106,8 +106,9 @@ const MS_ICON = '<svg width="18" height="18" viewBox="0 0 23 23" aria-hidden="tr
 
 function oauthHtml() {
   const b = [];
-  if (oauthOn.google) b.push(`<button type="button" class="btn btn-ghost oauth-btn" data-provider="google">${G_ICON}<span>${t('orGoogle')}</span></button>`);
-  if (oauthOn.azure) b.push(`<button type="button" class="btn btn-ghost oauth-btn" data-provider="azure">${MS_ICON}<span>${t('orMicrosoft')}</span></button>`);
+  // Owner, 20.11.2026: buttons are always visible; until the provider is switched on in Supabase a tap says "coming soon".
+  if (CONFIG.GOOGLE_LOGIN !== false) b.push(`<button type="button" class="btn btn-ghost oauth-btn" data-provider="google">${G_ICON}<span>${t('orGoogle')}</span></button>`);
+  if (CONFIG.MICROSOFT_LOGIN !== false) b.push(`<button type="button" class="btn btn-ghost oauth-btn" data-provider="azure">${MS_ICON}<span>${t('orMicrosoft')}</span></button>`);
   return b.length ? `<div class="stack" style="gap:10px">${b.join('')}</div><div class="divider">${t('or')}</div>` : '';
 }
 
@@ -116,6 +117,7 @@ function mountOAuth(root, kind) {
   root.querySelectorAll('.oauth-btn').forEach((btn) => {
     btn.onclick = async () => {
       if (!sb) return toast(t('notConfigured'), true);
+      if (!oauthOn[btn.dataset.provider]) return toast(t('oauthSoon'));
       const pending = { kind, at: Date.now() };
       if (kind === 'company') {
         const name = (root.querySelector('[name=company_name]') || {}).value || '';
