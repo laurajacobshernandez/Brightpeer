@@ -306,3 +306,10 @@ export function setLang(code) {
 export function t(key) {
   return (DICTS[lang] && DICTS[lang][key]) || en[key] || key;
 }
+
+// Signed-in notice on the apply / company sign-up pages (owner, 20.11.2026)
+Object.assign(en, { signedInAs: 'You are signed in as', signedInApplyHint: 'To create a new account, sign out first. Your current account stays as it is.', signOutToApply: 'Sign out and create new account' });
+Object.assign(de, { signedInAs: 'Du bist angemeldet als', signedInApplyHint: 'Um ein neues Konto zu erstellen, melde dich zuerst ab. Dein jetziges Konto bleibt bestehen.', signOutToApply: 'Abmelden und neues Konto erstellen' });
+Object.assign(fr, { signedInAs: 'Vous êtes connecté·e en tant que', signedInApplyHint: 'Pour créer un nouveau compte, déconnectez-vous d’abord. Votre compte actuel reste inchangé.', signOutToApply: 'Se déconnecter et créer un compte' });
+Object.assign(it, { signedInAs: 'Hai effettuato l’accesso come', signedInApplyHint: 'Per creare un nuovo account, esci prima. Il tuo account attuale resta invariato.', signOutToApply: 'Esci e crea un nuovo account' });
+Object.assign(es, { signedInAs: 'Has iniciado sesión como', signedInApplyHint: 'Para crear una cuenta nueva, cierra sesión primero. Tu cuenta actual se mantiene.', signOutToApply: 'Cerrar sesión y crear cuenta nueva' });

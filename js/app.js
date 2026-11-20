@@ -563,8 +563,30 @@ function mountSignup(kind) {
   };
 }
 
+// Owner, 20.11.2026: someone already signed in who opens "Apply as expert" / "Create company account" used to be
+// sent to the dashboard without a word (looked like a broken button). Now they see who is signed in and can sign out
+// right there; after signing out the same page opens with the sign-up form.
+function signedInNotice(titleKey) {
+  const who = esc(session?.user?.email || profile?.email || '');
+  return {
+    html: `<section class="wrap section narrow stack-lg"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t(titleKey)}</h1>
+      <div class="card stack" style="padding:28px;gap:16px">
+        <p style="margin:0">${t('signedInAs')} <strong>${who}</strong>.</p>
+        <p class="muted" style="margin:0">${t('signedInApplyHint')}</p>
+        <div class="row" style="gap:12px;flex-wrap:wrap">
+          <button class="btn btn-accent" type="button" id="switchAccountBtn">${t('signOutToApply')}</button>
+          <a class="btn btn-ghost" href="#/dashboard">${t('dashboard')}</a>
+        </div>
+      </div></section>`,
+    mount() {
+      const b = document.getElementById('switchAccountBtn');
+      if (b) b.onclick = async () => { b.disabled = true; await sb.auth.signOut(); location.reload(); };
+    },
+  };
+}
+
 function pageApply() {
-  if (session) return { html: '', mount() { go('#/dashboard'); } };
+  if (session) return signedInNotice('applyH');
   return {
     html: `<section class="wrap section narrow stack-lg"><div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('applyH')}</h1><p class="muted">${t('applySub')}</p></div>${authForm('expert')}</section>`,
     mount() {
@@ -576,7 +598,7 @@ function pageApply() {
 }
 
 function pageCompanySignup() {
-  if (session) return { html: '', mount() { go('#/dashboard'); } };
+  if (session) return signedInNotice('companySignupH');
   return {
     html: `<section class="wrap section narrow stack-lg"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('companySignupH')}</h1>${authForm('company')}</section>`,
     mount() { mountSignup('company'); },
