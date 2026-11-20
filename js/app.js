@@ -631,10 +631,10 @@ function pageCompanies() {
     <h1 style="max-width:16ch">${t('companiesH')}</h1>
     <p style="font-size:1.2rem;color:var(--ink2);max-width:42rem">${t('companiesSub')}</p>
     <div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div>
-    <div class="grid">${[1, 2, 3].map((i) => `<div class="card stack" style="gap:8px"><span class="icon-circle">${i}</span><h3>${t('cp' + i + 'h')}</h3><p class="muted">${t('cp' + i + 'p')}</p></div>`).join('')}</div>
+    <div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">0${i}</span><h3>${t('cp' + i + 'h')}</h3><p class="muted">${t('cp' + i + 'p')}</p></div>`).join('')}</div>
   </section>
-  <section class="wrap"><div class="dark stack-lg"><h2>${t('howCompaniesH')}</h2><div class="grid">${[1, 2, 3].map((i) => `<div class="stack" style="gap:8px"><span class="icon-circle">${i}</span><h3>${t('hc' + i + 'h')}</h3><p class="muted">${t('hc' + i + 'p')}</p></div>`).join('')}</div></div></section>
-  <section class="wrap section"><div class="card stack" style="padding:40px"><h2>${t('cpPriceH')}</h2><p class="muted" style="max-width:42rem">${t('cpPriceP')}</p><div class="grid-sm" style="margin-top:12px">${FIELDS.slice(0, 7).map((f) => `<span class="chip">${esc(fieldName(f))}</span>`).join('')}</div><a class="btn" style="align-self:flex-start;margin-top:8px" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div></section>`;
+  <section class="wrap"><div class="dark stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">0${i}</span><h3>${t('hc' + i + 'h')}</h3><p class="muted">${t('hc' + i + 'p')}</p></div>`).join('')}</div></div></section>
+  <section class="wrap section"><div class="stack" style="border-top:1px solid var(--ink);padding-top:32px"><h2>${t('cpPriceH')}</h2><p class="muted" style="max-width:42rem">${t('cpPriceP')}</p><div class="grid-sm" style="margin-top:12px">${FIELDS.slice(0, 7).map((f) => `<span class="chip">${esc(fieldName(f))}</span>`).join('')}</div><a class="btn" style="align-self:flex-start;margin-top:8px" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div></section>`;
 }
 
 // Research page: one colored card per field, scrolling right to left (owner, 20.11.2026).
@@ -815,7 +815,7 @@ function pageLegal(which) {
 }
 
 function pageNotFound() {
-  return `<section class="wrap section stack" style="align-items:center;text-align:center"><h1 style="font-size:3rem">404</h1><p class="muted">${t('notFound')}</p><a class="btn" href="#/">${t('home')}</a></section>`;
+  return `<section class="wrap section stack"><h1 style="font-size:3rem">404</h1><p class="muted">${t('notFound')}</p><a class="btn" style="align-self:flex-start" href="#/">${t('home')}</a></section>`;
 }
 
 function needLogin() {
@@ -863,7 +863,7 @@ async function expertDashboard() {
     <ul class="checklist">${steps.map(([ok, label, href]) => `<li class="${ok ? 'ok' : ''}"><span class="cbox">${ok ? '✓' : ''}</span>${ok ? `<span>${label}</span>` : `<a href="${href}" ${href.startsWith('#/') ? '' : 'data-scroll'}>${label} →</a>`}</li>`).join('')}</ul>
   </div>`;
   const offerCards = offers.map((c) => `<form class="card stack offer" data-offer="${c.id}">
-    <p class="badge"><span class="d"></span>${t('offerNew')}</p>
+    <p class="label-new">${t('offerNew')}</p>
     <h3>${esc(c.title || '')}</h3>
     <div class="grid-sm">
       <div><p class="muted small">${t('pay')}</p><p class="role-pay">${money(c.expert_rate)} <span class="muted small">${t('perHour')}</span></p></div>
