@@ -336,7 +336,7 @@ async function pageRole(id) {
   if (!session) {
     action = `<a class="btn btn-accent" href="#/apply?role=${esc(role.id)}" id="applyStart">${t('applyNow')}</a>
       <p class="muted small">${t('applyOneStep')}</p><a class="small" href="#/login">${t('haveAccount')} ${t('login')}</a>`;
-  } else if (profile?.role !== 'expert') {
+  } else if (!actsAsExpert()) {
     action = `<p class="muted">${t('mustBeExpert')}</p>`;
   } else {
     const { data: existing } = await sb.from('applications').select('id,status').eq('role_id', role.id).eq('expert_id', session.user.id).maybeSingle();
@@ -391,7 +391,7 @@ const APPLY_KEY = 'bp-apply-role';
 async function finishPendingApply() {
   let p = null;
   try { p = JSON.parse(localStorage.getItem(APPLY_KEY) || 'null'); } catch { p = null; }
-  if (!p || !sb || !session || profile?.role !== 'expert') return;
+  if (!p || !sb || !session || !actsAsExpert()) return;
   try { localStorage.removeItem(APPLY_KEY); } catch { /* ignore */ }
   if (Date.now() - (p.at || 0) > 7 * 864e5 || String(p.role).startsWith('demo-')) return;
   const { error } = await sb.from('applications').insert({ role_id: p.role, expert_id: session.user.id });
@@ -1109,7 +1109,7 @@ const MAX_REC_S = 180;
 
 async function pageInterview() {
   if (!session) return needLogin();
-  if (profile?.role !== 'expert') return { html: `<section class="wrap section narrow"><p class="muted">${t('mustBeExpert')}</p></section>` };
+  if (!actsAsExpert()) return { html: `<section class="wrap section narrow"><p class="muted">${t('mustBeExpert')}</p></section>` };
   const uid = session.user.id;
   const [{ data: ex }, { data: iv }] = await Promise.all([
     sb.from('experts').select('field').eq('id', uid).maybeSingle(),
@@ -1260,12 +1260,18 @@ async function companyDashboard() {
   };
 }
 
+// Experts – and the admin, who also has an expert profile – can use the expert pages (dashboard, roles, tests, interview).
+function actsAsExpert() { return profile?.role === 'expert' || profile?.role === 'admin'; }
+
 async function pageDashboard() {
   if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
   if (!session) return needLogin();
   if (!profile) await loadProfile();
   if (!profile) return `<section class="wrap section"><p class="muted">${t('error')}</p></section>`;
-  if (profile.role === 'admin') return { html: '', mount() { go('#/admin'); } };
+  // Owner, 20.11.2026 ("lass den Dashboard funktionieren"): "Dashboard" no longer jumps to Admin for the admin –
+  // the admin also has her own expert profile (created at sign-up), so Dashboard shows the expert view and
+  // "Admin" in the header stays the way to the admin area.
+  if (profile.role === 'admin') return expertDashboard();
   if (profile.role === 'company') return companyDashboard();
   return expertDashboard();
 }
@@ -1627,7 +1633,7 @@ async function pageTest(id) {
   if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
   if (!session) return needLogin();
   if (!profile) await loadProfile();
-  if (profile?.role !== 'expert') return pageNotFound();
+  if (!actsAsExpert()) return pageNotFound();
 
   const [{ data: tst }, { data: att }] = await Promise.all([
     sb.from('skill_tests').select('*').eq('id', id).maybeSingle(),
