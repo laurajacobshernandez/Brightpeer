@@ -21,6 +21,20 @@ const PAY = [
   ['Pharmacy', 80, 110], ['Accounting', 70, 100], ['Translation (DE)', 40, 60],
 ];
 
+const ICON_MUTE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
+const ICON_LOUD = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+// Homepage "Why experts choose Brightpeer" (owner, 20.11.2026) – only things Brightpeer really offers
+const BENEFITS = [
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>`, 'Weekly payouts', 'Paid every week by bank transfer or PayPal – no fees.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>`, 'Work from anywhere', 'Fully remote, from any country.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`, 'Your own hours', 'Choose when and how much you work – no minimum.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>`, 'Professional rates', '$40–250 per hour, shown on every role.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>`, 'Free to join', 'No sign-up fees, ever.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10 3 7.5 4.5 9 8 12 8zm0 0s2-5 4.5-3.5S15 8 12 8z"/></svg>`, 'Referral bonus', '$100 for you and $100 for your colleague.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg>`, 'Meaningful AI work', 'Help AI give safer, more accurate answers in your field.'],
+  [`<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M16 4.5a3.5 3.5 0 0 1 0 7M22 20c0-3-2-5.2-5-5.8"/></svg>`, 'Real people', 'A real person reviews your application and supports you.'],
+];
+
 // Example roles shown when the database is not connected yet
 const DEMO_ROLES = [
   { id: 'demo-1', title: 'Physician – Medical AI Reviewer', field: 'Medicine', rate_min: 120, rate_max: 150, hours_per_week: '10–20 h / week', description: 'Review and improve answers of AI models to clinical questions. Write realistic patient cases and rate model reasoning.', requirements: 'Licensed physician (MD), 3+ years clinical experience, fluent English.' },
@@ -251,6 +265,10 @@ async function pageHome() {
     <p class="muted small">${t('payNote')}</p>
   </div></section>
   <section class="wrap section"><div class="card stack-lg" style="padding:40px"><h2>${t('howCompaniesH')}</h2><div class="grid">${steps('hc')}</div><a class="btn" style="align-self:flex-start" href="#/companies">${t('hire')}</a></div></section>
+  <section class="wrap section stack-lg" style="padding-top:0">
+    <h2>Why experts choose Brightpeer</h2>
+    <div class="grid">${BENEFITS.map(([i, h, p]) => `<div class="card stack" style="gap:10px"><span class="benefit-ic" aria-hidden="true">${i}</span><h3>${h}</h3><p class="muted">${p}</p></div>`).join('')}</div>
+  </section>
   <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>${t('referralH')}</h2><p class="muted">${t('referralP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>
   <section class="wrap section stack" style="align-items:center;text-align:center"><h2>${t('ctaH')}</h2><p class="muted">${t('ctaP')}</p><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></section>`;
 }
@@ -328,7 +346,7 @@ async function pageRole(id) {
         <aside class="card stack role-side">
           <p class="muted small">${t('pay')}</p><p class="role-pay">${money(role.rate_min)}–${money(role.rate_max)} <span class="muted small">${t('perHour')}</span></p>
           <div class="row between small"><span class="muted">${t('hours')}</span><b>${esc(role.hours_per_week || '')}</b></div>
-          <div class="row between small"><span class="muted">${t('location')}</span><b>${t('remote')} 🌍</b></div>
+          <div class="row between small"><span class="muted">${t('location')}</span><b>${t('remote')}</b></div>
           <div class="row between small"><span class="muted">${t('paidH')}</span><b>${t('weekly')}</b></div>
           ${action}
         </aside>
@@ -620,9 +638,39 @@ function pageCompanies() {
   <section class="wrap section"><div class="card stack" style="padding:40px"><h2>${t('cpPriceH')}</h2><p class="muted" style="max-width:42rem">${t('cpPriceP')}</p><div class="grid-sm" style="margin-top:12px">${FIELDS.slice(0, 7).map((f) => `<span class="chip">${esc(fieldName(f))}</span>`).join('')}</div><a class="btn" style="align-self:flex-start;margin-top:8px" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div></section>`;
 }
 
+// Research page: one colored card per field, scrolling right to left (owner, 20.11.2026).
+// No partner logos or model scores – Brightpeer has none.
+const FIELD_CARDS = [
+  ['Medicine', '#0B6B4A', '#fff', 'Clinical reasoning', 'Write real clinical cases and grade AI answers on diagnosis, treatment and drug safety.'],
+  ['Law', '#3B342E', '#fff', 'Legal analysis', 'Review AI answers on contracts, case law and compliance the way a practising lawyer would.'],
+  ['Software', '#111318', '#fff', 'Software engineering', 'Test AI agents on real coding tasks – from bug fixes to full features and code review.'],
+  ['Chemistry & Math', '#2F6FED', '#fff', 'Science & math', 'Create hard problems and check step-by-step reasoning in chemistry, physics and mathematics.'],
+  ['Pharmacy', '#D7F25B', '#0E0F12', 'Pharmacology', 'Check dosing, interactions and patient advice for accuracy and safety.'],
+  ['Accounting', '#E8F0EA', '#0E0F12', 'Accounting & finance', 'Evaluate AI on bookkeeping, reporting and tax tasks across spreadsheets and documents.'],
+  ['Translation (DE)', '#0F9D6B', '#fff', 'Translation', 'Rate and improve German translations for meaning, tone and terminology.'],
+];
+function fieldCarousel() {
+  const card = ([f, bg, fg, title, text]) => {
+    const p = PAY.find((x) => x[0] === f);
+    return `<div class="fcard" style="background:${bg};color:${fg}">
+      <p class="fcard-tag">${esc(fieldName(f))}</p>
+      <h3>${esc(title)}</h3>
+      <p class="fcard-text">${esc(text)}</p>
+      <div class="fcard-foot"><b>${p ? `$${p[1]}–${p[2]} / h` : ''}</b><a href="#/roles?field=${encodeURIComponent(f)}" style="color:${fg}">View roles →</a></div>
+    </div>`;
+  };
+  const cards = FIELD_CARDS.map(card).join('');
+  // cards are rendered twice so the loop runs seamlessly; the copy is hidden from screen readers
+  return `<div class="marquee" aria-label="Fields"><div class="marquee-track">${cards}<div class="marquee-copy" aria-hidden="true">${cards}</div></div></div>`;
+}
+
 function pageResearch() {
-  return `<section class="wrap section narrow prose">
+  return `<section class="wrap section stack" style="padding-bottom:24px">
     <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Research</h1>
+    <p style="font-size:1.15rem;color:var(--ink2);max-width:40rem">Expert work across every field – here is where Brightpeer experts help AI get it right.</p>
+  </section>
+  ${fieldCarousel()}
+  <section class="wrap section narrow prose">
     <p style="font-size:1.15rem;color:var(--ink2)">AI models are only as good as the knowledge they learn from. Brightpeer experts create the high-quality data, evaluations and feedback that help AI systems reason like real professionals.</p>
     <h2>What experts do</h2>
     <ul><li><b>Write expert questions</b> – realistic cases from medicine, law, finance, science and engineering.</li><li><b>Grade AI answers</b> – check accuracy, safety and reasoning step by step.</li><li><b>Improve answers</b> – rewrite weak answers the way a senior professional would.</li><li><b>Build benchmarks</b> – hard test sets that show where models still fail.</li></ul>
@@ -886,7 +934,7 @@ async function expertDashboard() {
         <form id="payoutF" class="card stack"><h3>${t('payoutSettings')}</h3>
           <label class="f">${t('payoutMethod')}<select name="payout_method"><option value="bank" ${e.payout_method === 'bank' ? 'selected' : ''}>${t('bank')}</option><option value="paypal" ${e.payout_method === 'paypal' ? 'selected' : ''}>${t('paypal')}</option></select></label>
           <label class="f">${t('payoutDetails')}<textarea name="payout_details" style="min-height:80px">${esc(myPayout || '')}</textarea></label>
-          <p class="muted small">🔒 ${t('payoutEncrypted')}</p>
+          <p class="muted small"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> ${t('payoutEncrypted')}</p>
           <button class="btn" type="submit" style="align-self:flex-start">${t('save')}</button>
         </form>
         <form id="profileF" class="card stack"><h3>${t('profileH')}</h3>
@@ -1615,7 +1663,7 @@ function floatingVideo(show) {
   el.id = 'fv'; el.className = 'fv';
   el.innerHTML = `<video src="media/how-it-works.mp4" poster="media/how-it-works.jpg" muted playsinline loop preload="metadata" ${still ? '' : 'autoplay'} aria-label="${esc(t('fvLabel'))}"></video>
     <button type="button" class="fv-x" aria-label="${esc(t('fvClose'))}">×</button>
-    <button type="button" class="fv-snd" aria-label="${esc(t('fvSound'))}" aria-pressed="false">🔇</button>`;
+    <button type="button" class="fv-snd" aria-label="${esc(t('fvSound'))}" aria-pressed="false">${ICON_MUTE}</button>`;
   document.body.appendChild(el);
   const x = el.querySelector('.fv-x');
   const snd = el.querySelector('.fv-snd');
@@ -1624,7 +1672,7 @@ function floatingVideo(show) {
     ev.stopPropagation();
     vid.muted = !vid.muted;
     if (!vid.muted) { vid.currentTime = 0; vid.play().catch(() => {}); }
-    snd.textContent = vid.muted ? '🔇' : '🔊'; snd.setAttribute('aria-pressed', String(!vid.muted));
+    snd.innerHTML = vid.muted ? ICON_MUTE : ICON_LOUD; snd.setAttribute('aria-pressed', String(!vid.muted));
   };
   x.onclick = (ev) => { ev.stopPropagation(); el.hidden = true; try { sessionStorage.setItem('bp_fv_closed', '1'); } catch (e) { /* ignore */ } };
   let start = null, moved = false;
@@ -1644,7 +1692,7 @@ function floatingVideo(show) {
     el.style.top = Math.min(window.innerHeight - h - 8, Math.max(8, start.t + dy)) + 'px';
     el.style.right = 'auto'; el.style.bottom = 'auto';
   });
-  el.addEventListener('pointerup', () => { if (start && !moved) { vid.muted = true; snd.textContent = '🔇'; snd.setAttribute('aria-pressed', 'false'); openBigVideo(); } start = null; });
+  el.addEventListener('pointerup', () => { if (start && !moved) { vid.muted = true; snd.innerHTML = ICON_MUTE; snd.setAttribute('aria-pressed', 'false'); openBigVideo(); } start = null; });
 }
 
 function openBigVideo() {
