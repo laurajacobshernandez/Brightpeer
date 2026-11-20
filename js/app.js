@@ -1,6 +1,6 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
 import { CONFIG } from './config.js';
-import { t, lang, setLang, LANGS } from './i18n.js';
+import { t, lang } from './i18n.js';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -99,7 +99,6 @@ function renderHeader() {
   const { parts } = parseHash();
   const cur = '/' + (parts[0] || '');
   const a = (href, label) => `<a href="#${href}" class="${cur === href ? 'active' : ''}">${esc(label)}</a>`;
-  const langSel = `<label><span class="sr">${t('language')}</span><select class="lang" id="langSel">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}" ${k === lang ? 'selected' : ''}>${v}</option>`).join('')}</select></label>`;
   let right;
   if (session) {
     right = `${profile?.role === 'admin' ? a('/admin', t('admin')) : ''}${a('/dashboard', t('dashboard'))}<button class="btn btn-ghost btn-sm" id="logoutBtn">${t('logout')}</button>`;
@@ -112,10 +111,9 @@ function renderHeader() {
     <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
     <div class="nav-links" id="navLinks">
       ${a('/roles', t('navRoles'))}${a('/companies', t('navCompanies'))}${a('/research', t('navResearch'))}${a('/about', t('navAbout'))}${a('/help', t('navHelp'))}
-      ${langSel}${right}
+      ${right}
     </div>
   </nav>`;
-  document.getElementById('langSel').onchange = (e) => { setLang(e.target.value); render(); };
   const mb = document.getElementById('menuBtn');
   mb.onclick = () => { const nl = document.getElementById('navLinks'); nl.classList.toggle('open'); mb.setAttribute('aria-expanded', nl.classList.contains('open')); };
   const lo = document.getElementById('logoutBtn');
@@ -1179,6 +1177,55 @@ function runTest(d) {
   tick(); testTimer = setInterval(tick, 1000);
 }
 
+// ---------------------------------------------------------------- floating "how it works" video
+// 90-second explainer, small and draggable on the home page; tap to watch it big; × hides it for the visit.
+function floatingVideo(show) {
+  let el = document.getElementById('fv');
+  let closed = false;
+  try { closed = sessionStorage.getItem('bp_fv_closed') === '1'; } catch (e) { /* storage blocked */ }
+  if (!show || closed) { if (el) el.hidden = true; return; }
+  if (el) { el.hidden = false; return; }
+  const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el = document.createElement('div');
+  el.id = 'fv'; el.className = 'fv';
+  el.innerHTML = `<video src="media/how-it-works.mp4" poster="media/how-it-works.jpg" muted playsinline loop preload="metadata" ${still ? '' : 'autoplay'} aria-label="${esc(t('fvLabel'))}"></video>
+    <button type="button" class="fv-x" aria-label="${esc(t('fvClose'))}">×</button>`;
+  document.body.appendChild(el);
+  const x = el.querySelector('.fv-x');
+  x.onclick = (ev) => { ev.stopPropagation(); el.hidden = true; try { sessionStorage.setItem('bp_fv_closed', '1'); } catch (e) { /* ignore */ } };
+  let start = null, moved = false;
+  el.addEventListener('pointerdown', (ev) => {
+    if (ev.target === x) return;
+    const r = el.getBoundingClientRect();
+    start = { x: ev.clientX, y: ev.clientY, l: r.left, t: r.top }; moved = false;
+    el.setPointerCapture(ev.pointerId);
+  });
+  el.addEventListener('pointermove', (ev) => {
+    if (!start) return;
+    const dx = ev.clientX - start.x, dy = ev.clientY - start.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    if (!moved) return;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    el.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, start.l + dx)) + 'px';
+    el.style.top = Math.min(window.innerHeight - h - 8, Math.max(8, start.t + dy)) + 'px';
+    el.style.right = 'auto'; el.style.bottom = 'auto';
+  });
+  el.addEventListener('pointerup', () => { if (start && !moved) openBigVideo(); start = null; });
+}
+
+function openBigVideo() {
+  const m = document.createElement('div');
+  m.className = 'fv-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', t('fvLabel'));
+  m.innerHTML = `<div class="fv-big"><video src="media/how-it-works.mp4" poster="media/how-it-works.jpg" controls playsinline autoplay></video>
+    <button type="button" class="fv-x" aria-label="${esc(t('fvClose'))}">×</button></div>`;
+  const close = () => { m.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  m.onclick = (e) => { if (e.target === m) close(); };
+  m.querySelector('.fv-x').onclick = close;
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(m);
+}
+
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 async function render() {
@@ -1214,6 +1261,7 @@ async function render() {
   renderFooter();
   $app.innerHTML = page.html;
   if (page.mount) page.mount();
+  floatingVideo(parts[0] === undefined);
   window.scrollTo(0, 0);
   document.getElementById('loader').classList.add('hide');
 }
