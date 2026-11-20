@@ -660,11 +660,46 @@ function fieldCarousel() {
   };
   const cards = FIELD_CARDS.map(card).join('');
   // cards are rendered twice so the loop runs seamlessly; the copy is hidden from screen readers
-  return `<div class="marquee" aria-label="Fields"><div class="marquee-track">${cards}<div class="marquee-copy" aria-hidden="true">${cards}</div></div></div>`;
+  return `<div class="marquee-wrap">
+    <div class="marquee" id="marquee" aria-label="Fields"><div class="marquee-track">${cards}<div class="marquee-copy" aria-hidden="true">${cards}</div></div></div>
+    <div class="wrap marquee-nav"><button type="button" class="mq-btn" data-dir="-1" aria-label="Previous">←</button><button type="button" class="mq-btn" data-dir="1" aria-label="Next">→</button></div>
+  </div>`;
+}
+// Cards move slowly by themselves; visitors can also swipe, scroll or use the arrows (owner, 20.11.2026).
+function mountCarousel() {
+  const el = document.getElementById('marquee');
+  if (!el) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let paused = false; let resumeT; let last = 0;
+  const half = () => el.scrollWidth / 2;
+  const wrapPos = () => { if (el.scrollLeft >= half()) el.scrollLeft -= half(); else if (el.scrollLeft <= 0) el.scrollLeft += half(); };
+  const pause = (ms = 4000) => { paused = true; clearTimeout(resumeT); resumeT = setTimeout(() => { paused = false; }, ms); };
+  el.scrollLeft = 1;
+  const step = (ts) => {
+    if (!document.body.contains(el)) return;
+    const dt = last ? Math.min(ts - last, 50) : 16; last = ts;
+    if (!paused && !reduce) { el.scrollLeft += dt * 0.04; wrapPos(); }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  el.addEventListener('pointerenter', () => { paused = true; clearTimeout(resumeT); });
+  el.addEventListener('pointerleave', () => pause(1500));
+  ['wheel', 'touchstart', 'pointerdown'].forEach((ev) => el.addEventListener(ev, () => pause(), { passive: true }));
+  el.addEventListener('scroll', wrapPos, { passive: true });
+  // drag with the mouse
+  let down = null;
+  el.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') { down = { x: e.clientX, l: el.scrollLeft, moved: false }; } });
+  window.addEventListener('pointermove', (e) => { if (!down) return; const dx = e.clientX - down.x; if (Math.abs(dx) > 4) down.moved = true; el.scrollLeft = down.l - dx; });
+  window.addEventListener('pointerup', () => { if (down?.moved) { const stop = (ev) => { ev.preventDefault(); ev.stopPropagation(); }; el.addEventListener('click', stop, { capture: true, once: true }); setTimeout(() => el.removeEventListener('click', stop, true), 50); } down = null; });
+  document.querySelectorAll('.mq-btn').forEach((b) => b.addEventListener('click', () => {
+    pause(5000);
+    const card = el.querySelector('.fcard'); const w = card ? card.offsetWidth + 20 : 380;
+    el.scrollBy({ left: Number(b.dataset.dir) * w, behavior: 'smooth' });
+  }));
 }
 
 function pageResearch() {
-  return `<section class="wrap section stack" style="padding-bottom:24px">
+  return { mount: mountCarousel, html: `<section class="wrap section stack" style="padding-bottom:24px">
     <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Research</h1>
     <p style="font-size:1.15rem;color:var(--ink2);max-width:40rem">${t('researchIntro')}</p>
   </section>
@@ -678,7 +713,7 @@ function pageResearch() {
     <h2>Quality first</h2>
     <p>Every expert is reviewed before their first project. Work is double-checked, and feedback flows back to the expert so quality keeps improving.</p>
     <p><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></p>
-  </section>`;
+  </section>` };
 }
 
 function pageAbout() {
