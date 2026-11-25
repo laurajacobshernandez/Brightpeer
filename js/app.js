@@ -311,15 +311,16 @@ function roleCard(r) {
 
 async function pageHome() {
   const roles = (await getRoles()).slice(0, 3);
+  // Owner, 25.11.2026: the roles ("Gesuchte Fachrichtungen") come first, right at the top of the page.
   return `
   <section class="wrap section stack-lg">
+    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
+    <div class="grid">${roles.map(roleCard).join('')}</div>
+  </section>
+  <section class="wrap section stack-lg" style="padding-top:0">
     <h1 style="max-width:15ch">${t('h1')}</h1>
     <p style="font-size:1.25rem;color:var(--ink2);max-width:40rem">${t('sub')}</p>
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
-  </section>
-  <section class="wrap section stack-lg" style="padding-top:0">
-    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
-    <div class="grid">${roles.map(roleCard).join('')}</div>
   </section>
   <section class="wrap section stack-lg">
     <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Five ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
@@ -1861,6 +1862,7 @@ const ADMIN = {
         <div class="card stack"><h3>Matching</h3>
           ${chk('auto_propose', 'Propose experts automatically for new requests', 'When a company sends a request, the best approved experts in that field (by score) are shown to it right away as anonymous profiles.')}
           <label class="f" style="max-width:220px">Experts per request<input type="number" name="propose_count" min="1" max="10" value="${esc(s.propose_count ?? 3)}"></label>
+          ${chk('auto_offer', 'Send the offer automatically when the company is interested', 'Expert pay = the expert’s own rate wish, kept within the pay range of the field shown on the website; company price = pay + 30 %. The expert accepts online and can then log hours. Off = you click “Create offer” yourself.')}
         </div>
         <div class="card stack"><h3>Applications</h3>
           ${chk('auto_approve_experts', 'Approve experts automatically', 'An expert is approved as soon as the CV is uploaded, the field test reaches the minimum and the interview has at least the minimum stars. Every submitted interview is rated by the AI automatically (tab Interviews).')}
@@ -1883,7 +1885,7 @@ const ADMIN = {
           ev.preventDefault(); const d = formData(f); busy(f, true);
           const num = (k, def) => Math.round(Number(d[k])) || def;
           const { error: er } = await sb.from('automation_settings').update({
-            auto_propose: !!d.auto_propose, propose_count: num('propose_count', 3), auto_approve_experts: !!d.auto_approve_experts,
+            auto_propose: !!d.auto_propose, auto_offer: !!d.auto_offer, propose_count: num('propose_count', 3), auto_approve_experts: !!d.auto_approve_experts,
             approve_min_test: Math.max(0, Math.min(100, num('approve_min_test', 80))), approve_min_stars: Math.max(1, Math.min(5, num('approve_min_stars', 4))),
             ai_counts_for_approval: !!d.ai_counts_for_approval, auto_approve_hours: !!d.auto_approve_hours, hours_days: Math.max(1, Math.min(30, num('hours_days', 7))), auto_payouts: !!d.auto_payouts, updated_at: new Date().toISOString(),
           }).eq('id', 1);
