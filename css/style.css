@@ -298,3 +298,4 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .steps-list{list-style:none;padding-left:0;counter-reset:st;gap:12px}
 .steps-list li{counter-increment:st;display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
 .steps-list li::before{content:counter(st);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--display);font-weight:700;font-size:.85rem}
+@media (min-width:901px){.services{grid-template-columns:repeat(2,1fr)}}
