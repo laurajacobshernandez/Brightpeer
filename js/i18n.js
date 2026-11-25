@@ -326,3 +326,9 @@ Object.assign(de, { poolShort: 'Talent-Pool: Du bekommst ein konkretes Angebot, 
 Object.assign(fr, { poolShort: 'Vivier de talents : vous recevez une offre concrète dès qu’un projet client adapté démarre.' });
 Object.assign(it, { poolShort: 'Talent pool: ricevi un’offerta concreta appena parte un progetto cliente adatto.' });
 Object.assign(es, { poolShort: 'Bolsa de talento: recibes una oferta concreta en cuanto empiece un proyecto de cliente adecuado.' });
+// Referral counts in the expert dashboard (25.11.2026)
+Object.assign(en, { refStats: 'Signed up with your link: <b>{a}</b> · reached 10 paid hours: <b>{b}</b> · bonus paid: <b>{c}</b>' });
+Object.assign(de, { refStats: 'Über deinen Link angemeldet: <b>{a}</b> · 10 bezahlte Stunden erreicht: <b>{b}</b> · Bonus ausbezahlt: <b>{c}</b>' });
+Object.assign(fr, { refStats: 'Inscrits avec votre lien : <b>{a}</b> · 10 heures payées atteintes : <b>{b}</b> · prime versée : <b>{c}</b>' });
+Object.assign(it, { refStats: 'Iscritti con il tuo link: <b>{a}</b> · 10 ore pagate raggiunte: <b>{b}</b> · bonus pagato: <b>{c}</b>' });
+Object.assign(es, { refStats: 'Registrados con tu enlace: <b>{a}</b> · 10 horas pagadas alcanzadas: <b>{b}</b> · bono pagado: <b>{c}</b>' });

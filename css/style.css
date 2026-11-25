@@ -106,7 +106,7 @@ tr:last-child td{border-bottom:0}
 td .row{gap:6px;flex-wrap:nowrap}
 
 /* tabs */
-.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;overflow-x:auto;padding-bottom:4px;border-bottom:1px solid var(--line)}
 .tab{background:none;border:0;padding:10px 14px;border-radius:10px 10px 0 0;font:inherit;font-weight:600;color:var(--ink3);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
@@ -271,3 +271,12 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .socials{display:flex;gap:10px;margin-top:6px}
 .footer-inner a.social{width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;color:var(--ink2);transition:color .2s,border-color .2s}
 .footer-inner a.social:hover{color:var(--accent);border-color:var(--accent)}
+
+/* Invoice / receipt (25.11.2026): only the document is printed or saved as PDF */
+@media print {
+  .site-header, .site-footer, .toast, .loader, .no-print, .fv { display: none !important; }
+  body { background: #fff !important; }
+  .section { padding: 0 !important; }
+  .invoice { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+  .invoice .logo { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

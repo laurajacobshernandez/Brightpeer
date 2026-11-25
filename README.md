@@ -54,6 +54,14 @@ Firmen sehen nie den Lohn der Fachleute, Fachleute nie den Firmenpreis.
 **Zahlungen:** Für eine Rechnung in Stripe einen *Payment Link* erstellen und im Admin bei der Rechnung einfügen → die Firma sieht „Jetzt bezahlen“. Ohne Link sieht sie deine Bankverbindung.
 **Auszahlungen:** im Admin unter *Auszahlungen* – per Wise oder PayPal überweisen, dann „Mark paid“.
 
+## Neu (25.11.2026)
+- **Rechnungen/Quittungen:** jede Vorauszahlung hat eine Nummer (BP-1001 …) und eine Seite `#/invoice/<id>`, die Firma und Admin als PDF speichern (Knopf „Download PDF / Print“).
+- **Besucher:** Admin → *Visitors* – anonym gezählt, ohne Cookies, ohne IP; eigene Admin-Besuche zählen nicht.
+- **Profil-Vorschläge:** Admin → *Requests* → Fachperson vorschlagen; die Firma sieht ein anonymes Profil und antwortet „Interested“ / „Not a fit“.
+- **Client Terms:** Firmen müssen die Client Terms akzeptieren (bei der Anmeldung oder im Dashboard), bevor sie Anfragen senden oder Guthaben aufladen.
+- **Empfehlungen:** Admin → *Referrals* – wer sich über welchen Link angemeldet hat, bezahlte Stunden, Bonus fällig/bezahlt.
+- Datenbank: `supabase/features-2026-11-25.sql` (schon eingespielt). Die Website wird aus dem Zweig **gh-pages** veröffentlicht – Änderungen immer auch dorthin pushen.
+
 ## Optional
 - **Anmelden mit Google und Microsoft:** Die Knöpfe erscheinen von selbst, sobald der Anbieter in Supabase eingeschaltet ist (vorher sieht man nur E-Mail + Passwort). Rückleitungs-Adresse für beide: `https://wlslnfgfbcanfwlbxaap.supabase.co/auth/v1/callback`.
   - **Google:** [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → *Create credentials → OAuth client ID* → Typ *Web application* → bei *Authorized redirect URIs* die Rückleitungs-Adresse eintragen → Client-ID und Client-Secret kopieren → Supabase → Authentication → Providers → **Google** → einschalten, beide Werte einfügen → Save. (Vorher in der Console den *OAuth consent screen* mit App-Name „Brightpeer“ ausfüllen und auf *In production* stellen.)

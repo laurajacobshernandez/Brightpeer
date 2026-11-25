@@ -605,7 +605,7 @@ function mountSignup(kind) {
     delete d.cv_file;
     const meta = { role: kind, full_name: d.full_name, country: d.country };
     if (kind === 'expert') Object.assign(meta, { field: d.field, years: d.years, rate: d.rate, linkedin: d.linkedin, bio: d.bio, ref: d.ref });
-    else Object.assign(meta, { company_name: d.company_name, website: d.website });
+    else Object.assign(meta, { company_name: d.company_name, website: d.website, terms: 'accepted' });
     busy(f, true);
     const { data, error } = await sb.auth.signUp({ email: d.email, password: d.password, options: { data: meta, emailRedirectTo: location.origin + location.pathname } });
     busy(f, false);
@@ -852,7 +852,7 @@ function pageLegal(which) {
   const C = CONFIG.COMPANY;
   const who = `Brightpeer is a sole proprietorship based at ${esc(C.address)}`;
   const mail = `<a href="mailto:${esc(C.email)}">${esc(C.email)}</a>`;
-  const updated = '<p class="muted small">Last updated: 19 November 2026</p>';
+  const updated = '<p class="muted small">Last updated: 25 November 2026</p>';
   const PAGES = ['terms', 'client', 'privacy', 'imprint', 'cookies'];
   if (!PAGES.includes(which)) which = 'terms';
   const label = { terms: t('terms'), client: t('clientTerms'), privacy: t('privacy'), imprint: t('imprint'), cookies: t('cookies') };
@@ -899,13 +899,15 @@ function pageLegal(which) {
       <h2>2. Requests and Statements of Work</h2>${ol([
         'The Client describes each Project: scope, required skills, expected hours, deadlines, quality criteria and confidentiality rules.',
         'Brightpeer confirms the Project with a quote or statement of work ("SOW") stating rates and estimated volume. A Project starts once both sides accept the SOW.',
-        'Brightpeer selects the Experts. The Client may ask for an Expert to be replaced; Brightpeer will do so within a reasonable time.'])}
+        'Brightpeer selects the Experts. It may first show the Client anonymous Expert profiles (field, experience, skills, test and interview results) in the dashboard; names and contact details are shared only as far as needed once an Expert is assigned.',
+        'The Client may ask for an Expert to be replaced; Brightpeer will do so within a reasonable time.'])}
       <h2>3. Fees and payment</h2>${ol([
         'Fees are charged per approved Expert hour at the rates in the SOW, unless a fixed price is agreed.',
         'Brightpeer works with prepayment. Before a Project starts, the Client tops up a prepaid balance in USD (unless agreed otherwise) by card, bank transfer or another method Brightpeer offers.',
         'Approved Expert hours are deducted from the balance every week. The Client can see the balance in the Brightpeer dashboard.',
         'If the balance does not cover the expected hours, Brightpeer may pause the Project until the Client tops up again.',
         'Unused balance is refunded on request within 30 days, minus fees for hours already approved.',
+        'Brightpeer issues an invoice for every prepayment and a receipt once it is paid. Both can be downloaded as PDF in the dashboard.',
         'Prices exclude VAT and other taxes, which are added where applicable.'])}
       <h2>4. Timesheets and disputes</h2><p>The Client can see logged hours in the Brightpeer dashboard and approves them there. Objections to hours or quality must be raised in writing within 7 days of the hours being logged, with reasons. Otherwise the hours count as accepted.</p>
       <h2>5. Non-solicitation</h2><p>During a Project and for 12 months after it, the Client may not hire or contract directly any Expert introduced by Brightpeer, except through Brightpeer. If it does, the Client pays a placement fee of 25% of that Expert's first-year compensation, or USD 10,000, whichever is higher.</p>
@@ -928,6 +930,7 @@ function pageLegal(which) {
         ['Payment', 'Bank or PayPal details, prepayments, receipts, tax information', 'Pay Experts, collect Client prepayments', 'Contract, legal obligation'],
         ['Client contacts', 'Name, company, role, email', 'Manage Client relationships', 'Contract, legitimate interest'],
         ['Usage', 'IP address, device, browser (server logs of our hosting providers)', 'Security, running the site', 'Legitimate interest'],
+        ['Visit statistics', 'Page opened, referring website, browser language, device type (mobile, tablet, desktop) – no cookies, no IP address, no identifier', 'See how many people visit and which pages help', 'Legitimate interest'],
         ['Communication', 'Emails, support messages', 'Answer requests', 'Contract, legitimate interest']])}
       <h2>3. Sharing</h2><p>We do not sell personal data. We share it only:</p><ul>
         <li>with Clients, limited to what they need for their project (first name, field, logged hours and work outputs);</li>
@@ -947,7 +950,7 @@ function pageLegal(which) {
       <p>Despite careful checks, we accept no liability for the content of external links. Their operators are responsible for them.</p>`;
   } else {
     body = `<h1 style="font-size:2.5rem">Cookie Notice</h1>
-      <p>We only use technically necessary storage in your browser: to keep you logged in, keep the site secure and remember your language. These need no consent. We do not use analytics or advertising cookies.</p>
+      <p>We only use technically necessary storage in your browser: to keep you logged in, keep the site secure and remember your language. These need no consent. We count visits anonymously without any cookie or identifier, and we do not use advertising cookies.</p>
       ${tbl(['Type', 'Purpose', 'Duration'], [['Necessary', 'Login session, security, language choice', 'Session to 12 months']])}`;
   }
   return `<section class="wrap section prose">${tabs}${body}</section>`;
@@ -973,7 +976,8 @@ async function expertDashboard() {
     sb.from('interviews').select('status').eq('expert_id', uid).maybeSingle(),
   ]);
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
-  const { data: myPayout } = await sb.rpc('my_payout_details');
+  const [{ data: myPayout }, { data: myRefs }] = await Promise.all([sb.rpc('my_payout_details'), sb.rpc('my_referrals')]);
+  const rs = myRefs || {};
   const e = ex.data || {};
   const contracts = cons.data || [];
   const sheets = ts.data || [];
@@ -1036,6 +1040,7 @@ async function expertDashboard() {
           <h3>${t('referralLink')}</h3>
           <p class="muted small">${t('referralH')}</p>
           <div class="row" style="flex-wrap:nowrap"><input id="refLink" readonly value="${esc(refLink)}"><button class="btn btn-sm" id="copyRef">${t('copy')}</button></div>
+          <p class="small">${t('refStats').replace('{a}', Number(rs.signed_up) || 0).replace('{b}', Number(rs.qualified) || 0).replace('{c}', Number(rs.paid) || 0)}</p>
         </div>
       </div>
 
@@ -1260,7 +1265,7 @@ async function pageInterview() {
 // ---------------------------------------------------------------- company dashboard
 async function companyDashboard() {
   const uid = session.user.id;
-  const [co, reqs, cons, ts, inv, bal, prep] = await Promise.all([
+  const [co, reqs, cons, ts, inv, bal, prep, cand] = await Promise.all([
     sb.from('companies').select('*').eq('id', uid).maybeSingle(),
     sb.from('requests').select('*').eq('company_id', uid).order('created_at', { ascending: false }),
     sb.rpc('company_contracts'),
@@ -1268,7 +1273,9 @@ async function companyDashboard() {
     sb.from('invoices').select('*').eq('company_id', uid).order('week_start', { ascending: false }),
     sb.rpc('company_balance'),
     sb.from('prepayments').select('*').eq('company_id', uid).order('created_at', { ascending: false }),
+    sb.rpc('company_candidates'),
   ]);
+  const candidates = cand.data || [];
   const c = co.data || {};
   const sheets = ts.data || [];
   const B = CONFIG.BANK;
@@ -1276,13 +1283,43 @@ async function companyDashboard() {
   const b = (bal.data && bal.data[0]) || { paid: 0, used: 0, balance: 0 };
   const balance = Number(b.balance) || 0;
   const low = balance < (CONFIG.LOW_BALANCE || 500);
-  const bankRef = (id) => `<details><summary class="link">${t('payByBank')}</summary><p class="small" style="margin-top:6px">${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Ref: PRE-${esc(id.slice(0, 8).toUpperCase())}</p></details>`;
-  const prepAction = (p) => p.status === 'open' ? (p.payment_link ? `<a class="btn btn-accent btn-sm" href="${esc(p.payment_link)}" target="_blank" rel="noopener">${t('payNow')}</a>` : bankRef(p.id)) : p.status === 'requested' ? '<span class="muted small">We will send the payment details shortly</span>' : '';
+  const bankRef = (ref) => `<details><summary class="link">${t('payByBank')}</summary><p class="small" style="margin-top:6px">${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Ref: ${esc(ref)}</p></details>`;
+  const prepAction = (p) => p.status === 'open' ? (p.payment_link ? `<a class="btn btn-accent btn-sm" href="${esc(p.payment_link)}" target="_blank" rel="noopener">${t('payNow')}</a>` : bankRef(invoiceNo(p))) : p.status === 'requested' ? '<span class="muted small">We will send the payment details shortly</span>' : '';
   const showInvoices = !CONFIG.PREPAYMENT_ONLY && (inv.data || []).length;
 
+  // Client Terms (owner, 25.11.2026): a company account works only once the terms are accepted (e.g. after a Google sign-up).
+  if (!c.terms_accepted_at) {
+    return {
+      html: `<section class="wrap section narrow stack-lg">
+        <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
+        <form id="termsF" class="card stack" style="padding:28px">
+          <h3>Please accept our Client Terms</h3>
+          <p class="muted">Before you send a request or top up your balance, please read and accept the <a href="#/legal/client" target="_blank">Client Terms</a>. They cover prepayment and refunds, confidentiality, ownership of the work and the non-solicitation of experts.</p>
+          <label class="check"><input type="checkbox" required> <span>I have read and accept the <a href="#/legal/client" target="_blank">Client Terms</a> on behalf of my company.</span></label>
+          <button class="btn btn-accent" type="submit" style="align-self:flex-start">Accept and continue</button>
+        </form>
+      </section>`,
+      mount() {
+        const tf = document.getElementById('termsF');
+        tf.onsubmit = async (ev) => { ev.preventDefault(); busy(tf, true); const { error } = await sb.rpc('accept_client_terms'); busy(tf, false); if (error) return fail(error); toast(t('saved')); render(); };
+      },
+    };
+  }
+  const stars = (n) => (n ? '★'.repeat(n) + '<span class="muted">' + '★'.repeat(5 - n) + '</span>' : '–');
+  const candCards = candidates.map((x) => `<div class="card stack" style="gap:10px">
+      <div class="row between"><h3>${esc(x.code)}</h3>${x.status === 'proposed' ? '<span class="label-new">New</span>' : pill(x.status === 'interested' ? 'approved' : 'declined')}</div>
+      <p class="muted small">${esc(fieldName(x.field))}${x.years != null ? ` · ${esc(x.years)} years experience` : ''}${x.country ? ` · ${esc(x.country)}` : ''}</p>
+      ${x.headline ? `<p style="font-weight:600">${esc(x.headline)}</p>` : ''}
+      ${skillList(x.skills).length ? `<div class="row" style="gap:6px">${skillList(x.skills).slice(0, 6).map((k) => `<span class="chip chip-sm">${esc(k)}</span>`).join('')}</div>` : ''}
+      <div class="row" style="gap:24px"><div><p class="muted small">Field test</p><p style="font-weight:600">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div><div><p class="muted small">Interview</p><p>${stars(x.interview_score)}</p></div></div>
+      ${x.admin_note ? `<p class="small" style="white-space:pre-line"><b>Why we suggest this expert:</b> ${esc(x.admin_note)}</p>` : ''}
+      ${x.status === 'proposed' ? `<form class="stack" data-cand="${x.id}" style="gap:8px"><input name="note" maxlength="1000" placeholder="Note for us (optional)"><div class="row"><button class="btn btn-accent btn-sm" type="submit" data-int="1">Interested</button><button class="btn btn-ghost btn-sm" type="submit" data-int="0">Not a fit</button></div></form>`
+        : x.company_note ? `<p class="small muted">Your note: ${esc(x.company_note)}</p>` : ''}
+    </div>`).join('');
   return {
     html: `<section class="wrap section stack-lg">
       <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
+      ${candidates.length ? `<div class="stack" id="candidates"><h2 style="font-size:1.6rem">Proposed experts</h2><p class="muted small">Anonymous profiles we selected for your requests. Tell us who you are interested in – we then confirm the expert and start the project. Names and contact details stay private.</p><div class="grid">${candCards}</div></div>` : ''}
 
       <div class="card stack ${low ? 'offer' : ''}" id="balance">
         <div class="row between" style="align-items:flex-start;gap:20px">
@@ -1291,7 +1328,7 @@ async function companyDashboard() {
           <form id="topF" class="row" style="align-items:flex-end"><label class="f" style="width:160px">Amount (USD)<input name="amount" type="number" min="100" max="1000000" step="1" value="1000" required></label><button class="btn btn-accent" type="submit">Top up balance</button></form>
         </div>
         <p class="small ${low ? '' : 'muted'}">${low ? '<b>Your balance is low.</b> Experts only start or continue working while your balance covers their hours. ' : ''}Brightpeer works with prepayment: you top up your balance first, and approved expert hours are paid from it each week. Unused balance is refunded on request.</p>
-        ${(prep.data || []).length ? table(['Date', t('amount'), t('status'), ''], prep.data.map((p) => [dateStr(p.created_at), money(p.amount), pill(p.status), prepAction(p)])) : ''}
+        ${(prep.data || []).length ? table(['Date', 'No.', t('amount'), t('status'), '', ''], prep.data.map((p) => [dateStr(p.created_at), esc(invoiceNo(p)), money(p.amount), pill(p.status), prepAction(p), p.status === 'cancelled' ? '' : `<a class="small" href="#/invoice/${esc(p.id)}">${p.status === 'paid' ? 'Receipt' : 'Invoice'} (PDF)</a>`])) : ''}
       </div>
 
       <form id="reqF" class="card stack"><h3>${t('newRequest')}</h3>
@@ -1340,11 +1377,68 @@ async function companyDashboard() {
         busy(f, false); if (error) return fail(error);
         toast(t('requestSent')); render();
       };
+      $app.querySelectorAll('[data-cand]').forEach((cf) => {
+        let interested = true;
+        cf.querySelectorAll('[data-int]').forEach((b) => { b.onclick = () => { interested = b.dataset.int === '1'; }; });
+        cf.onsubmit = async (ev) => {
+          ev.preventDefault(); busy(cf, true);
+          const { error } = await sb.rpc('respond_candidate', { p_id: cf.dataset.cand, p_interested: interested, p_note: formData(cf).note || null });
+          busy(cf, false); if (error) return fail(error); toast(interested ? 'Thanks – we will confirm the expert shortly.' : 'Thanks for the feedback.'); render();
+        };
+      });
       $app.querySelectorAll('[data-ts]').forEach((b) => { b.onclick = async () => {
         b.disabled = true;
         const { error } = await sb.rpc('review_timesheet', { p_id: b.dataset.ts, p_status: b.dataset.st });
         if (error) return fail(error); render();
       }; });
+    },
+  };
+}
+
+// ---------------------------------------------------------------- invoice / receipt for a prepayment (owner, 25.11.2026)
+// A clean page the company (or the admin) prints or saves as PDF with the browser's print dialog.
+const invoiceNo = (p) => `BP-${p.invoice_no || String(p.id).slice(0, 8).toUpperCase()}`;
+
+async function pageInvoice(id) {
+  if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
+  if (!session) return needLogin();
+  if (!profile) await loadProfile();
+  const { data: p } = id ? await sb.from('prepayments').select('*, companies(company_name, website, profiles(full_name, email, country))').eq('id', id).maybeSingle() : { data: null };
+  if (!p) return pageNotFound();
+  const C = CONFIG.COMPANY; const B = CONFIG.BANK;
+  const co = p.companies || {}; const who = co.profiles || {};
+  const paid = p.status === 'paid'; const cancelled = p.status === 'cancelled';
+  const title = paid ? 'Receipt' : 'Invoice';
+  const no = invoiceNo(p);
+  const back = profile?.role === 'admin' ? '#/admin?tab=prepayTab' : '#/dashboard';
+  return {
+    html: `<section class="wrap section narrow stack-lg">
+      <div class="row between no-print"><a href="${back}">${t('back')}</a><button class="btn btn-accent" id="printInv">Download PDF / Print</button></div>
+      <article class="invoice card stack-lg" style="padding:40px">
+        <div class="row between" style="align-items:flex-start;gap:24px">
+          <div class="stack" style="gap:4px"><p style="font-weight:700;font-size:1.3rem;display:flex;align-items:center;gap:8px"><span class="logo" aria-hidden="true"></span>Brightpeer</p>
+            <p class="small muted">${esc(C.name)}<br>${esc(C.address)}<br>${esc(C.email)}${C.uid ? `<br>UID: ${esc(C.uid)}` : ''}</p></div>
+          <div class="stack" style="gap:4px;text-align:right"><h1 style="font-size:2rem">${title}${cancelled ? ' (cancelled)' : ''}</h1>
+            <p class="small">No. <b>${esc(no)}</b><br>Date: ${dateStr(p.created_at)}${paid && p.paid_at ? `<br>Paid on: ${dateStr(p.paid_at)}` : ''}</p></div>
+        </div>
+        <div class="stack" style="gap:4px"><p class="muted small">Bill to</p>
+          <p><b>${esc(co.company_name || '')}</b><br>${esc(who.full_name || '')}${who.email ? `<br>${esc(who.email)}` : ''}${who.country ? `<br>${esc(who.country)}` : ''}${co.website ? `<br>${esc(co.website)}` : ''}</p></div>
+        <div class="table-wrap"><table><thead><tr><th>Description</th><th style="text-align:right">Amount (USD)</th></tr></thead><tbody>
+          <tr><td>Prepaid balance for expert services on Brightpeer<br><span class="muted small">Approved expert hours are deducted from this balance at the agreed hourly rates. Unused balance is refunded on request (Client Terms, section 3).</span></td><td style="text-align:right">${money(p.amount)}</td></tr>
+          <tr><td><b>Total</b></td><td style="text-align:right"><b>${money(p.amount)}</b></td></tr>
+        </tbody></table></div>
+        <p class="small muted">No VAT charged: Brightpeer is not registered for Swiss VAT.</p>
+        ${cancelled ? '<p class="form-msg err">This invoice was cancelled and does not need to be paid.</p>'
+          : paid ? `<p class="form-msg ok">Paid${p.paid_at ? ` on ${dateStr(p.paid_at)}` : ''} – thank you.</p>`
+          : `<div class="stack" style="gap:4px"><p class="muted small">Payment by bank transfer</p><p class="small">${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Reference: <b>${esc(no)}</b></p>
+             ${p.payment_link ? `<p class="small">Or pay online: <a href="${esc(p.payment_link)}" target="_blank" rel="noopener">${esc(p.payment_link)}</a></p>` : ''}</div>`}
+      </article>
+    </section>`,
+    mount() {
+      document.getElementById('printInv').onclick = () => {
+        const old = document.title; document.title = `Brightpeer ${title} ${no}`;
+        window.print(); setTimeout(() => { document.title = old; }, 500);
+      };
     },
   };
 }
@@ -1376,9 +1470,10 @@ async function pageAdmin() {
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
   await deleteQueuedFiles();
-  const TABS = ['overview', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts'];
+  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab'];
+  const TAB_LABEL = { prepayTab: 'Prepayments', visitorsTab: 'Visitors', referralsTab: 'Referrals' };
   if (!TABS.includes(adminTab)) adminTab = 'overview';
-  const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${k === 'prepayTab' ? 'Prepayments' : t(k)}</button>`).join('')}</div>`;
+  const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${TAB_LABEL[k] || t(k)}</button>`).join('')}</div>`;
   const view = await ADMIN[adminTab]();
   return {
     html: `<section class="wrap section stack-lg"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('admin')}</h1>${tabBar}<div id="adminView">${view.html}</div></section>`,
@@ -1423,8 +1518,8 @@ const ADMIN = {
           <button class="btn btn-accent" type="submit">Create prepayment request</button>
         </form>
         <p class="muted small">Flow: company requests a top-up (or you create one) → paste a Stripe Payment Link for the amount (stripe.com → Payment Links) → status becomes “open” and the company sees “Pay now” → when the money has arrived, click “Mark paid”. Without a link the company sees your bank details.</p>
-        ${table(['Company', 'Date', t('amount'), 'Payment link', t('status'), ''], (data || []).map((p) => [
-          `${esc(p.companies?.company_name || '')}<br><span class="small muted">${esc(p.companies?.profiles?.email || '')}</span>`, dateStr(p.created_at), money(p.amount),
+        ${table(['Company', 'Date', 'No.', t('amount'), 'Payment link', t('status'), ''], (data || []).map((p) => [
+          `${esc(p.companies?.company_name || '')}<br><span class="small muted">${esc(p.companies?.profiles?.email || '')}</span>`, dateStr(p.created_at), `<a href="#/invoice/${esc(p.id)}">${esc(invoiceNo(p))}</a>`, money(p.amount),
           p.status === 'paid' || p.status === 'cancelled' ? esc(p.payment_link || '') : `<input data-plink="${p.id}" value="${esc(p.payment_link || '')}" placeholder="https://buy.stripe.com/…" style="min-width:200px;min-height:36px;padding:4px 8px">`,
           pill(p.status),
           p.status === 'requested' || p.status === 'open' ? `<div class="row">${p.status === 'requested' ? `<button class="btn btn-ghost btn-sm" data-popen="${p.id}">Send bank details</button>` : ''}<button class="btn btn-sm" data-ppaid="${p.id}">Mark paid</button><button class="btn btn-danger btn-sm" data-pcancel="${p.id}">Cancel</button></div>` : '',
@@ -1573,17 +1668,99 @@ const ADMIN = {
   },
 
   async requests() {
-    const { data, error } = await sb.from('requests').select('*, companies(company_name, website, profiles(full_name,email))').order('created_at', { ascending: false });
+    const [{ data, error }, { data: cands }, { data: exps }] = await Promise.all([
+      sb.from('requests').select('*, companies(company_name, website, terms_accepted_at, profiles(full_name,email))').order('created_at', { ascending: false }),
+      sb.from('request_candidates').select('*, experts(field, years_experience, headline, profiles(full_name, email))').order('created_at', { ascending: true }),
+      sb.from('experts').select('id, field, years_experience, profiles(full_name)').eq('status', 'approved'),
+    ]);
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
     const opts = (cur) => ['new', 'in_progress', 'done', 'declined'].map((s) => `<option value="${s}" ${s === cur ? 'selected' : ''}>${s}</option>`).join('');
+    const byReq = {};
+    (cands || []).forEach((c) => { (byReq[c.request_id] = byReq[c.request_id] || []).push(c); });
+    const CST = { proposed: 'pending', interested: 'approved', declined: 'declined' };
+    const expOpts = (field, taken) => (exps || []).filter((e) => !taken.includes(e.id))
+      .sort((a, b) => (b.field === field) - (a.field === field))
+      .map((e) => `<option value="${e.id}">${esc(e.profiles?.full_name || '')} – ${esc(fieldName(e.field))}${e.years_experience != null ? `, ${esc(e.years_experience)} y` : ''}</option>`).join('');
+    if (!(data || []).length) return { html: `<p class="muted">${t('none')}</p>` };
     return {
-      html: table(['Company', 'Contact', t('field'), t('expertsNeeded'), t('hoursPerWeek'), t('budget'), t('description'), t('status')], (data || []).map((r) => [
-        esc(r.companies?.company_name || ''), `${esc(r.companies?.profiles?.full_name || '')}<br><a href="mailto:${esc(r.companies?.profiles?.email)}">${esc(r.companies?.profiles?.email || '')}</a>`,
-        esc(fieldName(r.field)), esc(r.experts_needed), esc(r.hours_per_week ?? ''), esc(r.budget || ''), `<span class="small" style="white-space:pre-line">${esc(r.description || '')}</span>`,
-        `<select data-req="${r.id}" style="min-height:36px;padding:4px 8px">${opts(r.status)}</select>`,
-      ])),
+      html: `<div class="stack-lg"><p class="muted small">Propose experts for a request: the company sees an anonymous profile (field, experience, headline, skills, country, test result, interview score and your note – no name or contact) and answers “Interested” or “Not a fit”. Then send the offer in Contracts.</p>
+        ${(data || []).map((r) => {
+          const list = byReq[r.id] || [];
+          return `<div class="card stack">
+            <div class="row between" style="align-items:flex-start"><div class="stack" style="gap:4px">
+              <h3>${esc(r.companies?.company_name || '')} · ${esc(fieldName(r.field))}</h3>
+              <p class="muted small">${esc(r.companies?.profiles?.full_name || '')} · <a href="mailto:${esc(r.companies?.profiles?.email)}">${esc(r.companies?.profiles?.email || '')}</a> · ${dateStr(r.created_at)}${r.companies?.terms_accepted_at ? '' : ' · <span style="color:var(--bad)">Client Terms not accepted yet</span>'}</p>
+              <p class="small">${t('expertsNeeded')}: <b>${esc(r.experts_needed)}</b>${r.hours_per_week ? ` · ${t('hoursPerWeek')}: <b>${esc(r.hours_per_week)}</b>` : ''}${r.budget ? ` · ${t('budget')}: <b>${esc(r.budget)}</b>` : ''}</p></div>
+              <select data-req="${r.id}" style="min-height:36px;padding:4px 8px;width:auto">${opts(r.status)}</select></div>
+            <p class="small" style="white-space:pre-line">${esc(r.description || '')}</p>
+            ${list.length ? table(['Expert', 'Shown as', 'Your note', 'Company answer', ''], list.map((c) => [
+              `${esc(c.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(fieldName(c.experts?.field))}</span>`,
+              `<span class="small">Expert ${esc(String(c.id).slice(0, 4).toUpperCase())}</span>`, `<span class="small">${esc(c.admin_note || '')}</span>`,
+              `${pill(CST[c.status])}${c.company_note ? `<div class="small muted">${esc(c.company_note)}</div>` : ''}`,
+              `<button class="btn btn-danger btn-sm" data-uncand="${c.id}">Remove</button>`])) : ''}
+            <form class="row" data-propose="${r.id}" style="align-items:flex-end">
+              <label class="f" style="flex:1 1 220px">Propose expert<select name="expert_id" required>${expOpts(r.field, list.map((c) => c.expert_id)) || '<option value="">No more approved experts</option>'}</select></label>
+              <label class="f" style="flex:2 1 260px">Why this expert (shown to the company)<input name="admin_note" maxlength="1000"></label>
+              <button class="btn btn-sm" type="submit">Propose</button>
+            </form>
+          </div>`;
+        }).join('')}</div>`,
       mount() {
-        $app.querySelectorAll('[data-req]').forEach((s) => { s.onchange = async () => { const { error: er } = await sb.from('requests').update({ status: s.value }).eq('id', s.dataset.req); if (er) return fail(er); toast(t('saved')); }; });
+        $app.querySelectorAll('[data-req]').forEach((sel) => { sel.onchange = async () => { const { error: er } = await sb.from('requests').update({ status: sel.value }).eq('id', sel.dataset.req); if (er) return fail(er); toast(t('saved')); }; });
+        $app.querySelectorAll('[data-propose]').forEach((f) => { f.onsubmit = async (ev) => {
+          ev.preventDefault(); const d = formData(f); if (!d.expert_id) return; busy(f, true);
+          const { error: er } = await sb.from('request_candidates').insert({ request_id: f.dataset.propose, expert_id: d.expert_id, admin_note: d.admin_note || null });
+          busy(f, false); if (er) return fail(er); toast(t('saved')); render();
+        }; });
+        $app.querySelectorAll('[data-uncand]').forEach((b) => { b.onclick = async () => {
+          if (!window.confirm('Remove this proposal? The company will no longer see it.')) return;
+          const { error: er } = await sb.from('request_candidates').delete().eq('id', b.dataset.uncand); if (er) return fail(er); render();
+        }; });
+      },
+    };
+  },
+
+  async visitorsTab() {
+    const days = Number(parseHash().query.get('days')) || 30;
+    const { data, error } = await sb.rpc('admin_visitor_stats', { p_days: days });
+    if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    const s = data || {};
+    const box = (label, v) => `<div class="card"><p class="muted small">${label}</p><p class="stat-v">${esc(v ?? 0)}</p></div>`;
+    const byDay = s.by_day || [];
+    const max = Math.max(1, ...byDay.map((d) => Number(d.views) || 0));
+    const bars = byDay.length ? `<div class="card stack"><h3>Page views per day</h3><div style="display:flex;align-items:flex-end;gap:3px;height:160px;border-bottom:1px solid var(--line)">${byDay.map((d) => `<div title="${esc(dateStr(d.day))}: ${esc(d.visits)} visits, ${esc(d.views)} views" style="flex:1;min-width:3px;height:${Math.max(2, Math.round((Number(d.views) / max) * 100))}%;background:var(--accent);border-radius:3px 3px 0 0"></div>`).join('')}</div><p class="muted small">${esc(dateStr(byDay[0].day))} – ${esc(dateStr(byDay[byDay.length - 1].day))} · hover a bar for the numbers</p></div>` : '';
+    const list = (title, rows, a, b, bl) => `<div class="card stack"><h3>${title}</h3>${table([a, bl], (rows || []).map((r) => [esc(r[Object.keys(r)[0]] ?? '–'), esc(r[b])]))}</div>`;
+    const filt = [7, 30, 90].map((d) => `<a class="btn btn-sm ${days === d ? '' : 'btn-ghost'}" href="#/admin?tab=visitorsTab&days=${d}">${d} days</a>`).join('');
+    return { html: `<div class="stack-lg">
+      <div class="row">${filt}</div>
+      <div class="grid-sm">${box('Visits', s.visits)}${box('Page views', s.views)}${box('Visits today', s.today)}</div>
+      ${bars}
+      <div class="grid">${list('Top pages', s.pages, 'path', 'views', 'Views')}${list('Where visitors come from', s.referrers, 'referrer', 'visits', 'Visits')}</div>
+      <div class="grid">${list('Devices', s.devices, 'device', 'visits', 'Visits')}${list('Browser languages', s.langs, 'lang', 'visits', 'Visits')}</div>
+      <p class="muted small">Counted anonymously, without cookies or IP addresses. A visit = the first page someone opens; your own visits while signed in as admin are not counted.</p>
+    </div>` };
+  },
+
+  async referralsTab() {
+    const { data, error } = await sb.rpc('admin_referrals');
+    if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    const rows = data || [];
+    const due = rows.filter((r) => r.qualified && !r.bonus_paid_at).length;
+    return {
+      html: `<div class="stack-lg">
+        <p class="muted">Bonus: <b>$100</b> for the new expert and <b>$100</b> for the person who referred them, once the new expert has <b>10 paid hours</b>. Due now: <b>${due}</b> (= ${money(due * 200)}).</p>
+        ${table(['New expert', 'Referred by', 'Code', 'Paid hours', 'Approved hours', 'Bonus', ''], rows.map((r) => [
+          `${esc(r.referred_name || '')}<br><span class="small muted">${esc(r.referred_email || '')} · ${esc(r.referred_status || '')}</span>`,
+          r.referrer_name || r.referrer_email ? `${esc(r.referrer_name || '')}<br><span class="small muted">${esc(r.referrer_email || '')}</span>` : '<span class="small muted">unknown code</span>',
+          esc(r.code || ''), `${esc(Number(r.paid_hours))} / 10`, esc(Number(r.approved_hours)),
+          r.bonus_paid_at ? `${pill('paid')} <span class="small muted">${dateStr(r.bonus_paid_at)}</span>` : r.qualified ? '<span class="pill pill-warn">Due – pay both</span>' : `<span class="small muted">${esc(Math.max(0, 10 - Number(r.paid_hours)))} h to go</span>`,
+          r.bonus_paid_at ? `<button class="btn btn-ghost btn-sm" data-rbundo="${r.referred_id}">Undo</button>` : r.qualified ? `<button class="btn btn-sm" data-rbpaid="${r.referred_id}">Mark paid</button>` : '',
+        ]))}
+        <p class="muted small">Pay the two bonuses together with the next weekly payout (Wise or PayPal), then click “Mark paid”.</p>
+      </div>`,
+      mount() {
+        $app.querySelectorAll('[data-rbpaid]').forEach((b) => { b.onclick = async () => { const { error: er } = await sb.from('referral_bonuses').insert({ referred_id: b.dataset.rbpaid }); if (er) return fail(er); render(); }; });
+        $app.querySelectorAll('[data-rbundo]').forEach((b) => { b.onclick = async () => { if (!window.confirm('Mark this bonus as not paid?')) return; const { error: er } = await sb.from('referral_bonuses').delete().eq('referred_id', b.dataset.rbundo); if (er) return fail(er); render(); }; });
       },
     };
   },
@@ -1957,6 +2134,7 @@ async function render() {
       case 'admin': page = await pageAdmin(); break;
       case 'test': page = await pageTest(parts[1]); break;
       case 'interview': page = await pageInterview(); break;
+      case 'invoice': page = await pageInvoice(parts[1]); break;
       default: page = pageNotFound();
     }
   } catch (e) {
@@ -1972,6 +2150,29 @@ async function render() {
   if (page.mount) page.mount();
   floatingVideo(parts[0] === undefined);
   document.getElementById('loader').classList.add('hide');
+  trackView(parts);
+}
+
+// ---------------------------------------------------------------- visitor statistics (owner, 25.11.2026)
+// Counts page views anonymously: no cookie, no stored id, no IP. The first page of a visit is marked as its entry,
+// with the referring website's name. The admin's own visits and the admin area are not counted.
+let viewEntry = true;
+let lastViewed = '';
+function trackView(parts) {
+  try {
+    if (!sb || profile?.role === 'admin' || parts[0] === 'admin' || parts[0] === 'invoice') return;
+    const path = '/' + parts.slice(0, 2).map((x) => (/^[0-9a-f-]{8,}$/i.test(x) ? ':id' : x)).join('/');
+    if (path === lastViewed) return;
+    lastViewed = path;
+    const w = window.innerWidth;
+    let referrer = null;
+    if (viewEntry && document.referrer) {
+      try { const h = new URL(document.referrer).hostname.replace(/^www\./, ''); if (h && h !== location.hostname) referrer = h.slice(0, 120); } catch { /* ignore */ }
+    }
+    const row = { path: path.slice(0, 120), referrer, lang: (navigator.language || '').slice(0, 10), device: w < 768 ? 'mobile' : w < 1100 ? 'tablet' : 'desktop', entry: viewEntry };
+    viewEntry = false;
+    sb.from('page_views').insert(row).then(() => {}, () => {});
+  } catch { /* statistics must never break the page */ }
 }
 
 window.addEventListener('hashchange', render);
