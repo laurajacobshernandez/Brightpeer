@@ -1481,8 +1481,8 @@ async function pageAdmin() {
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
   await deleteQueuedFiles();
-  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab'];
-  const TAB_LABEL = { prepayTab: 'Prepayments', visitorsTab: 'Visitors', referralsTab: 'Referrals' };
+  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab', 'accountingTab', 'automationTab'];
+  const TAB_LABEL = { prepayTab: 'Prepayments', visitorsTab: 'Visitors', referralsTab: 'Referrals', accountingTab: 'Accounting', automationTab: 'Automation' };
   if (!TABS.includes(adminTab)) adminTab = 'overview';
   const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${TAB_LABEL[k] || t(k)}</button>`).join('')}</div>`;
   const view = await ADMIN[adminTab]();
@@ -1570,13 +1570,17 @@ const ADMIN = {
     const filter = parseHash().query.get('st') || 'pending';
     let qy = sb.from('experts').select('*, profiles(full_name,email,country)').order('created_at', { ascending: false });
     if (filter !== 'all') qy = qy.eq('status', filter);
-    const [{ data, error }, { data: pd }] = await Promise.all([qy, sb.rpc('admin_payout_details')]);
+    const [{ data: rows0, error }, { data: pd }, { data: sc }] = await Promise.all([qy, sb.rpc('admin_payout_details'), sb.rpc('admin_expert_scores')]);
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
     const payoutOf = Object.fromEntries((pd || []).map((x) => [x.id, x.details]));
+    const scoreOf = Object.fromEntries((sc || []).map((x) => [x.expert_id, x]));
+    // Ranked by score (CV 20 + field test 40 + interview 40); experts with everything done are marked "ready".
+    const data = [...(rows0 || [])].sort((a, b) => ((scoreOf[b.id] || {}).score || 0) - ((scoreOf[a.id] || {}).score || 0));
+    const scoreCell = (id) => { const x = scoreOf[id] || {}; return `<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
-      html: `<div class="stack"><div class="row">${filt}</div>${table(['Name', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
-        `<details><summary class="link">${esc(e.profiles?.full_name || '')}</summary><p class="small" style="max-width:320px;white-space:pre-line;margin-top:6px">${esc(e.bio || '')}</p></details>`,
+      html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
+        `<details><summary class="link">${esc(e.profiles?.full_name || '')}</summary><p class="small" style="max-width:320px;white-space:pre-line;margin-top:6px">${esc(e.bio || '')}</p></details>`, scoreCell(e.id),
         `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || ''), esc(fieldName(e.field)), esc(e.years_experience ?? ''),
         e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
         e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', esc(e.referred_by || ''),
@@ -1694,7 +1698,7 @@ const ADMIN = {
       .map((e) => `<option value="${e.id}">${esc(e.profiles?.full_name || '')} – ${esc(fieldName(e.field))}${e.years_experience != null ? `, ${esc(e.years_experience)} y` : ''}</option>`).join('');
     if (!(data || []).length) return { html: `<p class="muted">${t('none')}</p>` };
     return {
-      html: `<div class="stack-lg"><p class="muted small">Propose experts for a request: the company sees an anonymous profile (field, experience, headline, skills, country, test result, interview score and your note – no name or contact) and answers “Interested” or “Not a fit”. Then send the offer in Contracts.</p>
+      html: `<div class="stack-lg"><p class="muted small">New requests get the best matching approved experts automatically (see Automation). You can also propose experts yourself: the company sees an anonymous profile (field, experience, headline, skills, country, test result, interview score and your note – no name or contact) and answers “Interested” or “Not a fit”. Then send the offer in Contracts.</p>
         ${(data || []).map((r) => {
           const list = byReq[r.id] || [];
           return `<div class="card stack">
@@ -1708,11 +1712,12 @@ const ADMIN = {
               `${esc(c.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(fieldName(c.experts?.field))}</span>`,
               `<span class="small">Expert ${esc(String(c.id).slice(0, 4).toUpperCase())}</span>`, `<span class="small">${esc(c.admin_note || '')}</span>`,
               `${pill(CST[c.status])}${c.company_note ? `<div class="small muted">${esc(c.company_note)}</div>` : ''}`,
-              `<button class="btn btn-danger btn-sm" data-uncand="${c.id}">Remove</button>`])) : ''}
+              `<div class="row">${c.status === 'interested' ? `<a class="btn btn-accent btn-sm" href="#/admin?tab=contracts&expert=${esc(c.expert_id)}&company=${esc(r.company_id)}">Create offer →</a>` : ''}<button class="btn btn-danger btn-sm" data-uncand="${c.id}">Remove</button></div>`])) : ''}
             <form class="row" data-propose="${r.id}" style="align-items:flex-end">
               <label class="f" style="flex:1 1 220px">Propose expert<select name="expert_id" required>${expOpts(r.field, list.map((c) => c.expert_id)) || '<option value="">No more approved experts</option>'}</select></label>
               <label class="f" style="flex:2 1 260px">Why this expert (shown to the company)<input name="admin_note" maxlength="1000"></label>
               <button class="btn btn-sm" type="submit">Propose</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-automatch="${r.id}">Auto-match best</button>
             </form>
           </div>`;
         }).join('')}</div>`,
@@ -1722,6 +1727,10 @@ const ADMIN = {
           ev.preventDefault(); const d = formData(f); if (!d.expert_id) return; busy(f, true);
           const { error: er } = await sb.from('request_candidates').insert({ request_id: f.dataset.propose, expert_id: d.expert_id, admin_note: d.admin_note || null });
           busy(f, false); if (er) return fail(er); toast(t('saved')); render();
+        }; });
+        $app.querySelectorAll('[data-automatch]').forEach((b) => { b.onclick = async () => {
+          b.disabled = true; const { data: n, error: er } = await sb.rpc('admin_auto_propose', { p_request: b.dataset.automatch });
+          if (er) { b.disabled = false; return fail(er); } toast(n ? `${n} expert(s) proposed` : 'No more matching approved experts in this field'); render();
         }; });
         $app.querySelectorAll('[data-uncand]').forEach((b) => { b.onclick = async () => {
           if (!window.confirm('Remove this proposal? The company will no longer see it.')) return;
@@ -1737,9 +1746,13 @@ const ADMIN = {
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
     const s = data || {};
     const box = (label, v) => `<div class="card"><p class="muted small">${label}</p><p class="stat-v">${esc(v ?? 0)}</p></div>`;
-    const byDay = s.by_day || [];
-    const max = Math.max(1, ...byDay.map((d) => Number(d.views) || 0));
-    const bars = byDay.length ? `<div class="card stack"><h3>Page views per day</h3><div style="display:flex;align-items:flex-end;gap:3px;height:160px;border-bottom:1px solid var(--line)">${byDay.map((d) => `<div title="${esc(dateStr(d.day))}: ${esc(d.visits)} visits, ${esc(d.views)} views" style="flex:1;min-width:3px;height:${Math.max(2, Math.round((Number(d.views) / max) * 100))}%;background:var(--accent);border-radius:3px 3px 0 0"></div>`).join('')}</div><p class="muted small">${esc(dateStr(byDay[0].day))} – ${esc(dateStr(byDay[byDay.length - 1].day))} · hover a bar for the numbers</p></div>` : '';
+    // Every day of the period gets a bar (days without visits stay empty), so one busy day no longer fills the chart.
+    const seen = Object.fromEntries((s.by_day || []).map((d) => [String(d.day).slice(0, 10), d]));
+    const byDay = Array.from({ length: days }, (_, k) => { const dt = new Date(); dt.setDate(dt.getDate() - (days - 1 - k)); const key = dt.toISOString().slice(0, 10); const d = seen[key] || {}; return { day: key, views: Number(d.views) || 0, visits: Number(d.visits) || 0 }; });
+    const max = Math.max(1, ...byDay.map((d) => d.views));
+    const bars = `<div class="card stack"><div class="row between"><h3>Visits and page views per day</h3><span class="muted small">highest day: ${esc(max)} views</span></div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:2px;height:160px;border-bottom:1px solid var(--line2)">${byDay.map((d) => `<div title="${esc(dateStr(d.day))}: ${esc(d.visits)} visits, ${esc(d.views)} page views" style="flex:1;max-width:28px;height:100%;display:flex;flex-direction:column;justify-content:flex-end"><div style="height:${d.views ? Math.max(3, Math.round((d.views / max) * 100)) : 0}%;background:var(--accent-soft);border-radius:3px 3px 0 0;position:relative"><div style="position:absolute;bottom:0;left:0;right:0;height:${d.views ? Math.round((d.visits / d.views) * 100) : 0}%;background:var(--accent);border-radius:3px 3px 0 0"></div></div></div>`).join('')}</div>
+      <div class="row between muted small"><span>${esc(dateStr(byDay[0].day))}</span><span><span style="display:inline-block;width:10px;height:10px;background:var(--accent);border-radius:2px"></span> visits &nbsp; <span style="display:inline-block;width:10px;height:10px;background:var(--accent-soft);border-radius:2px"></span> page views · hover a bar for the numbers</span><span>${esc(dateStr(byDay[byDay.length - 1].day))}</span></div></div>`;
     const list = (title, rows, a, b, bl) => `<div class="card stack"><h3>${title}</h3>${table([a, bl], (rows || []).map((r) => [esc(r[Object.keys(r)[0]] ?? '–'), esc(r[b])]))}</div>`;
     const filt = [7, 30, 90].map((d) => `<a class="btn btn-sm ${days === d ? '' : 'btn-ghost'}" href="#/admin?tab=visitorsTab&days=${d}">${d} days</a>`).join('');
     return { html: `<div class="stack-lg">
@@ -1750,6 +1763,136 @@ const ADMIN = {
       <div class="grid">${list('Devices', s.devices, 'device', 'visits', 'Visits')}${list('Browser languages', s.langs, 'lang', 'visits', 'Visits')}</div>
       <p class="muted small">Counted anonymously, without cookies or IP addresses. A visit = the first page someone opens; your own visits while signed in as admin are not counted.</p>
     </div>` };
+  },
+
+  // Automatic bookkeeping (owner, 25.11.2026): built from paid prepayments, paid payouts, paid referral bonuses and
+  // the expenses entered here. Amounts stay in their currency; CHF values come from the bank statement.
+  async accountingTab() {
+    const q = parseHash().query; const year = Number(q.get('year')) || new Date().getFullYear();
+    const from = `${year}-01-01`; const to = `${year + 1}-01-01`;
+    const [pr, po, rf, ex] = await Promise.all([
+      sb.from('prepayments').select('id, invoice_no, amount, paid_at, companies(company_name)').eq('status', 'paid').gte('paid_at', from).lt('paid_at', to),
+      sb.from('payouts').select('id, amount, hours, week_start, paid_at, experts(profiles(full_name, country))').eq('status', 'paid').gte('paid_at', from).lt('paid_at', to),
+      sb.rpc('admin_referrals'),
+      sb.from('expenses').select('*').gte('spent_on', from).lt('spent_on', to).order('spent_on', { ascending: false }),
+    ]);
+    const err = pr.error || po.error || rf.error || ex.error;
+    if (err) return { html: `<p class="form-msg err">${esc(err.message)}</p>` };
+    const swiss = (c) => /^(ch|che|schweiz|switzerland|suisse|svizzera|svizra)$/i.test(String(c || '').trim());
+    const rows = [];
+    (pr.data || []).forEach((p) => rows.push({ date: p.paid_at, type: 'Income', what: `Prepayment ${invoiceNo(p)}`, who: p.companies?.company_name || '', amount: Number(p.amount), cur: 'USD', foreign: false }));
+    (po.data || []).forEach((p) => { const c = p.experts?.profiles?.country; rows.push({ date: p.paid_at, type: 'Expert payout', what: `Week of ${dateStr(p.week_start)}, ${p.hours} h`, who: p.experts?.profiles?.full_name || '', amount: -Number(p.amount), cur: 'USD', foreign: !swiss(c), country: c }); });
+    (rf.data || []).filter((r) => r.bonus_paid_at && String(r.bonus_paid_at).slice(0, 4) === String(year)).forEach((r) => {
+      rows.push({ date: r.bonus_paid_at, type: 'Referral bonus', what: 'Bonus for the new expert', who: r.referred_name || '', amount: -100, cur: 'USD', foreign: true });
+      if (r.referrer_email && r.referrer_email !== profile?.email) rows.push({ date: r.bonus_paid_at, type: 'Referral bonus', what: 'Bonus for referring', who: r.referrer_name || '', amount: -100, cur: 'USD', foreign: true });
+    });
+    (ex.data || []).forEach((e) => rows.push({ date: e.spent_on, type: 'Other expense', what: e.description, who: '', amount: -Number(e.amount), cur: e.currency, foreign: e.foreign_service, id: e.id }));
+    rows.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const sum = (f) => rows.filter(f).reduce((a, r) => a + r.amount, 0);
+    const curs = [...new Set(rows.map((r) => r.cur))].sort();
+    const fmt = (n, c) => `${c === 'USD' ? '$' : c + ' '}${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const income = sum((r) => r.type === 'Income');
+    const payouts = -sum((r) => r.type === 'Expert payout');
+    const bonuses = -sum((r) => r.type === 'Referral bonus');
+    const otherUsd = -sum((r) => r.type === 'Other expense' && r.cur === 'USD');
+    const profit = income - payouts - bonuses - otherUsd;
+    const otherNonUsd = curs.filter((c) => c !== 'USD').map((c) => fmt(-sum((r) => r.type === 'Other expense' && r.cur === c), c)).join(' + ');
+    const foreignUsd = -sum((r) => r.foreign && r.amount < 0 && r.cur === 'USD');
+    const foreignOther = curs.filter((c) => c !== 'USD').map((c) => [c, -sum((r) => r.foreign && r.amount < 0 && r.cur === c)]).filter(([, v]) => v > 0).map(([c, v]) => fmt(v, c)).join(' + ');
+    const limitMsg = foreignUsd >= 11000 ? '<span class="pill pill-bad">Probably above CHF 10,000 – check in CHF and report to the ESTV within 60 days after year end (Bezugsteuer)</span>'
+      : foreignUsd >= 9000 ? '<span class="pill pill-warn">Close to CHF 10,000 – keep an eye on it</span>' : '<span class="pill pill-ok">Below the CHF 10,000 limit</span>';
+    const box = (label, v, sub = '') => `<div class="card"><p class="muted small">${label}</p><p class="stat-v">${v}</p>${sub ? `<p class="muted small">${sub}</p>` : ''}</div>`;
+    const years = [year - 1, year, year + 1].filter((y) => y >= 2026 && y <= new Date().getFullYear() + 1);
+    return {
+      html: `<div class="stack-lg">
+        <div class="row">${years.map((y) => `<a class="btn btn-sm ${y === year ? '' : 'btn-ghost'}" href="#/admin?tab=accountingTab&year=${y}">${y}</a>`).join('')}<button class="btn btn-ghost btn-sm" id="csvBtn">Download CSV (Excel)</button></div>
+        <div class="grid-sm">
+          ${box('Income from companies', fmt(income, 'USD'))}
+          ${box('Paid to experts', fmt(payouts, 'USD'))}
+          ${box('Referral bonuses', fmt(bonuses, 'USD'))}
+          ${box('Other expenses', otherUsd || !otherNonUsd ? fmt(otherUsd, 'USD') : '–', otherNonUsd ? `plus ${otherNonUsd}` : '')}
+          ${box('Profit before tax', `${profit < 0 ? '−' : ''}${fmt(profit, 'USD')}`, otherNonUsd ? `minus ${otherNonUsd}` : '')}
+        </div>
+        <div class="card stack" style="gap:6px"><h3>Services from abroad (CHF 10,000 limit)</h3><p>Payouts to experts outside Switzerland, referral bonuses and foreign expenses this year: <b>${fmt(foreignUsd, 'USD')}</b>${foreignOther ? ` + ${foreignOther}` : ''}</p><p>${limitMsg}</p><p class="muted small">The limit is in CHF; the exact CHF amounts are on your bank statement.</p></div>
+        <form id="expF" class="card stack"><h3>Add an expense</h3>
+          <div class="form-grid">
+            <label class="f">Date<input type="date" name="spent_on" value="${new Date().toISOString().slice(0, 10)}" required></label>
+            <label class="f">What<input name="description" maxlength="300" required placeholder="e.g. Domain brightpeer.com"></label>
+            <label class="f">Amount<input name="amount" type="number" min="0.01" step="0.01" required></label>
+            <label class="f">Currency<select name="currency"><option>CHF</option><option>USD</option><option>EUR</option></select></label>
+          </div>
+          <label class="check"><input type="checkbox" name="foreign_service"> <span>From a company abroad (counts towards the CHF 10,000 limit)</span></label>
+          <button class="btn btn-accent" type="submit" style="align-self:flex-start">Add expense</button>
+        </form>
+        <div class="stack"><h3>All bookings ${year}</h3>
+          ${table(['Date', 'Type', 'What', 'Who', 'Amount', 'Abroad', ''], rows.map((r) => [dateStr(r.date), esc(r.type), esc(r.what), esc(r.who) + (r.country ? `<span class="muted small"> · ${esc(r.country)}</span>` : ''),
+            `<span style="color:${r.amount < 0 ? 'var(--bad)' : 'var(--ok)'}">${r.amount < 0 ? '−' : '+'}${fmt(r.amount, r.cur)}</span>`, r.foreign ? 'yes' : '', r.id ? `<button class="btn btn-ghost btn-sm" data-delexp="${r.id}">${t('delete')}</button>` : '']))}
+          <p class="muted small">Income and payouts appear here automatically once you click “Mark paid”. Only other expenses (domain, software, fees) are entered by hand.</p>
+        </div>
+      </div>`,
+      mount() {
+        const f = document.getElementById('expF');
+        f.onsubmit = async (ev) => {
+          ev.preventDefault(); const d = formData(f); busy(f, true);
+          const { error: er } = await sb.from('expenses').insert({ spent_on: d.spent_on, description: d.description, amount: Number(d.amount), currency: d.currency, foreign_service: !!d.foreign_service });
+          busy(f, false); if (er) return fail(er); toast(t('saved')); render();
+        };
+        $app.querySelectorAll('[data-delexp]').forEach((b) => { b.onclick = async () => { if (!window.confirm('Delete this expense?')) return; const { error: er } = await sb.from('expenses').delete().eq('id', b.dataset.delexp); if (er) return fail(er); render(); }; });
+        document.getElementById('csvBtn').onclick = () => {
+          const q2 = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+          const lines = [['Date', 'Type', 'What', 'Who', 'Country', 'Amount', 'Currency', 'Abroad'].map(q2).join(';')]
+            .concat(rows.map((r) => [String(r.date).slice(0, 10), r.type, r.what, r.who, r.country || '', r.amount.toFixed(2), r.cur, r.foreign ? 'yes' : 'no'].map(q2).join(';')));
+          const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `brightpeer-bookings-${year}.csv`; document.body.appendChild(a); a.click(); a.remove();
+        };
+      },
+    };
+  },
+
+  async automationTab() {
+    const { data: st, error } = await sb.from('automation_settings').select('*').eq('id', 1).maybeSingle();
+    if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+    const s = st || {};
+    const chk = (name, label, help) => `<label class="check" style="align-items:flex-start"><input type="checkbox" name="${name}" ${s[name] ? 'checked' : ''}> <span><b>${label}</b><br><span class="muted small">${help}</span></span></label>`;
+    return {
+      html: `<form id="autoF" class="stack-lg">
+        <div class="card stack"><h3>Matching</h3>
+          ${chk('auto_propose', 'Propose experts automatically for new requests', 'When a company sends a request, the best approved experts in that field (by score) are shown to it right away as anonymous profiles.')}
+          <label class="f" style="max-width:220px">Experts per request<input type="number" name="propose_count" min="1" max="10" value="${esc(s.propose_count ?? 3)}"></label>
+        </div>
+        <div class="card stack"><h3>Applications</h3>
+          ${chk('auto_approve_experts', 'Approve experts automatically', 'An expert is approved as soon as the CV is uploaded, the field test reaches the minimum and you have rated the interview with at least the minimum stars.')}
+          <div class="form-grid"><label class="f">Minimum field test (%)<input type="number" name="approve_min_test" min="0" max="100" value="${esc(s.approve_min_test ?? 80)}"></label>
+          <label class="f">Minimum interview stars<input type="number" name="approve_min_stars" min="1" max="5" value="${esc(s.approve_min_stars ?? 4)}"></label></div>
+        </div>
+        <div class="card stack"><h3>Hours and payouts</h3>
+          ${chk('auto_approve_hours', 'Approve hours automatically if the company does not react', 'Matches the Client Terms: objections within 7 days, otherwise the hours count as approved.')}
+          <label class="f" style="max-width:220px">After how many days<input type="number" name="hours_days" min="1" max="30" value="${esc(s.hours_days ?? 7)}"></label>
+          ${chk('auto_payouts', 'Prepare payouts automatically', 'Every morning the payouts for approved hours of past weeks are created. You only transfer the money and click “Mark paid”.')}
+        </div>
+        <div class="row"><button class="btn btn-accent" type="submit">Save</button><button class="btn btn-ghost" type="button" id="runNow">Run now</button></div>
+        <p class="muted small">Runs automatically every morning at about 6:00 Swiss time. Bookkeeping updates itself (tab Accounting). Last saved: ${s.updated_at ? dateStr(s.updated_at) : '–'}</p>
+        <div id="runMsg"></div>
+      </form>`,
+      mount() {
+        const f = document.getElementById('autoF');
+        f.onsubmit = async (ev) => {
+          ev.preventDefault(); const d = formData(f); busy(f, true);
+          const num = (k, def) => Math.round(Number(d[k])) || def;
+          const { error: er } = await sb.from('automation_settings').update({
+            auto_propose: !!d.auto_propose, propose_count: num('propose_count', 3), auto_approve_experts: !!d.auto_approve_experts,
+            approve_min_test: Math.max(0, Math.min(100, num('approve_min_test', 80))), approve_min_stars: Math.max(1, Math.min(5, num('approve_min_stars', 4))),
+            auto_approve_hours: !!d.auto_approve_hours, hours_days: Math.max(1, Math.min(30, num('hours_days', 7))), auto_payouts: !!d.auto_payouts, updated_at: new Date().toISOString(),
+          }).eq('id', 1);
+          busy(f, false); if (er) return fail(er); toast(t('saved')); render();
+        };
+        document.getElementById('runNow').onclick = async (ev) => {
+          ev.target.disabled = true; const { data: r, error: er } = await sb.rpc('admin_run_automation'); ev.target.disabled = false;
+          if (er) return fail(er);
+          document.getElementById('runMsg').innerHTML = `<div class="form-msg ok">Done: ${esc(r?.hours_approved ?? 0)} hour entries approved, ${esc(r?.payouts ?? 0)} payouts prepared, ${esc(r?.experts_approved ?? 0)} experts approved.</div>`;
+        };
+      },
+    };
   },
 
   async referralsTab() {
@@ -1818,17 +1961,19 @@ const ADMIN = {
       sb.from('roles').select('id, title, rate_min, rate_max'),
     ]);
     const margin = (cons || []).reduce((a, c) => a + (c.status === 'active' ? Number(c.client_rate) - Number(c.expert_rate) : 0), 0);
+    const pq = parseHash().query; const preExp = pq.get('expert') || ''; const preCo = pq.get('company') || '';
+    const preRate = Number(((exps || []).find((e) => e.id === preExp) || {}).rate_expectation) || '';
     return {
       html: `<div class="stack-lg">
         <form id="conF" class="card stack"><h3>${t('offerNewAdmin')}</h3>
           ${(exps || []).length && (cos || []).length ? '' : '<p class="form-msg err small">You need at least one approved expert and one company.</p>'}
           <div class="form-grid">
-            <label class="f">Expert *<select name="expert_id" required>${(exps || []).map((e) => `<option value="${e.id}">${esc(e.profiles?.full_name || '')} – ${esc(fieldName(e.field))}</option>`).join('')}</select></label>
-            <label class="f">Company *<select name="company_id" required>${(cos || []).map((c) => `<option value="${c.id}">${esc(c.company_name || c.id)}</option>`).join('')}</select></label>
+            <label class="f">Expert *<select name="expert_id" required>${(exps || []).map((e) => `<option value="${e.id}" ${e.id === preExp ? 'selected' : ''}>${esc(e.profiles?.full_name || '')} – ${esc(fieldName(e.field))}</option>`).join('')}</select></label>
+            <label class="f">Company *<select name="company_id" required>${(cos || []).map((c) => `<option value="${c.id}" ${c.id === preCo ? 'selected' : ''}>${esc(c.company_name || c.id)}</option>`).join('')}</select></label>
             <label class="f">Role<select name="role_id"><option value="">–</option>${(roles || []).map((r) => `<option value="${r.id}">${esc(r.title)}</option>`).join('')}</select></label>
             <label class="f">Title (optional)<input name="title"></label>
-            <label class="f">Expert pay ($/h) *<input name="expert_rate" id="erate" type="number" min="1" step="0.01" required></label>
-            <label class="f">Company price ($/h) *<input name="client_rate" id="crate" type="number" min="1" step="0.01" required></label>
+            <label class="f">Expert pay ($/h) *<input name="expert_rate" id="erate" type="number" min="1" step="0.01" required value="${esc(preRate)}"></label>
+            <label class="f">Company price ($/h) *<input name="client_rate" id="crate" type="number" min="1" step="0.01" required value="${preRate ? esc((preRate * 1.3).toFixed(2)) : ''}"></label>
             <label class="f">${t('startDate')}<input name="start_date" type="date"></label>
           </div>
           <label class="f">${t('offerNoteL')}<textarea name="offer_note" maxlength="2000" style="min-height:70px"></textarea></label>
