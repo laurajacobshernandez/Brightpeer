@@ -390,3 +390,29 @@ Object.assign(de, { stRoles: 'offene Stellen im Talent-Pool', stFields: 'Fachgeb
 Object.assign(fr, { stRoles: 'missions dans le vivier', stFields: 'domaines d’expertise', stLangs: 'langues', stPay: 'de l’heure, selon le domaine', stFees: 'de frais pour les experts' });
 Object.assign(it, { stRoles: 'posizioni nel talent pool', stFields: 'settori', stLangs: 'lingue', stPay: 'l’ora, secondo il settore', stFees: 'commissioni per gli esperti' });
 Object.assign(es, { stRoles: 'puestos en la bolsa de talento', stFields: 'áreas de especialidad', stLangs: 'idiomas', stPay: 'por hora, según el área', stFees: 'comisiones para expertos' });
+// "What Brightpeer does" on the homepage in all languages (25.11.2026)
+Object.assign(en, { doesH: 'What Brightpeer does', doesP: 'Five ways experts and companies work together on AI.', allSolutions: 'All solutions', learnMore: 'Learn more' });
+Object.assign(de, { doesH: 'Was Brightpeer macht', doesP: 'Fünf Wege, wie Fachleute und Firmen bei KI zusammenarbeiten.', allSolutions: 'Alle Angebote', learnMore: 'Mehr erfahren',
+  svT_experts: 'Geprüfte Fachleute finden', svS_experts: 'Ärzt:innen, Jurist:innen, Ingenieur:innen, Wissenschaftler:innen und Finanzfachleute – von uns geprüft und bereit für deine KI-Projekte.',
+  svT_training: 'KI mit Fachwissen trainieren', svS_training: 'Fachleute schreiben realistische Aufgaben, ideale Antworten und Lösungswege, damit deine Modelle wie Profis denken lernen.',
+  svT_evaluations: 'KI-Modelle bewerten und vergleichen', svS_evaluations: 'Echte Fachleute vergleichen Antworten nebeneinander und zeigen, welches Modell richtig liegt – und wo es noch scheitert.',
+  svT_benchmarks: 'Brightpeer Bench – in Vorbereitung', svS_benchmarks: 'Wir bauen mit unseren Fachleuten einen eigenen Benchmark: wie gut KI wirklich in vielen Sprachen antwortet – mit Fragen, die Muttersprachler:innen jeden Tag stellen.',
+  svT_enterprise: 'KI für dein Unternehmen', svS_enterprise: 'Wir helfen grösseren Firmen, KI einzusetzen – mit Fachleuten, die eure Branche kennen.' });
+Object.assign(fr, { doesH: 'Ce que fait Brightpeer', doesP: 'Cinq façons dont experts et entreprises travaillent ensemble sur l’IA.', allSolutions: 'Toutes les solutions', learnMore: 'En savoir plus',
+  svT_experts: 'Trouver des experts vérifiés', svS_experts: 'Médecins, juristes, ingénieurs, scientifiques et experts financiers – vérifiés par nous et prêts pour vos projets d’IA.',
+  svT_training: 'Entraîner l’IA avec l’expertise', svS_training: 'Les experts rédigent des tâches réalistes, des réponses idéales et des raisonnements pas à pas pour que vos modèles pensent comme des professionnels.',
+  svT_evaluations: 'Évaluer et comparer des modèles d’IA', svS_evaluations: 'De vrais professionnels comparent les réponses et montrent quel modèle a raison – et où il échoue encore.',
+  svT_benchmarks: 'Brightpeer Bench – en préparation', svS_benchmarks: 'Nous construisons notre propre benchmark avec nos experts : la qualité réelle des réponses de l’IA dans de nombreuses langues.',
+  svT_enterprise: 'L’IA pour votre entreprise', svS_enterprise: 'Nous aidons les grandes entreprises à utiliser l’IA – avec des experts de votre secteur.' });
+Object.assign(it, { doesH: 'Cosa fa Brightpeer', doesP: 'Cinque modi in cui esperti e aziende collaborano sull’IA.', allSolutions: 'Tutte le soluzioni', learnMore: 'Scopri di più',
+  svT_experts: 'Trova esperti verificati', svS_experts: 'Medici, avvocati, ingegneri, scienziati ed esperti di finanza – verificati da noi e pronti per i tuoi progetti di IA.',
+  svT_training: 'Addestrare l’IA con le competenze', svS_training: 'Gli esperti scrivono compiti realistici, risposte ideali e ragionamenti passo passo perché i tuoi modelli pensino come professionisti.',
+  svT_evaluations: 'Valutare e confrontare modelli di IA', svS_evaluations: 'Professionisti veri confrontano le risposte e mostrano quale modello ha ragione – e dove sbaglia ancora.',
+  svT_benchmarks: 'Brightpeer Bench – in preparazione', svS_benchmarks: 'Stiamo creando con i nostri esperti un benchmark proprio: quanto bene risponde davvero l’IA in molte lingue.',
+  svT_enterprise: 'IA per la tua azienda', svS_enterprise: 'Aiutiamo le aziende più grandi a usare l’IA – con esperti del vostro settore.' });
+Object.assign(es, { doesH: 'Qué hace Brightpeer', doesP: 'Cinco formas en que expertos y empresas colaboran en IA.', allSolutions: 'Todas las soluciones', learnMore: 'Más información',
+  svT_experts: 'Encuentra expertos verificados', svS_experts: 'Médicos, abogados, ingenieros, científicos y expertos financieros – verificados por nosotros y listos para tus proyectos de IA.',
+  svT_training: 'Entrenar la IA con conocimiento experto', svS_training: 'Los expertos escriben tareas realistas, respuestas ideales y razonamientos paso a paso para que tus modelos piensen como profesionales.',
+  svT_evaluations: 'Evaluar y comparar modelos de IA', svS_evaluations: 'Profesionales reales comparan respuestas y muestran qué modelo acierta – y dónde aún falla.',
+  svT_benchmarks: 'Brightpeer Bench – en preparación', svS_benchmarks: 'Estamos creando con nuestros expertos un benchmark propio: qué tan bien responde realmente la IA en muchos idiomas.',
+  svT_enterprise: 'IA para tu empresa', svS_enterprise: 'Ayudamos a empresas grandes a usar la IA – con expertos de tu sector.' });

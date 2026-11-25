@@ -286,7 +286,9 @@ const SVC_ICON = {
 const svcIcon = (id) => `<span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${SVC_ICON[id] || ''}</svg></span>`;
 
 function servicesGrid() {
-  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><div class="row between" style="align-items:center">${svcIcon(s.id)}<span class="step-n">${i + 1}</span></div><h3>${esc(s.title)}</h3><p class="muted">${esc(s.short)}</p><span class="rate">Learn more →</span></a>`).join('')}</div>`;
+  // Translated card texts (25.11.2026); falls back to the English text of SERVICES.
+  const tr = (k, fb) => { const v = t(k); return v === k ? fb : v; };
+  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><div class="row between" style="align-items:center">${svcIcon(s.id)}<span class="step-n">${i + 1}</span></div><h3>${esc(tr('svT_' + s.id, s.title))}</h3><p class="muted">${esc(tr('svS_' + s.id, s.short))}</p><span class="rate">${t('learnMore')} →</span></a>`).join('')}</div>`;
 }
 
 function pageServices(focus) {
@@ -357,7 +359,7 @@ async function pageHome() {
     ${benefitCards()}
   </section>
   <section class="wrap section stack-lg">
-    <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Five ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
+    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('doesH')}</h2><p class="muted">${t('doesP')}</p></div><a href="#/services" style="font-weight:600">${t('allSolutions')} →</a></div>
     ${servicesGrid()}
   </section>
   <section class="wrap section"><div class="stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${homeSteps('hc')}</div><a class="btn" style="align-self:flex-start" href="#/companies">${t('hire')}</a></div></section>
