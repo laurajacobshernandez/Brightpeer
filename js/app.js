@@ -502,7 +502,7 @@ const FIELD_WORDS = {
   'Chemistry & Math': ['chemistry', 'chemist', 'mathematics', 'mathematician', 'physics', 'statistics', 'chemie', 'mathematik', 'physik', 'phd'],
   'Pharmacy': ['pharmacist', 'pharmacy', 'pharmaceutical', 'apotheke', 'apotheker', 'pharmacien', 'farmacista'],
   'Accounting': ['accountant', 'accounting', 'cpa', 'tax', 'audit', 'auditor', 'bookkeeping', 'buchhaltung', 'treuhand', 'steuer', 'comptable'],
-  'Translation (DE)': ['translator', 'translation', 'localization', 'interpreter', 'übersetzer', 'übersetzung', 'dolmetscher', 'traducteur'],
+  'Translation (DE)': ['translator', 'translation', 'localization', 'interpreter', 'bilingual', 'zweisprachig', 'native speaker', 'übersetzer', 'übersetzung', 'dolmetscher', 'traducteur'],
 };
 const SKILL_WORDS = ['Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'C#', 'Golang', 'Rust', 'SQL', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
   'Machine Learning', 'Data analysis', 'Excel', 'SAP', 'IFRS', 'US GAAP', 'Tax', 'Audit', 'Contract law', 'Corporate law', 'Litigation', 'Compliance',
@@ -567,6 +567,7 @@ function authForm(kind) {
       <label class="f">${t('rate')}<input name="rate" type="number" min="1" max="1000"></label>
       <label class="f">${t('linkedin')}<input name="linkedin" type="url" placeholder="https://"></label>
     </div>
+    <label class="f">${t('languagesL')}<input name="languages" maxlength="300" placeholder="${esc(t('languagesPh'))}"></label>
     <label class="f">${t('bio')} *<textarea name="bio" required maxlength="3000"></textarea></label>
     <input type="hidden" name="ref" value="${esc(ref)}">`;
   const companyFields = `
@@ -614,7 +615,7 @@ function mountSignup(kind) {
     const d = formData(f);
     delete d.cv_file;
     const meta = { role: kind, full_name: d.full_name, country: d.country };
-    if (kind === 'expert') Object.assign(meta, { field: d.field, years: d.years, rate: d.rate, linkedin: d.linkedin, bio: d.bio, ref: d.ref });
+    if (kind === 'expert') Object.assign(meta, { field: d.field, years: d.years, rate: d.rate, linkedin: d.linkedin, bio: d.bio, ref: d.ref, languages: d.languages });
     else Object.assign(meta, { company_name: d.company_name, website: d.website, terms: 'accepted' });
     busy(f, true);
     const { data, error } = await sb.auth.signUp({ email: d.email, password: d.password, options: { data: meta, emailRedirectTo: location.origin + location.pathname } });
@@ -1100,6 +1101,7 @@ async function expertDashboard() {
             <label class="f">${t('linkedin')}<input name="linkedin" value="${esc(e.linkedin || '')}"></label>
             <label class="f">${t('headlineL')}<input name="headline" maxlength="120" value="${esc(e.headline || '')}"></label>
             <label class="f">${t('skillsL')}<input name="skills" maxlength="500" value="${esc(e.skills || '')}"></label>
+            <label class="f">${t('languagesL')}<input name="languages" maxlength="300" value="${esc(e.languages || '')}" placeholder="${esc(t('languagesPh'))}"></label>
           </div>
           <label class="f">${t('bio')}<textarea name="bio">${esc(e.bio || '')}</textarea></label>
           <button class="btn" type="submit" style="align-self:flex-start">${t('save')}</button>
@@ -1157,7 +1159,7 @@ async function expertDashboard() {
       prf.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(prf); busy(prf, true);
         const r1 = await sb.from('profiles').update({ full_name: d.full_name, country: d.country }).eq('id', uid);
-        const r2 = await sb.from('experts').update({ field: d.field, years_experience: d.years_experience ? Number(d.years_experience) : null, rate_expectation: d.rate_expectation ? Number(d.rate_expectation) : null, linkedin: d.linkedin, bio: d.bio, headline: d.headline || null, skills: d.skills || null }).eq('id', uid);
+        const r2 = await sb.from('experts').update({ field: d.field, years_experience: d.years_experience ? Number(d.years_experience) : null, rate_expectation: d.rate_expectation ? Number(d.rate_expectation) : null, linkedin: d.linkedin, bio: d.bio, headline: d.headline || null, skills: d.skills || null, languages: d.languages || null }).eq('id', uid);
         busy(prf, false); if (r1.error || r2.error) return fail(r1.error || r2.error);
         await loadProfile(); toast(t('saved'));
       };
@@ -1179,7 +1181,7 @@ const INTERVIEW_FIELD = {
   'Chemistry & Math': ['Explain to a high-school student why the angles of a triangle add up to 180°.', 'An AI answer claims that adding a catalyst shifts a chemical equilibrium. What is wrong?', 'How would you write a hard problem that tests real understanding instead of memorisation?'],
   'Pharmacy': ['What should a patient taking warfarin know about common painkillers?', 'An AI answer recommends doubling a missed dose. How do you respond?', 'How do you check a drug interaction you are unsure about?'],
   'Accounting': ['Explain the difference between cash and accrual accounting with an example.', 'An AI answer says depreciation reduces cash. What is wrong?', 'How do you make sure the numbers in a financial report are correct?'],
-  'Translation (DE)': ['Translate into German and explain your choices: "Please don\'t hesitate to reach out if you have any questions."', 'An AI translated "I am hot" (about the weather) as "Ich bin heiß". What is the problem?', 'How do you handle terms that have no direct translation?'],
+  'Translation (DE)': ['Which languages do you speak at native or near-native level? Translate this sentence into your strongest language other than English and explain your choices: "Please don\'t hesitate to reach out if you have any questions."', 'An AI translated the English idiom "It\'s raining cats and dogs" word for word into another language. What is the problem, and how would a native speaker of your language say it?', 'How do you handle terms or cultural references that have no direct translation?'],
   'Other': ['What kind of expert tasks would you like to do at Brightpeer?', 'How would you check whether an AI answer in your field is correct?', 'Give an example of how you explain something complex in simple words.'],
 };
 const interviewQuestions = (field) => [...INTERVIEW_GENERAL, ...(INTERVIEW_FIELD[field] || INTERVIEW_FIELD.Other)];
@@ -1324,6 +1326,7 @@ async function companyDashboard() {
       <div class="row between"><h3>${esc(x.code)}</h3>${x.status === 'proposed' ? '<span class="label-new">New</span>' : pill(x.status === 'interested' ? 'approved' : 'declined')}</div>
       <p class="muted small">${esc(fieldName(x.field))}${x.years != null ? ` · ${esc(x.years)} years experience` : ''}${x.country ? ` · ${esc(x.country)}` : ''}</p>
       ${x.headline ? `<p style="font-weight:600">${esc(x.headline)}</p>` : ''}
+      ${x.languages ? `<p class="small">Languages: ${esc(x.languages)}</p>` : ''}
       ${skillList(x.skills).length ? `<div class="row" style="gap:6px">${skillList(x.skills).slice(0, 6).map((k) => `<span class="chip chip-sm">${esc(k)}</span>`).join('')}</div>` : ''}
       <div class="row" style="gap:24px"><div><p class="muted small">Field test</p><p style="font-weight:600">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div><div><p class="muted small">Interview</p><p>${stars(x.interview_score)}</p></div></div>
       ${x.admin_note ? `<p class="small" style="white-space:pre-line"><b>Why we suggest this expert:</b> ${esc(x.admin_note)}</p>` : ''}
@@ -1584,7 +1587,7 @@ const ADMIN = {
     return {
       html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
         `<details><summary class="link">${esc(e.profiles?.full_name || '')}</summary><p class="small" style="max-width:320px;white-space:pre-line;margin-top:6px">${esc(e.bio || '')}</p></details>`, scoreCell(e.id),
-        `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || ''), esc(fieldName(e.field)), esc(e.years_experience ?? ''),
+        `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || ''), esc(fieldName(e.field)) + (e.languages ? `<div class="small muted">${esc(e.languages)}</div>` : ''), esc(e.years_experience ?? ''),
         e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
         e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', esc(e.referred_by || ''),
         `<span class="small">${esc(e.payout_method || '')} ${esc(payoutOf[e.id] || '')}</span>`, pill(e.status),
