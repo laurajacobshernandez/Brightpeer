@@ -385,3 +385,8 @@ Object.assign(es, { faqH: 'Preguntas frecuentes',
   fq4: '¿Necesito experiencia con IA?', fa4: 'No. Lo que cuenta es tu experiencia profesional. Explicamos cada tarea; solo necesitas un ordenador e internet.',
   fq5: '¿Puedo trabajar desde cualquier país?', fa5: 'Sí, el trabajo es 100 % remoto. Trabajas como independiente y te ocupas de tus impuestos en tu país.',
   fq6: '¿Quién ve mi CV y mis datos?', fa6: 'Solo Brightpeer. Las empresas ven primero un perfil anónimo sin nombre ni datos de contacto. Puedes pedir que borremos tus datos en cualquier momento.' });
+Object.assign(en, { stRoles: 'open roles in the talent pool', stFields: 'fields of expertise', stLangs: 'languages', stPay: 'per hour, depending on the field', stFees: 'fees for experts' });
+Object.assign(de, { stRoles: 'offene Stellen im Talent-Pool', stFields: 'Fachgebiete', stLangs: 'Sprachen', stPay: 'pro Stunde, je nach Fachgebiet', stFees: 'Gebühren für Fachleute' });
+Object.assign(fr, { stRoles: 'missions dans le vivier', stFields: 'domaines d’expertise', stLangs: 'langues', stPay: 'de l’heure, selon le domaine', stFees: 'de frais pour les experts' });
+Object.assign(it, { stRoles: 'posizioni nel talent pool', stFields: 'settori', stLangs: 'lingue', stPay: 'l’ora, secondo il settore', stFees: 'commissioni per gli esperti' });
+Object.assign(es, { stRoles: 'puestos en la bolsa de talento', stFields: 'áreas de especialidad', stLangs: 'idiomas', stPay: 'por hora, según el área', stFees: 'comisiones para expertos' });

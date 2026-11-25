@@ -328,12 +328,18 @@ async function pageHome() {
   // Owner, 25.11.2026: intro first, then all roles ("Gesuchte Fachrichtungen") with quick field filters.
   const roles = [...(await getRoles())].sort((a, b) => FIELDS.indexOf(a.field) - FIELDS.indexOf(b.field));
   const fields = FIELDS.filter((f) => roles.some((r) => r.field === f));
+  // Live numbers that are true today (owner, 25.11.2026): counted from the open roles, never invented.
+  const langs = new Set(['English']);
+  roles.forEach((r) => { const m = /Bilingual Expert – (.+?) & English/.exec(r.title || ''); if (m) langs.add(m[1]); if (/German/.test(r.title || '')) langs.add('German'); });
+  const stat = (v, l) => `<div class="stack" style="gap:2px"><p class="stat-v">${v}</p><p class="muted small">${l}</p></div>`;
+  const statsStrip = `<div class="stats-strip">${stat(roles.length, t('stRoles'))}${stat(fields.length, t('stFields'))}${stat(langs.size, t('stLangs'))}${stat('$40–250', t('stPay'))}${stat('$0', t('stFees'))}</div>`;
   const homeSteps = (k) => [1, 2, 3].map((n) => `<div class="step"><span class="step-n">${n}</span><h3>${t(k + n + 'h')}</h3><p class="muted">${t(k + n + 'p')}</p></div>`).join('');
   const html = `
   <section class="wrap section stack-lg">
     <h1 style="max-width:15ch">${t('h1')}</h1>
     <p style="font-size:1.25rem;color:var(--ink2);max-width:40rem">${t('sub')}</p>
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
+    ${statsStrip}
   </section>
   <section class="wrap section stack-lg" style="padding-top:0">
     <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
