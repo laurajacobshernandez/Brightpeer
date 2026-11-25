@@ -24,7 +24,22 @@ const PAY = [
 const ICON_MUTE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
 const ICON_LOUD = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 // Homepage "Why experts choose Brightpeer" (owner, 20.11.2026) – only things Brightpeer really offers
-const BENEFITS = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => [`b${i}h`, `b${i}p`]);
+const BENEFITS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => [`b${i}h`, `b${i}p`]);
+// Benefit cards like Mercor's careers page (owner, 25.11.2026) – only what Brightpeer really offers to independent experts.
+const BENEFIT_ICON = [
+  '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/>',
+  '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.2-3.8-8.5S9.4 5.9 12 3.5z"/>',
+  '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  '<path d="M4 18l5-5 3.5 3.5L20 9"/><path d="M15 9h5v5"/>',
+  '<path d="M20 12.5l-7.5 7.5L4 11.5V4h7.5z"/><circle cx="8" cy="8" r="1.4"/>',
+  '<circle cx="8.5" cy="9" r="3"/><circle cx="16.5" cy="9" r="3"/><path d="M3 19c.6-3 2.8-4.6 5.5-4.6S13.4 16 14 19M13 15c.9-.4 2-.6 3.5-.6 2.7 0 4.9 1.6 5.5 4.6"/>',
+  '<path d="M12 3.5l2.4 5 5.4.6-4 3.7 1.1 5.3L12 15.4 7.1 18.1l1.1-5.3-4-3.7 5.4-.6z"/>',
+  '<path d="M4 18v-1.5c0-2.5 2-4.5 4.5-4.5h7c2.5 0 4.5 2 4.5 4.5V18"/><circle cx="12" cy="7" r="3.5"/>',
+  '<path d="M7 3.5h7l4 4V20.5H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/>',
+];
+function benefitCards() {
+  return `<div class="ben-grid">${BENEFITS.map(([h, p], i) => `<div class="ben"><span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${BENEFIT_ICON[i] || ''}</svg></span><h3>${t(h)}</h3><p class="muted">${t(p)}</p></div>`).join('')}</div>`;
+}
 
 // Example roles shown when the database is not connected yet
 const DEMO_ROLES = [
@@ -322,6 +337,10 @@ async function pageHome() {
     <p style="font-size:1.25rem;color:var(--ink2);max-width:40rem">${t('sub')}</p>
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
   </section>
+  <section class="wrap section stack-lg" style="padding-top:0">
+    <div class="row between"><h2>${t('whyH')}</h2><a href="#/info" style="font-weight:600">${t('navInfo')} →</a></div>
+    ${benefitCards()}
+  </section>
   <section class="wrap section stack-lg">
     <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Five ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
     ${servicesGrid()}
@@ -354,7 +373,7 @@ function pageInfo() {
   <section class="wrap section"><div class="stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${steps('hc')}</div><a class="btn" style="align-self:flex-start" href="#/companies">${t('hire')}</a></div></section>
   <section class="wrap section stack-lg">
     <h2>${t('whyH')}</h2>
-    <div class="benefits">${BENEFITS.map(([h, p]) => `<div class="benefit"><h3>${t(h)}</h3><p class="muted">${t(p)}</p></div>`).join('')}</div>
+    ${benefitCards()}
   </section>
   <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>${t('referralH')}</h2><p class="muted">${t('referralP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>
   <section class="wrap section"></section>`;

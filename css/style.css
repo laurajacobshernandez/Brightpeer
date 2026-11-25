@@ -299,3 +299,9 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .steps-list li{counter-increment:st;display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
 .steps-list li::before{content:counter(st);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--display);font-weight:700;font-size:.85rem}
 @media (min-width:901px){.services{grid-template-columns:repeat(2,1fr)}}
+/* Benefit cards (25.11.2026) */
+.ben-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.ben{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.ben h3{font-size:1.15rem;margin-top:6px}
+@media (max-width:900px){.ben-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.ben-grid{grid-template-columns:1fr}}
