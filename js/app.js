@@ -356,6 +356,7 @@ async function pageRoles() {
   return {
     html: `<section class="wrap section stack-lg">
       <div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('rolesH')}</h1><p class="muted">${t('rolesSub')}</p></div>
+      <div class="card stack" style="gap:6px"><h3>${t('poolH')}</h3><p class="muted">${t('poolP')}</p></div>
       <div class="filters">
         <input id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(q0.get('q') || '')}">
         <select id="ff"><option value="">${t('allFields')}</option>${fieldOptions(q0.get('field') || '')}</select>
@@ -411,7 +412,7 @@ async function pageRole(id) {
       <a href="#/roles">${t('back')}</a>
       <div class="role-layout">
         <div class="stack-lg" style="min-width:0">
-          <div class="stack" style="gap:12px"><span class="chip">${esc(fieldName(role.field))}</span>
+          <div class="stack" style="gap:12px"><div class="row" style="gap:8px"><span class="chip">${esc(fieldName(role.field))}</span><span class="chip">${t('poolChip')}</span></div>
             <h1 style="font-size:clamp(2rem,5vw,3.2rem)">${esc(role.title)}</h1>
             <p class="muted">${money(role.rate_min)}–${money(role.rate_max)} ${t('perHour')} · ${t('remote')} · ${esc(role.hours_per_week || '')}</p></div>
           <div class="stack"><h3>${t('aboutRole')}</h3><p style="white-space:pre-line">${esc(role.description)}</p></div>
@@ -425,6 +426,7 @@ async function pageRole(id) {
           <div class="row between small"><span class="muted">${t('hours')}</span><b>${esc(role.hours_per_week || '')}</b></div>
           <div class="row between small"><span class="muted">${t('location')}</span><b>${t('remote')}</b></div>
           <div class="row between small"><span class="muted">${t('paidH')}</span><b>${t('weekly')}</b></div>
+          <p class="muted small">${t('poolShort')}</p>
           ${action}
         </aside>
       </div>
