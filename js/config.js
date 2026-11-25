@@ -11,9 +11,9 @@ export const CONFIG = {
   // Shown to companies on invoices ("Pay by bank transfer")
   BANK: {
     holder: 'Laura Hernandez',
-    iban: '[IBAN]',
-    bic: '[BIC/SWIFT]',
-    bank: '[BANK NAME]',
+    iban: 'CH62 0026 2262 1221 8540 V',
+    bic: 'UBSWCHZH80A',
+    bank: 'UBS Switzerland AG',
   },
 
   // Shown in the imprint and legal pages
