@@ -325,12 +325,14 @@ function roleCard(r) {
 }
 
 async function pageHome() {
-  const roles = (await getRoles()).slice(0, 3);
-  // Owner, 25.11.2026: the roles ("Gesuchte Fachrichtungen") come first, right at the top of the page.
-  return `
+  // Owner, 25.11.2026: the roles ("Gesuchte Fachrichtungen") come first, right at the top – all of them, with quick field filters.
+  const roles = [...(await getRoles())].sort((a, b) => FIELDS.indexOf(a.field) - FIELDS.indexOf(b.field));
+  const fields = FIELDS.filter((f) => roles.some((r) => r.field === f));
+  const html = `
   <section class="wrap section stack-lg">
-    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
-    <div class="grid">${roles.map(roleCard).join('')}</div>
+    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
+    ${fields.length > 1 ? `<div class="row" style="gap:8px" id="homeChips"><button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}</div>` : ''}
+    <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" class="card card-link role-card"`)).join('')}</div>
   </section>
   <section class="wrap section stack-lg" style="padding-top:0">
     <h1 style="max-width:15ch">${t('h1')}</h1>
@@ -346,6 +348,16 @@ async function pageHome() {
     ${servicesGrid()}
   </section>
   <section class="wrap section"><div class="cta-end"><div class="stack" style="gap:8px"><h2>${t('ctaH')}</h2><p class="muted">${t('ctaP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>`;
+  return {
+    html,
+    mount() {
+      const chips = $app.querySelectorAll('[data-hf]');
+      chips.forEach((b) => { b.onclick = () => {
+        chips.forEach((x) => x.classList.toggle('btn-ghost', x !== b));
+        $app.querySelectorAll('#homeRoles [data-field]').forEach((c) => { c.style.display = !b.dataset.hf || c.dataset.field === b.dataset.hf ? '' : 'none'; });
+      }; });
+    },
+  };
 }
 
 function pageInfo() {
