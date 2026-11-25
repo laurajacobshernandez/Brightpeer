@@ -27,7 +27,7 @@ export const CONFIG = {
   // "Continue with Google" / "Continue with Microsoft": the buttons appear by themselves as soon as the
   // provider is switched on in Supabase → Authentication → Providers (Google / Azure). Set false to hide one.
   GOOGLE_LOGIN: true,
-  MICROSOFT_LOGIN: true,
+  MICROSOFT_LOGIN: false, // off until a Microsoft (Azure) app exists – set true to show it again
 
   // Billing: for the start companies only pay in advance (prepaid balance). Set false to use weekly invoices again.
   PREPAYMENT_ONLY: true,
