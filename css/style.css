@@ -280,3 +280,21 @@ details.faq p{margin-top:10px;color:var(--ink2)}
   .invoice { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
   .invoice .logo { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Numbered steps and service cards (25.11.2026): a clear green number badge, cards with icons */
+.step-n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:0;flex:none}
+.dark .step-n{background:rgba(255,255,255,.14);color:#fff}
+.step{border-top:0;padding-top:0;position:relative}
+.steps .step:not(:last-child)::after{content:"";position:absolute;top:17px;left:46px;right:-28px;height:2px;background:var(--line2)}
+.dark .steps .step:not(:last-child)::after{background:rgba(255,255,255,.22)}
+@media (max-width:800px){.steps .step::after{display:none}}
+.svc-grid{gap:20px}
+.svc{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:24px;gap:10px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.svc:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,157,107,.08)}
+.svc .step-n{width:28px;height:28px;font-size:.85rem;background:var(--chip);color:var(--ink3)}
+.svc-ic{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none}
+.svc-kicker{font-size:.85rem;color:var(--ink3);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.options{grid-template-columns:repeat(3,1fr)}
+.steps-list{list-style:none;padding-left:0;counter-reset:st;gap:12px}
+.steps-list li{counter-increment:st;display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+.steps-list li::before{content:counter(st);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--display);font-weight:700;font-size:.85rem}

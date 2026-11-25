@@ -185,7 +185,7 @@ function renderHeader() {
     <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
     <div class="nav-links" id="navLinks">
       ${dd('research', t('navResearch'), t('ddResearchP'), [['/research', t('ddFields')], ['/info', t('infoH')]])}
-      ${dd('companies', t('fCompanies'), t('ddCompaniesP'), [['/companies', t('ddOverview')], ['/info', t('ddEvals')], ['/info', t('o1h')], ['/company-signup', t('fCompanyAccount')]])}
+      ${dd('companies', t('fCompanies'), t('ddCompaniesP'), [['/companies', t('ddOverview')], ['/info', t('ddEvals')], ['/company-signup', t('fCompanyAccount')]])}
       ${dd('experts', t('fExperts'), t('ddExpertsP'), [['/roles', t('navRoles')], ['/apply', t('applyNow')], ['/info', t('payH')]])}
       ${dd('solutions', 'Solutions', 'Everything companies need to build better AI with real experts.', [['/services', 'All solutions'], ...SERVICES.map((x) => ['/services/' + x.id, x.nav])])}
       ${dd('company', t('fCompany'), t('ddCompanyP'), [['/about', t('navAbout')], ['/help', t('navHelp')], [`mailto:${CONFIG.COMPANY.email}`, t('fContact')]])}
@@ -261,8 +261,19 @@ const SERVICES = [
     points: ['Clean up and structure existing work data', 'Remove personal and confidential details', 'Expert review so the data is accurate and useful', 'Optional licensing to AI companies – always with your approval'] },
 ];
 
+// Line icons for the six business areas (25.11.2026: numbered cards made clearer)
+const SVC_ICON = {
+  experts: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.6c2.6.2 4.6 2.2 5.1 5.4"/>',
+  training: '<path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5c-.8 0-1.5-.7-1.5-1.5z"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5z"/><path d="M6.5 8h2M6.5 11h2M15.5 8h2M15.5 11h2"/>',
+  evaluations: '<path d="M12 4v16M6 20h12"/><path d="M5 8h14"/><path d="M5 8l-2.5 6a2.5 2.5 0 0 0 5 0z"/><path d="M19 8l-2.5 6a2.5 2.5 0 0 0 5 0z"/>',
+  benchmarks: '<path d="M4 20h16"/><rect x="5.5" y="11" width="3" height="7" rx="1"/><rect x="10.5" y="6" width="3" height="12" rx="1"/><rect x="15.5" y="9" width="3" height="9" rx="1"/>',
+  enterprise: '<rect x="4" y="3.5" width="10" height="17" rx="1.5"/><path d="M14 9h4.5c.8 0 1.5.7 1.5 1.5v10H14"/><path d="M7 7.5h1M10 7.5h1M7 11h1M10 11h1M7 14.5h1M10 14.5h1M9 20.5v-3"/>',
+  data: '<ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6"/><path d="M5 12v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6"/>',
+};
+const svcIcon = (id) => `<span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${SVC_ICON[id] || ''}</svg></span>`;
+
 function servicesGrid() {
-  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><span class="step-n">0${i + 1}</span><h3>${esc(s.title)}</h3><p class="muted">${esc(s.short)}</p><span class="rate">Learn more →</span></a>`).join('')}</div>`;
+  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><div class="row between" style="align-items:center">${svcIcon(s.id)}<span class="step-n">${i + 1}</span></div><h3>${esc(s.title)}</h3><p class="muted">${esc(s.short)}</p><span class="rate">Learn more →</span></a>`).join('')}</div>`;
 }
 
 function pageServices(focus) {
@@ -273,7 +284,7 @@ function pageServices(focus) {
       <div class="row svc-jump">${SERVICES.map((s) => `<a class="chip" href="#/services/${s.id}">${esc(s.nav)}</a>`).join('')}</div>
     </section>
     <section class="wrap" style="padding-bottom:48px">${SERVICES.map((s, i) => `<div class="svc-row" id="svc-${s.id}">
-        <div class="stack" style="gap:8px"><span class="step-n">0${i + 1} · ${esc(s.nav)}</span><h2>${esc(s.title)}</h2><p class="muted" style="font-size:1.05rem">${esc(s.short)}</p></div>
+        <div class="stack" style="gap:8px"><div class="row" style="gap:12px;align-items:center">${svcIcon(s.id)}<span class="svc-kicker">${esc(s.nav)}</span></div><h2>${esc(s.title)}</h2><p class="muted" style="font-size:1.05rem">${esc(s.short)}</p></div>
         <ul class="ticks">${s.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
       </div>`).join('')}</section>
     <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>Talk to us about your project</h2><p class="muted">Tell us what you need. We reply within 1–2 business days with a plan and a quote.</p></div><div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a><a class="btn btn-ghost" href="mailto:${esc(CONFIG.COMPANY.email)}">${t('fContact')}</a></div></div></section>`,
@@ -320,11 +331,11 @@ async function pageHome() {
 }
 
 function pageInfo() {
-  const steps = (k) => [1, 2, 3].map((i) => `<div class="step"><span class="step-n">0${i}</span><h3>${t(k + i + 'h')}</h3><p class="muted">${t(k + i + 'p')}</p></div>`).join('');
+  const steps = (k) => [1, 2, 3].map((i) => `<div class="step"><span class="step-n">${i}</span><h3>${t(k + i + 'h')}</h3><p class="muted">${t(k + i + 'p')}</p></div>`).join('');
   return `
   <section class="wrap section stack-lg" style="padding-bottom:40px">
     <div class="stack" style="gap:8px"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('infoH')}</h1><p class="muted" style="font-size:1.1rem">${t('infoSub')}</p></div>
-    <div class="options">${[['o1', `mailto:${esc(CONFIG.COMPANY.email)}`], ['o2', '#/companies'], ['o3', '#/companies'], ['o4', '#/roles']].map(([k, href]) => `<a class="option" href="${href}"><h3>${t(k + 'h')}</h3><p class="muted">${t(k + 'p')}</p><span class="option-l">${t(k + 'l')} →</span></a>`).join('')}</div>
+    <div class="options">${[['o2', '#/companies'], ['o3', '#/companies'], ['o4', '#/roles']].map(([k, href]) => `<a class="option" href="${href}"><h3>${t(k + 'h')}</h3><p class="muted">${t(k + 'p')}</p><span class="option-l">${t(k + 'l')} →</span></a>`).join('')}</div>
     <div class="grid" style="border-top:1px solid var(--line);padding-top:24px;margin-top:8px">
       <div><p class="stat-v">$40–250 / h</p><p class="muted">${t('s1')}</p></div>
       <div><p class="stat-v">$0</p><p class="muted">${t('s2')}</p></div>
@@ -733,9 +744,9 @@ function pageCompanies() {
     <h1 style="max-width:16ch">${t('companiesH')}</h1>
     <p style="font-size:1.2rem;color:var(--ink2);max-width:42rem">${t('companiesSub')}</p>
     <div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div>
-    <div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">0${i}</span><h3>${t('cp' + i + 'h')}</h3><p class="muted">${t('cp' + i + 'p')}</p></div>`).join('')}</div>
+    <div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">${i}</span><h3>${t('cp' + i + 'h')}</h3><p class="muted">${t('cp' + i + 'p')}</p></div>`).join('')}</div>
   </section>
-  <section class="wrap"><div class="dark stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">0${i}</span><h3>${t('hc' + i + 'h')}</h3><p class="muted">${t('hc' + i + 'p')}</p></div>`).join('')}</div></div></section>
+  <section class="wrap"><div class="dark stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">${i}</span><h3>${t('hc' + i + 'h')}</h3><p class="muted">${t('hc' + i + 'p')}</p></div>`).join('')}</div></div></section>
   <section class="wrap section"><div class="stack" style="border-top:1px solid var(--ink);padding-top:32px"><h2>${t('cpPriceH')}</h2><p class="muted" style="max-width:42rem">${t('cpPriceP')}</p><div class="grid-sm" style="margin-top:12px">${FIELDS.slice(0, 7).map((f) => `<span class="chip">${esc(fieldName(f))}</span>`).join('')}</div><a class="btn" style="align-self:flex-start;margin-top:8px" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div></section>`;
 }
 
