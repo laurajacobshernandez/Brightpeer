@@ -325,19 +325,19 @@ function roleCard(r) {
 }
 
 async function pageHome() {
-  // Owner, 25.11.2026: the roles ("Gesuchte Fachrichtungen") come first, right at the top – all of them, with quick field filters.
+  // Owner, 25.11.2026: intro first, then all roles ("Gesuchte Fachrichtungen") with quick field filters.
   const roles = [...(await getRoles())].sort((a, b) => FIELDS.indexOf(a.field) - FIELDS.indexOf(b.field));
   const fields = FIELDS.filter((f) => roles.some((r) => r.field === f));
   const html = `
   <section class="wrap section stack-lg">
-    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
-    ${fields.length > 1 ? `<div class="row" style="gap:8px" id="homeChips"><button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}</div>` : ''}
-    <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" class="card card-link role-card"`)).join('')}</div>
-  </section>
-  <section class="wrap section stack-lg" style="padding-top:0">
     <h1 style="max-width:15ch">${t('h1')}</h1>
     <p style="font-size:1.25rem;color:var(--ink2);max-width:40rem">${t('sub')}</p>
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
+  </section>
+  <section class="wrap section stack-lg" style="padding-top:0">
+    <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
+    ${fields.length > 1 ? `<div class="row" style="gap:8px" id="homeChips"><button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}</div>` : ''}
+    <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" class="card card-link role-card"`)).join('')}</div>
   </section>
   <section class="wrap section stack-lg" style="padding-top:0">
     <div class="row between"><h2>${t('whyH')}</h2><a href="#/info" style="font-weight:600">${t('navInfo')} →</a></div>
