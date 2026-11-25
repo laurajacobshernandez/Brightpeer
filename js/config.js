@@ -33,12 +33,13 @@ export const CONFIG = {
   PREPAYMENT_ONLY: true,
   LOW_BALANCE: 500, // USD – below this the balance is shown as low
 
-  // Social media (footer icons). Create the accounts first, then check the links.
+  // Social media (footer icons). Hidden until the accounts exist (25.11.2026) – paste the profile link to show an icon,
+  // e.g. instagram: 'https://www.instagram.com/brightpeer'.
   // Leave a value empty ('') to hide that icon.
   SOCIAL: {
-    instagram: 'https://www.instagram.com/brightpeer',
-    linkedin: 'https://www.linkedin.com/company/brightpeer',
-    x: 'https://x.com/brightpeer',
-    youtube: 'https://www.youtube.com/@brightpeer',
+    instagram: '',
+    linkedin: '',
+    x: '',
+    youtube: '',
   },
 };
