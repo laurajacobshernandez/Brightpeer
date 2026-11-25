@@ -349,3 +349,39 @@ Object.assign(de, { wcTitle: 'Arbeitsbestätigung', wcLink: 'Arbeitsbestätigung
 Object.assign(fr, { wcTitle: 'Attestation de travail', wcLink: 'Télécharger votre attestation (PDF)', wcProgress: 'Attestation de travail pour votre CV : disponible après 20 heures payées ({n} h jusqu’ici).', b9p: 'Après vos 20 premières heures payées, vous téléchargez une attestation écrite de votre travail pour votre CV – directement dans votre tableau de bord.' });
 Object.assign(it, { wcTitle: 'Attestato di lavoro', wcLink: 'Scarica il tuo attestato (PDF)', wcProgress: 'Attestato di lavoro per il tuo CV: disponibile dopo 20 ore pagate (finora {n} h).', b9p: 'Dopo le prime 20 ore pagate scarichi un attestato scritto del tuo lavoro per il tuo CV – direttamente nella tua dashboard.' });
 Object.assign(es, { wcTitle: 'Certificado de trabajo', wcLink: 'Descargar tu certificado (PDF)', wcProgress: 'Certificado de trabajo para tu CV: disponible tras 20 horas pagadas ({n} h hasta ahora).', b9p: 'Tras tus primeras 20 horas pagadas descargas un certificado escrito de tu trabajo para tu CV, directamente en tu panel.' });
+// Homepage FAQ (owner, 25.11.2026: "what you think belongs on the homepage")
+Object.assign(en, { faqH: 'Frequently asked questions',
+  fq1: 'Is Brightpeer free for experts?', fa1: 'Yes. Signing up, the field test and the interview are free, and there are no platform or payout fees.',
+  fq2: 'How and when am I paid?', fa2: 'You log your hours in the dashboard. Approved hours are paid every week by bank transfer or PayPal, in USD.',
+  fq3: 'Is there work right away?', fa3: 'Brightpeer is new. You join our talent pool, and as soon as a client project fits your profile you get a concrete offer with pay and hours. Nothing is binding until you accept.',
+  fq4: 'Do I need experience with AI?', fa4: 'No. What counts is your professional expertise. We explain each task, and you only need a computer and internet.',
+  fq5: 'Can I work from any country?', fa5: 'Yes, the work is fully remote. You work as an independent contractor and take care of taxes in your country yourself.',
+  fq6: 'Who sees my CV and data?', fa6: 'Only Brightpeer. Companies first see an anonymous profile without your name or contact details. You can have your data deleted at any time.' });
+Object.assign(de, { faqH: 'Häufige Fragen',
+  fq1: 'Ist Brightpeer für Fachleute kostenlos?', fa1: 'Ja. Anmeldung, Fachtest und Interview sind gratis, und es gibt keine Plattform- oder Auszahlungsgebühren.',
+  fq2: 'Wie und wann werde ich bezahlt?', fa2: 'Du trägst deine Stunden im Dashboard ein. Bestätigte Stunden werden jede Woche per Banküberweisung oder PayPal in US-Dollar ausbezahlt.',
+  fq3: 'Gibt es sofort Arbeit?', fa3: 'Brightpeer ist neu. Du kommst in unseren Talent-Pool, und sobald ein Kundenprojekt zu deinem Profil passt, bekommst du ein konkretes Angebot mit Lohn und Stunden. Verbindlich wird erst etwas, wenn du annimmst.',
+  fq4: 'Brauche ich Erfahrung mit KI?', fa4: 'Nein. Entscheidend ist dein Fachwissen. Wir erklären jede Aufgabe, du brauchst nur einen Computer und Internet.',
+  fq5: 'Kann ich aus jedem Land arbeiten?', fa5: 'Ja, die Arbeit ist komplett remote. Du arbeitest selbständig und kümmerst dich selbst um die Steuern in deinem Land.',
+  fq6: 'Wer sieht meinen Lebenslauf und meine Daten?', fa6: 'Nur Brightpeer. Firmen sehen zuerst ein anonymes Profil ohne Namen und Kontaktdaten. Du kannst deine Daten jederzeit löschen lassen.' });
+Object.assign(fr, { faqH: 'Questions fréquentes',
+  fq1: 'Brightpeer est-il gratuit pour les experts ?', fa1: 'Oui. L’inscription, le test et l’entretien sont gratuits, et il n’y a aucuns frais de plateforme ni de paiement.',
+  fq2: 'Comment et quand suis-je payé·e ?', fa2: 'Vous saisissez vos heures dans le tableau de bord. Les heures validées sont payées chaque semaine par virement ou PayPal, en USD.',
+  fq3: 'Y a-t-il du travail tout de suite ?', fa3: 'Brightpeer est nouveau. Vous rejoignez notre vivier de talents et recevez une offre concrète dès qu’un projet client correspond à votre profil. Rien n’est engageant avant votre accord.',
+  fq4: 'Faut-il de l’expérience avec l’IA ?', fa4: 'Non. Ce qui compte, c’est votre expertise. Nous expliquons chaque tâche ; il vous faut seulement un ordinateur et Internet.',
+  fq5: 'Puis-je travailler depuis n’importe quel pays ?', fa5: 'Oui, le travail se fait à distance. Vous êtes indépendant·e et gérez vous-même vos impôts dans votre pays.',
+  fq6: 'Qui voit mon CV et mes données ?', fa6: 'Seulement Brightpeer. Les entreprises voient d’abord un profil anonyme, sans nom ni coordonnées. Vous pouvez faire supprimer vos données à tout moment.' });
+Object.assign(it, { faqH: 'Domande frequenti',
+  fq1: 'Brightpeer è gratuito per gli esperti?', fa1: 'Sì. Iscrizione, test e colloquio sono gratuiti e non ci sono commissioni di piattaforma o di pagamento.',
+  fq2: 'Come e quando vengo pagato?', fa2: 'Registri le ore nella dashboard. Le ore approvate vengono pagate ogni settimana tramite bonifico o PayPal, in USD.',
+  fq3: 'C’è subito lavoro?', fa3: 'Brightpeer è nuovo. Entri nel nostro talent pool e ricevi un’offerta concreta appena un progetto cliente è adatto al tuo profilo. Nulla è vincolante finché non accetti.',
+  fq4: 'Serve esperienza con l’IA?', fa4: 'No. Conta la tua competenza professionale. Spieghiamo ogni compito; ti servono solo un computer e Internet.',
+  fq5: 'Posso lavorare da qualsiasi paese?', fa5: 'Sì, il lavoro è completamente da remoto. Lavori come indipendente e ti occupi tu delle tasse nel tuo paese.',
+  fq6: 'Chi vede il mio CV e i miei dati?', fa6: 'Solo Brightpeer. Le aziende vedono prima un profilo anonimo senza nome né contatti. Puoi far cancellare i tuoi dati in qualsiasi momento.' });
+Object.assign(es, { faqH: 'Preguntas frecuentes',
+  fq1: '¿Brightpeer es gratis para los expertos?', fa1: 'Sí. El registro, la prueba y la entrevista son gratis, y no hay comisiones de plataforma ni de pago.',
+  fq2: '¿Cómo y cuándo me pagan?', fa2: 'Registras tus horas en el panel. Las horas aprobadas se pagan cada semana por transferencia o PayPal, en USD.',
+  fq3: '¿Hay trabajo de inmediato?', fa3: 'Brightpeer es nuevo. Entras en nuestra bolsa de talento y recibes una oferta concreta en cuanto un proyecto encaje con tu perfil. Nada es vinculante hasta que aceptes.',
+  fq4: '¿Necesito experiencia con IA?', fa4: 'No. Lo que cuenta es tu experiencia profesional. Explicamos cada tarea; solo necesitas un ordenador e internet.',
+  fq5: '¿Puedo trabajar desde cualquier país?', fa5: 'Sí, el trabajo es 100 % remoto. Trabajas como independiente y te ocupas de tus impuestos en tu país.',
+  fq6: '¿Quién ve mi CV y mis datos?', fa6: 'Solo Brightpeer. Las empresas ven primero un perfil anónimo sin nombre ni datos de contacto. Puedes pedir que borremos tus datos en cualquier momento.' });

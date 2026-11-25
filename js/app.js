@@ -328,6 +328,7 @@ async function pageHome() {
   // Owner, 25.11.2026: intro first, then all roles ("Gesuchte Fachrichtungen") with quick field filters.
   const roles = [...(await getRoles())].sort((a, b) => FIELDS.indexOf(a.field) - FIELDS.indexOf(b.field));
   const fields = FIELDS.filter((f) => roles.some((r) => r.field === f));
+  const homeSteps = (k) => [1, 2, 3].map((n) => `<div class="step"><span class="step-n">${n}</span><h3>${t(k + n + 'h')}</h3><p class="muted">${t(k + n + 'p')}</p></div>`).join('');
   const html = `
   <section class="wrap section stack-lg">
     <h1 style="max-width:15ch">${t('h1')}</h1>
@@ -339,7 +340,13 @@ async function pageHome() {
     ${fields.length > 1 ? `<div class="row" style="gap:8px" id="homeChips"><button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}</div>` : ''}
     <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" class="card card-link role-card"`)).join('')}</div>
   </section>
-  <section class="wrap section stack-lg" style="padding-top:0">
+  <section class="wrap"><div class="dark stack-lg"><h2>${t('howExpertsH')}</h2><div class="steps">${homeSteps('he')}</div><a class="btn btn-accent" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a></div></section>
+  <section class="wrap section"><div class="soft stack-lg">
+    <h2>${t('payH')}</h2>
+    <div class="grid-sm">${PAY.map(([f, a, b]) => `<div class="card"><p class="muted small">${esc(fieldName(f))}</p><p class="stat-v" style="font-size:1.5rem">$${a}–${b}</p><p class="muted small">${t('perHour')}</p></div>`).join('')}</div>
+    <p class="muted small">${t('payNote')}</p>
+  </div></section>
+  <section class="wrap section stack-lg" >
     <div class="row between"><h2>${t('whyH')}</h2><a href="#/info" style="font-weight:600">${t('navInfo')} →</a></div>
     ${benefitCards()}
   </section>
@@ -347,6 +354,9 @@ async function pageHome() {
     <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Five ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
     ${servicesGrid()}
   </section>
+  <section class="wrap section"><div class="stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${homeSteps('hc')}</div><a class="btn" style="align-self:flex-start" href="#/companies">${t('hire')}</a></div></section>
+  <section class="wrap section narrow stack"><h2>${t('faqH')}</h2>${[1, 2, 3, 4, 5, 6].map((n) => `<details class="faq"><summary>${t('fq' + n)}</summary><p class="muted" style="margin-top:10px">${t('fa' + n)}</p></details>`).join('')}<a href="#/help" style="font-weight:600;margin-top:8px">${t('navHelp')} →</a></section>
+  <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>${t('referralH')}</h2><p class="muted">${t('referralP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>
   <section class="wrap section"><div class="cta-end"><div class="stack" style="gap:8px"><h2>${t('ctaH')}</h2><p class="muted">${t('ctaP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>`;
   return {
     html,
