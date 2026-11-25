@@ -1016,6 +1016,7 @@ async function expertDashboard() {
   const stKey = { pending: 'stPending', approved: 'stApproved', rejected: 'stRejected' }[st];
   const paidSum = payouts.filter((p) => p.status === 'paid').reduce((a, p) => a + Number(p.amount), 0);
   const pendSum = payouts.filter((p) => p.status === 'pending').reduce((a, p) => a + Number(p.amount), 0);
+  const paidHours = payouts.filter((p) => p.status === 'paid').reduce((a, p) => a + Number(p.hours || 0), 0);
   const refLink = `${location.origin}${location.pathname}#/apply?ref=${e.referral_code || ''}`;
   const conTitle = Object.fromEntries(contracts.map((c) => [c.id, c.title]));
   const active = contracts.filter((c) => c.status === 'active');
@@ -1065,6 +1066,7 @@ async function expertDashboard() {
         <div class="card stack">
           <h3>${t('earnings')}</h3>
           <div class="row" style="gap:32px"><div><p class="muted small">${t('totalPaid')}</p><p class="stat-v">${money(paidSum)}</p></div><div><p class="muted small">${t('totalPending')}</p><p class="stat-v">${money(pendSum)}</p></div></div>
+          ${paidHours >= 20 ? `<a class="small" href="#/confirmation">${t('wcLink')} →</a>` : `<p class="muted small">${t('wcProgress').replace('{n}', Math.round(paidHours * 100) / 100)}</p>`}
         </div>
         <div class="card stack">
           <h3>${t('referralLink')}</h3>
@@ -1475,6 +1477,51 @@ async function pageInvoice(id) {
         const old = document.title; document.title = `Brightpeer ${title} ${no}`;
         window.print(); setTimeout(() => { document.title = old; }, 500);
       };
+    },
+  };
+}
+
+// ---------------------------------------------------------------- work confirmation (owner, 25.11.2026)
+// After 20 paid hours an expert can download a written confirmation of their work for the CV – generated from the
+// paid payouts and contracts, so the owner does not have to write it. Client names stay confidential.
+async function pageConfirmation() {
+  if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
+  if (!session) return needLogin();
+  if (!profile) await loadProfile();
+  if (!actsAsExpert()) return pageNotFound();
+  const uid = session.user.id;
+  const [{ data: ex }, { data: pays }, { data: cons }] = await Promise.all([
+    sb.from('experts').select('field, headline').eq('id', uid).maybeSingle(),
+    sb.from('payouts').select('week_start, hours, status').eq('expert_id', uid).eq('status', 'paid').order('week_start', { ascending: true }),
+    sb.rpc('expert_contracts'),
+  ]);
+  const paid = pays || [];
+  const hours = paid.reduce((a, p) => a + Number(p.hours || 0), 0);
+  if (hours < 20) {
+    return `<section class="wrap section narrow stack-lg"><h1 style="font-size:2.2rem">${t('wcTitle')}</h1><p class="muted">${t('wcProgress').replace('{n}', Math.round(hours * 100) / 100)}</p><a class="btn" href="#/dashboard" style="align-self:flex-start">${t('dashboard')}</a></section>`;
+  }
+  const C = CONFIG.COMPANY;
+  const from = paid[0].week_start; const last = new Date(paid[paid.length - 1].week_start); last.setDate(last.getDate() + 6);
+  const titles = [...new Set((cons || []).filter((c) => ['active', 'ended'].includes(c.status)).map((c) => c.title).filter(Boolean))];
+  const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const name = profile.full_name || session.user.email;
+  return {
+    html: `<section class="wrap section narrow stack-lg">
+      <div class="row between no-print"><a href="#/dashboard">${t('back')}</a><button class="btn btn-accent" id="printWc">Download PDF / Print</button></div>
+      <article class="invoice card stack-lg" style="padding:48px">
+        <div class="row between" style="align-items:flex-start;gap:24px">
+          <p style="font-weight:700;font-size:1.3rem;display:flex;align-items:center;gap:8px"><span class="logo" aria-hidden="true"></span>Brightpeer</p>
+          <p class="small muted" style="text-align:right">${esc(C.address)}<br>${esc(C.email)}<br>${fmtDate(new Date())}</p>
+        </div>
+        <h1 style="font-size:2rem">Confirmation of work</h1>
+        <p>We confirm that <b>${esc(name)}</b> has worked with Brightpeer as an independent expert${ex?.field ? ` in the field of <b>${esc(fieldName(ex.field))}</b>` : ''} from <b>${fmtDate(from)}</b> to <b>${fmtDate(last)}</b>, with a total of <b>${esc(Math.round(hours * 100) / 100)} paid hours</b>.</p>
+        <p>The work consisted of expert tasks for companies that develop artificial intelligence, such as reviewing and rating AI answers for accuracy and safety, writing realistic tasks and model answers, and explaining errors.${titles.length ? ` Projects: ${titles.map(esc).join(', ')}.` : ''}</p>
+        <p>All hours listed were logged by the expert, approved and paid. For confidentiality reasons, the names of the client companies are not stated.</p>
+        <div style="margin-top:24px"><p>Brightpeer</p><p class="muted small">This confirmation was created automatically from Brightpeer’s payment records and is valid without a signature. Questions: ${esc(C.email)}</p></div>
+      </article>
+    </section>`,
+    mount() {
+      document.getElementById('printWc').onclick = () => { const old = document.title; document.title = `Brightpeer work confirmation – ${name}`; window.print(); setTimeout(() => { document.title = old; }, 500); };
     },
   };
 }
@@ -2335,6 +2382,7 @@ async function render() {
       case 'test': page = await pageTest(parts[1]); break;
       case 'interview': page = await pageInterview(); break;
       case 'invoice': page = await pageInvoice(parts[1]); break;
+      case 'confirmation': page = await pageConfirmation(); break;
       default: page = pageNotFound();
     }
   } catch (e) {
