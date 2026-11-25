@@ -253,8 +253,8 @@ const SERVICES = [
     points: ['A doctor writes clinical cases and checks medical answers', 'A lawyer reviews legal answers and contract analysis', 'A developer grades and fixes generated code', 'A finance expert checks reports, models and tax answers'] },
   { id: 'evaluations', nav: 'Model evaluations', title: 'Evaluate and compare AI models', short: 'Side-by-side reviews by real professionals show which model gets it right – and where it still fails.',
     points: ['Compare models on your own tasks and documents', 'Expert grading for accuracy, safety and reasoning', 'Clear reports with examples, scores and error types', 'Repeatable test runs after every model update'] },
-  { id: 'benchmarks', nav: 'Brightpeer Bench', title: 'Brightpeer Bench', short: 'Our own benchmarks measure how well AI handles real professional work – not trivia, but the tasks experts do every day.',
-    points: ['Tasks written and checked by working professionals', 'Covers medicine, law, software, science, accounting and translation', 'Hard, realistic cases that show where models still fall short', 'Custom private benchmarks for your company on request'] },
+  { id: 'benchmarks', nav: 'Brightpeer Bench', title: 'Brightpeer Bench – in preparation', short: 'We are building our own benchmark with our experts: how well AI really answers in many languages – not word lists, but the questions native speakers ask every day.',
+    points: ['Tasks and model answers written by native-speaker experts', 'First edition in preparation: AI answers in Spanish, French, Japanese, Arabic and more', 'Results will be published with a clear, open method', 'Custom private benchmarks for your company on request'] },
   { id: 'enterprise', nav: 'Enterprise AI', title: 'Build AI for your company', short: 'We help larger companies put AI to work – with experts who know your field.',
     points: ['Build and test your own AI agents', 'Automate everyday workflows', 'Turn your team’s expert knowledge into AI systems', 'Test and improve AI before it goes live'] },
 ];
