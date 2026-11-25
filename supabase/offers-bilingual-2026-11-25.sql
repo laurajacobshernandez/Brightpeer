@@ -1,0 +1,8 @@
+-- 25.11.2026 (already applied in Supabase):
+-- * automation_settings.auto_offer + trigger trg_auto_offer on request_candidates: when a company answers "Interested",
+--   an offer is created (expert pay = rate wish within the field's range, company price = pay + 30 %). Switched ON.
+-- * experts.languages, handle_new_user stores it, company_candidates returns it.
+-- * skill test "translation-de" renamed to "Translation test: English → German (only for German)".
+-- * 10 talent-pool roles "Bilingual Expert – <language> & English" (Spanish, French, Portuguese, Italian, Japanese,
+--   Chinese (Mandarin), Korean, Arabic, Hindi, Turkish), field 'Translation (DE)' (shown as "Translation & bilingual"), $40–60/h.
+-- * interviews.ai_score / ai_summary / ai_scored_at, automation_settings.ai_counts_for_approval, Edge Function score-interview.
