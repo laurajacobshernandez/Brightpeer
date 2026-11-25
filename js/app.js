@@ -257,8 +257,6 @@ const SERVICES = [
     points: ['Tasks written and checked by working professionals', 'Covers medicine, law, software, science, accounting and translation', 'Hard, realistic cases that show where models still fall short', 'Custom private benchmarks for your company on request'] },
   { id: 'enterprise', nav: 'Enterprise AI', title: 'Build AI for your company', short: 'We help larger companies put AI to work – with experts who know your field.',
     points: ['Build and test your own AI agents', 'Automate everyday workflows', 'Turn your team’s expert knowledge into AI systems', 'Test and improve AI before it goes live'] },
-  { id: 'data', nav: 'Data services', title: 'Turn your data into value', short: 'We help companies prepare, anonymize and – if they wish – license their work data for AI training.',
-    points: ['Clean up and structure existing work data', 'Remove personal and confidential details', 'Expert review so the data is accurate and useful', 'Optional licensing to AI companies – always with your approval'] },
 ];
 
 // Line icons for the six business areas (25.11.2026: numbered cards made clearer)
@@ -320,12 +318,12 @@ async function pageHome() {
     <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/companies">${t('hire')}</a></div>
   </section>
   <section class="wrap section stack-lg" style="padding-top:0">
-    <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Six ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
-    ${servicesGrid()}
-  </section>
-  <section class="wrap section stack-lg">
     <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><a href="#/roles" style="font-weight:600">${t('allRoles')} →</a></div>
     <div class="grid">${roles.map(roleCard).join('')}</div>
+  </section>
+  <section class="wrap section stack-lg">
+    <div class="row between"><div class="stack" style="gap:6px"><h2>What Brightpeer does</h2><p class="muted">Five ways experts and companies work together on AI.</p></div><a href="#/services" style="font-weight:600">All solutions →</a></div>
+    ${servicesGrid()}
   </section>
   <section class="wrap section"><div class="cta-end"><div class="stack" style="gap:8px"><h2>${t('ctaH')}</h2><p class="muted">${t('ctaP')}</p></div><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></div></section>`;
 }
@@ -945,13 +943,13 @@ function pageLegal(which) {
         ['Communication', 'Emails, support messages', 'Answer requests', 'Contract, legitimate interest']])}
       <h2>3. Sharing</h2><p>We do not sell personal data. We share it only:</p><ul>
         <li>with Clients, limited to what they need for their project (first name, field, logged hours and work outputs);</li>
-        <li>with service providers who process data for us: database, login and file storage (Supabase, EU region), website hosting (GitHub Pages), payments (banks, PayPal and other payment providers) and email delivery;</li>
+        <li>with service providers who process data for us: database, login and file storage (Supabase, EU region), website hosting (GitHub Pages), AI rating of written interview answers (Anthropic), payments (banks, PayPal and other payment providers) and email delivery;</li>
         <li>with authorities where required by law.</li></ul>
       <h2>4. International transfers</h2><p>Brightpeer works worldwide, so data may be processed outside Switzerland and the EU, including in the USA. Where a country does not offer adequate protection, we use safeguards such as the EU Standard Contractual Clauses or the Swiss-US Data Privacy Framework.</p>
       <h2>5. Retention</h2><p>We keep account data while your account is open. Rejected applications are deleted after 24 months. Payment and accounting records are kept for 10 years as required by Swiss law. Other data is deleted when no longer needed.</p>
       <h2>6. Your rights</h2><p>You can request access to, correction or deletion of your data, restriction of or objection to processing, and a copy of your data in a portable format. You can withdraw consent at any time. Write to ${mail}. You may also complain to the Swiss Federal Data Protection and Information Commissioner (FDPIC) or your local data protection authority.</p>
       <h2>7. Security</h2><p>We use encryption in transit, access controls and row-level database security. No system is completely secure; we will inform you of any breach as required by law.</p>
-      <h2>8. Automated decisions</h2><p>Multiple-choice test answers are scored automatically. Final decisions about accepting Experts are always made by a person. You can ask for a human review of any decision.</p>
+      <h2>8. Automated decisions</h2><p>Multiple-choice test answers are scored automatically. Written interview answers are also rated by an AI service (Anthropic, USA) to help us review them; the AI receives your answers and your field, not your name or contact details. Decisions about accepting Experts are made or checked by a person. You can ask for a human review of any decision.</p>
       <h2>9. Children</h2><p>Brightpeer is not for anyone under 18. We do not knowingly collect their data.</p>
       <h2>10. Changes</h2><p>We may update this policy and will post the new date at the top. Material changes are announced by email.</p>`;
   } else if (which === 'imprint') {
@@ -1266,7 +1264,11 @@ async function pageInterview() {
         const next = [...answers.slice(0, idx), { q: qs[idx], text, audio }];
         const { error } = await sb.from('interviews').update({ answers: next, status: last ? 'submitted' : 'in_progress' }).eq('expert_id', uid);
         busy(f, false); if (error) return fail(error);
-        if (last) toast(t('ivDoneH'));
+        if (last) {
+          toast(t('ivDoneH'));
+          // AI rating for the reviewer (25.11.2026); never blocks the expert if it is not set up or fails.
+          try { sb.functions.invoke('score-interview', { body: { interview_id: iv.id } }).then(() => {}, () => {}); } catch { /* ignore */ }
+        }
         render(); window.scrollTo(0, 0);
       };
     },
@@ -1576,7 +1578,7 @@ const ADMIN = {
     const scoreOf = Object.fromEntries((sc || []).map((x) => [x.expert_id, x]));
     // Ranked by score (CV 20 + field test 40 + interview 40); experts with everything done are marked "ready".
     const data = [...(rows0 || [])].sort((a, b) => ((scoreOf[b.id] || {}).score || 0) - ((scoreOf[a.id] || {}).score || 0));
-    const scoreCell = (id) => { const x = scoreOf[id] || {}; return `<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
+    const scoreCell = (id) => { const x = scoreOf[id] || {}; return `<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.ai_score ? `${'★'.repeat(x.ai_score)} (AI)` : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
       html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
@@ -1861,9 +1863,10 @@ const ADMIN = {
           <label class="f" style="max-width:220px">Experts per request<input type="number" name="propose_count" min="1" max="10" value="${esc(s.propose_count ?? 3)}"></label>
         </div>
         <div class="card stack"><h3>Applications</h3>
-          ${chk('auto_approve_experts', 'Approve experts automatically', 'An expert is approved as soon as the CV is uploaded, the field test reaches the minimum and you have rated the interview with at least the minimum stars.')}
+          ${chk('auto_approve_experts', 'Approve experts automatically', 'An expert is approved as soon as the CV is uploaded, the field test reaches the minimum and the interview has at least the minimum stars. Every submitted interview is rated by the AI automatically (tab Interviews).')}
           <div class="form-grid"><label class="f">Minimum field test (%)<input type="number" name="approve_min_test" min="0" max="100" value="${esc(s.approve_min_test ?? 80)}"></label>
           <label class="f">Minimum interview stars<input type="number" name="approve_min_stars" min="1" max="5" value="${esc(s.approve_min_stars ?? 4)}"></label></div>
+          ${chk('ai_counts_for_approval', 'Let the AI rating count for approval', 'If you have not rated an interview yourself, the AI stars count instead. Off = only your own stars count. The AI reads written answers only.')}
         </div>
         <div class="card stack"><h3>Hours and payouts</h3>
           ${chk('auto_approve_hours', 'Approve hours automatically if the company does not react', 'Matches the Client Terms: objections within 7 days, otherwise the hours count as approved.')}
@@ -1882,7 +1885,7 @@ const ADMIN = {
           const { error: er } = await sb.from('automation_settings').update({
             auto_propose: !!d.auto_propose, propose_count: num('propose_count', 3), auto_approve_experts: !!d.auto_approve_experts,
             approve_min_test: Math.max(0, Math.min(100, num('approve_min_test', 80))), approve_min_stars: Math.max(1, Math.min(5, num('approve_min_stars', 4))),
-            auto_approve_hours: !!d.auto_approve_hours, hours_days: Math.max(1, Math.min(30, num('hours_days', 7))), auto_payouts: !!d.auto_payouts, updated_at: new Date().toISOString(),
+            ai_counts_for_approval: !!d.ai_counts_for_approval, auto_approve_hours: !!d.auto_approve_hours, hours_days: Math.max(1, Math.min(30, num('hours_days', 7))), auto_payouts: !!d.auto_payouts, updated_at: new Date().toISOString(),
           }).eq('id', 1);
           busy(f, false); if (er) return fail(er); toast(t('saved')); render();
         };
@@ -1931,6 +1934,12 @@ const ADMIN = {
               <p class="small"><b>${i + 1}. ${esc(a.q)}</b></p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}
               ${a.audio ? `<button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-audio="${esc(a.audio)}">▶ ${t('ivPlay')}</button>` : ''}</div>`).join('')}</div>
           </details>
+          <div class="card stack" style="gap:6px;background:var(--chip);border:0">
+            <div class="row between"><p class="small"><b>AI rating</b> ${iv.ai_score ? `<span style="color:var(--accent)">${'★'.repeat(iv.ai_score)}</span><span class="muted">${'★'.repeat(5 - iv.ai_score)}</span> (${esc(iv.ai_score)}/5)` : '<span class="muted">not rated yet</span>'}</p>
+              ${iv.status !== 'in_progress' ? `<div class="row"><button class="btn btn-ghost btn-sm" type="button" data-aiscore="${iv.id}">${iv.ai_score ? 'Rate again with AI' : 'Rate with AI'}</button>${iv.ai_score ? `<button class="btn btn-ghost btn-sm" type="button" data-useai="${iv.id}" data-v="${iv.ai_score}">Use AI stars</button>` : ''}</div>` : ''}</div>
+            ${iv.ai_summary ? `<p class="small" style="white-space:pre-line">${esc(iv.ai_summary)}</p>` : ''}
+            <p class="muted small">Suggestion only – you decide. Voice answers are not read by the AI.</p>
+          </div>
           <form class="row" data-ivform="${iv.id}">
             <select name="score" style="flex:0 0 140px"><option value="">${t('ivScore')}</option>${[5, 4, 3, 2, 1].map((n) => `<option value="${n}" ${iv.score === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select>
             <input name="admin_note" placeholder="${esc(t('note'))}" value="${esc(iv.admin_note || '')}" style="flex:1 1 220px">
@@ -1944,6 +1953,17 @@ const ADMIN = {
           if (er) return fail(er);
           const au = document.createElement('audio'); au.controls = true; au.src = u.signedUrl; au.style.width = '100%'; b.replaceWith(au); au.play().catch(() => {});
         }; });
+        $app.querySelectorAll('[data-aiscore]').forEach((b) => { b.onclick = async () => {
+          b.disabled = true; b.textContent = 'Rating…';
+          const { data: r, error: er } = await sb.functions.invoke('score-interview', { body: { interview_id: b.dataset.aiscore } });
+          if (er || !r?.ok) {
+            b.disabled = false; b.textContent = 'Rate with AI';
+            let code = r?.error; try { code = code || (await er.context.json()).error; } catch { /* ignore */ }
+            return toast(code === 'not_configured' ? 'AI rating is not set up yet: the Anthropic API key is missing in Supabase.' : 'AI rating failed – please try again later.', true);
+          }
+          toast(`AI rating: ${r.ai_score}/5`); render();
+        }; });
+        $app.querySelectorAll('[data-useai]').forEach((b) => { b.onclick = () => { const f = $app.querySelector(`[data-ivform="${b.dataset.useai}"]`); if (f) { f.querySelector('[name=score]').value = b.dataset.v; f.querySelector('[name=score]').focus(); toast('AI stars filled in – click “Save as reviewed” to keep them.'); } }; });
         $app.querySelectorAll('[data-ivform]').forEach((f) => { f.onsubmit = async (ev) => {
           ev.preventDefault(); const d = formData(f);
           const { error: er } = await sb.from('interviews').update({ score: d.score ? Number(d.score) : null, admin_note: d.admin_note || null, status: 'reviewed' }).eq('id', f.dataset.ivform);
