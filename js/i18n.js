@@ -416,3 +416,4 @@ Object.assign(es, { doesH: 'Qué hace Brightpeer', doesP: 'Cinco formas en que e
   svT_evaluations: 'Evaluar y comparar modelos de IA', svS_evaluations: 'Profesionales reales comparan respuestas y muestran qué modelo acierta – y dónde aún falla.',
   svT_benchmarks: 'Brightpeer Bench – en preparación', svS_benchmarks: 'Estamos creando con nuestros expertos un benchmark propio: qué tan bien responde realmente la IA en muchos idiomas.',
   svT_enterprise: 'IA para tu empresa', svS_enterprise: 'Ayudamos a empresas grandes a usar la IA – con expertos de tu sector.' });
+Object.assign(fr, { website: 'Site web (facultatif)' }); Object.assign(it, { website: 'Sito web (facoltativo)' }); Object.assign(es, { website: 'Sitio web (opcional)' });

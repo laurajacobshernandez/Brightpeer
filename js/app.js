@@ -1,6 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
 import { CONFIG } from './config.js';
 import { t, lang } from './i18n.js';
+import { L } from './tr.js';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -202,7 +203,7 @@ function renderHeader() {
       ${dd('research', t('navResearch'), t('ddResearchP'), [['/research', t('ddFields')], ['/info', t('infoH')]])}
       ${dd('companies', t('fCompanies'), t('ddCompaniesP'), [['/companies', t('ddOverview')], ['/info', t('ddEvals')], ['/company-signup', t('fCompanyAccount')]])}
       ${dd('experts', t('fExperts'), t('ddExpertsP'), [['/roles', t('navRoles')], ['/apply', t('applyNow')], ['/info', t('payH')]])}
-      ${dd('solutions', 'Solutions', 'Everything companies need to build better AI with real experts.', [['/services', 'All solutions'], ...SERVICES.map((x) => ['/services/' + x.id, x.nav])])}
+      ${dd('solutions', L('Solutions'), L('Everything companies need to build better AI with real experts.'), [['/services', L('All solutions')], ...SERVICES.map((x) => ['/services/' + x.id, L(x.nav)])])}
       ${dd('company', t('fCompany'), t('ddCompanyP'), [['/about', t('navAbout')], ['/help', t('navHelp')], [`mailto:${CONFIG.COMPANY.email}`, t('fContact')]])}
       ${right}
     </div>
@@ -233,7 +234,7 @@ function renderFooter() {
       <div class="footer-cols">
         ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/info', t('navInfo')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
         ${col(t('fCompanies'), [['#/companies', t('hire')], ['#/company-signup', t('fCompanyAccount')], ['#/legal/client', t('clientTerms')]])}
-        ${col('Solutions', [...SERVICES.map((x) => [`#/services/${x.id}`, x.nav]), ['#/research', t('navResearch')]])}
+        ${col(L('Solutions'), [...SERVICES.map((x) => [`#/services/${x.id}`, L(x.nav)]), ['#/research', t('navResearch')]])}
         ${col(t('fCompany'), [['#/about', t('navAbout')], [`mailto:${esc(CONFIG.COMPANY.email)}`, t('fContact')], ['#/help', t('navHelp')]])}
       </div>
     </div>
@@ -288,21 +289,21 @@ const svcIcon = (id) => `<span class="svc-ic" aria-hidden="true"><svg viewBox="0
 function servicesGrid() {
   // Translated card texts (25.11.2026); falls back to the English text of SERVICES.
   const tr = (k, fb) => { const v = t(k); return v === k ? fb : v; };
-  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><div class="row between" style="align-items:center">${svcIcon(s.id)}<span class="step-n">${i + 1}</span></div><h3>${esc(tr('svT_' + s.id, s.title))}</h3><p class="muted">${esc(tr('svS_' + s.id, s.short))}</p><span class="rate">${t('learnMore')} →</span></a>`).join('')}</div>`;
+  return `<div class="svc-grid">${SERVICES.map((s, i) => `<a class="svc" href="#/services/${s.id}"><div class="row between" style="align-items:center">${svcIcon(s.id)}<span class="step-n">${i + 1}</span></div><h3>${esc(L(s.title))}</h3><p class="muted">${esc(L(s.short))}</p><span class="rate">${t('learnMore')} →</span></a>`).join('')}</div>`;
 }
 
 function pageServices(focus) {
   return {
     html: `<section class="wrap section stack" style="padding-bottom:24px">
-      <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Solutions</h1>
-      <p style="font-size:1.15rem;color:var(--ink2);max-width:42rem">Everything companies need to build better AI with real experts – from hiring specialists to training, testing and benchmarking models.</p>
-      <div class="row svc-jump">${SERVICES.map((s) => `<a class="chip" href="#/services/${s.id}">${esc(s.nav)}</a>`).join('')}</div>
+      <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${L('Solutions')}</h1>
+      <p style="font-size:1.15rem;color:var(--ink2);max-width:42rem">${L('Everything companies need to build better AI with real experts – from hiring specialists to training, testing and benchmarking models.')}</p>
+      <div class="row svc-jump">${SERVICES.map((s) => `<a class="chip" href="#/services/${s.id}">${esc(L(s.nav))}</a>`).join('')}</div>
     </section>
     <section class="wrap" style="padding-bottom:48px">${SERVICES.map((s, i) => `<div class="svc-row" id="svc-${s.id}">
-        <div class="stack" style="gap:8px"><div class="row" style="gap:12px;align-items:center">${svcIcon(s.id)}<span class="svc-kicker">${esc(s.nav)}</span></div><h2>${esc(s.title)}</h2><p class="muted" style="font-size:1.05rem">${esc(s.short)}</p></div>
-        <ul class="ticks">${s.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
+        <div class="stack" style="gap:8px"><div class="row" style="gap:12px;align-items:center">${svcIcon(s.id)}<span class="svc-kicker">${esc(L(s.nav))}</span></div><h2>${esc(L(s.title))}</h2><p class="muted" style="font-size:1.05rem">${esc(L(s.short))}</p></div>
+        <ul class="ticks">${s.points.map((p) => `<li>${esc(L(p))}</li>`).join('')}</ul>
       </div>`).join('')}</section>
-    <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>Talk to us about your project</h2><p class="muted">Tell us what you need. We reply within 1–2 business days with a plan and a quote.</p></div><div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a><a class="btn btn-ghost" href="mailto:${esc(CONFIG.COMPANY.email)}">${t('fContact')}</a></div></div></section>`,
+    <section class="wrap"><div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>${L('Talk to us about your project')}</h2><p class="muted">${L('Tell us what you need. We reply within 1–2 business days with a plan and a quote.')}</p></div><div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a><a class="btn btn-ghost" href="mailto:${esc(CONFIG.COMPANY.email)}">${t('fContact')}</a></div></div></section>`,
     mount() {
       const el = focus && document.getElementById('svc-' + focus);
       if (el) setTimeout(() => el.scrollIntoView({ block: 'start' }), 0);
@@ -862,18 +863,18 @@ function mountCarousel() {
 
 function pageResearch() {
   return { mount: mountCarousel, html: `<section class="wrap section stack" style="padding-bottom:24px">
-    <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Research</h1>
+    <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${L('Research')}</h1>
     <p style="font-size:1.15rem;color:var(--ink2);max-width:40rem">${t('researchIntro')}</p>
   </section>
   ${fieldCarousel()}
   <section class="wrap section narrow prose">
-    <p style="font-size:1.15rem;color:var(--ink2)">AI models are only as good as the knowledge they learn from. Brightpeer experts create the high-quality data, evaluations and feedback that help AI systems reason like real professionals.</p>
-    <h2>What experts do</h2>
-    <ul><li><b>Write expert questions</b> – realistic cases from medicine, law, finance, science and engineering.</li><li><b>Grade AI answers</b> – check accuracy, safety and reasoning step by step.</li><li><b>Improve answers</b> – rewrite weak answers the way a senior professional would.</li><li><b>Build benchmarks</b> – hard test sets that show where models still fail.</li></ul>
-    <h2>Why expert data matters</h2>
-    <p>General crowd work cannot judge whether a drug interaction is dangerous or a contract clause is enforceable. Only trained professionals can. That is why Brightpeer works exclusively with vetted experts and pays professional rates.</p>
-    <h2>Quality first</h2>
-    <p>Every expert is reviewed before their first project. Work is double-checked, and feedback flows back to the expert so quality keeps improving.</p>
+    <p style="font-size:1.15rem;color:var(--ink2)">${L('AI models are only as good as the knowledge they learn from. Brightpeer experts create the high-quality data, evaluations and feedback that help AI systems reason like real professionals.')}</p>
+    <h2>${L('What experts do')}</h2>
+    <ul>${[['Write expert questions', 'realistic cases from medicine, law, finance, science and engineering.'], ['Grade AI answers', 'check accuracy, safety and reasoning step by step.'], ['Improve answers', 'rewrite weak answers the way a senior professional would.'], ['Build benchmarks', 'hard test sets that show where models still fail.']].map(([b, x]) => `<li><b>${L(b)}</b> – ${L(x)}</li>`).join('')}</ul>
+    <h2>${L('Why expert data matters')}</h2>
+    <p>${L('General crowd work cannot judge whether a drug interaction is dangerous or a contract clause is enforceable. Only trained professionals can. That is why Brightpeer works exclusively with vetted experts and pays professional rates.')}</p>
+    <h2>${L('Quality first')}</h2>
+    <p>${L('Every expert is reviewed before their first project. Work is double-checked, and feedback flows back to the expert so quality keeps improving.')}</p>
     <p><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a></p>
   </section>` };
 }
@@ -881,11 +882,11 @@ function pageResearch() {
 function pageAbout() {
   return `<section class="wrap section narrow prose">
     <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('navAbout')}</h1>
-    <p style="font-size:1.15rem;color:var(--ink2)">Brightpeer is a global network of professionals who get paid for their expertise. We connect experts with companies that need real knowledge – and take care of everything in between.</p>
-    <h2>Our mission</h2><p>Make expert knowledge accessible to every company and give professionals a flexible, well-paid way to use their skills – from anywhere in the world.</p>
-    <h2>How we work</h2>
-    <ul><li>Fair, transparent hourly pay – shown on every role.</li><li>Weekly payouts with no fees.</li><li>Every expert and every project is reviewed by our team.</li><li>Remote-first, worldwide.</li></ul>
-    <h2>Contact</h2><p><a href="mailto:${esc(CONFIG.COMPANY.email)}">${esc(CONFIG.COMPANY.email)}</a></p>
+    <p style="font-size:1.15rem;color:var(--ink2)">${L('Brightpeer is a global network of professionals who get paid for their expertise. We connect experts with companies that need real knowledge – and take care of everything in between.')}</p>
+    <h2>${L('Our mission')}</h2><p>${L('Make expert knowledge accessible to every company and give professionals a flexible, well-paid way to use their skills – from anywhere in the world.')}</p>
+    <h2>${L('How we work')}</h2>
+    <ul>${['Fair, transparent hourly pay – shown on every role.', 'Weekly payouts with no fees.', 'Every expert and every project is reviewed by our team.', 'Remote-first, worldwide.'].map((x) => `<li>${L(x)}</li>`).join('')}</ul>
+    <h2>${L('Contact')}</h2><p><a href="mailto:${esc(CONFIG.COMPANY.email)}">${esc(CONFIG.COMPANY.email)}</a></p>
   </section>`;
 }
 
@@ -899,12 +900,12 @@ function pageHelp() {
     ['How does the referral bonus work?', 'Share your link from your dashboard. When your colleague completes their first 10 paid hours, you both get $100.'],
     ['I am a company – how do I start?', 'Create a company account and send a request. We will contact you within 1–2 business days with a quote.'],
     ['How do companies pay?', 'By prepayment. You top up your Brightpeer balance by card or bank transfer, and approved expert hours are paid from it every week. You can see your balance in your dashboard at any time, and unused balance is refunded on request.'],
-    ['How do I delete my account or data?', `Write to ${CONFIG.COMPANY.email} and we will delete your data.`],
+    ['How do I delete my account or data?', L('Write to {email} and we will delete your data.').replace('{email}', CONFIG.COMPANY.email)],
   ];
   return `<section class="wrap section narrow stack-lg">
     <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${t('navHelp')}</h1>
-    <div>${faq.map(([q, a]) => `<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>
-    <div class="card stack"><h3>Still need help?</h3><p class="muted">Email us at <a href="mailto:${esc(CONFIG.COMPANY.email)}">${esc(CONFIG.COMPANY.email)}</a></p></div>
+    <div>${faq.map(([q, a]) => `<details class="faq"><summary>${esc(L(q))}</summary><p>${esc(L(a))}</p></details>`).join('')}</div>
+    <div class="card stack"><h3>${L('Still need help?')}</h3><p class="muted">${L('Email us at')} <a href="mailto:${esc(CONFIG.COMPANY.email)}">${esc(CONFIG.COMPANY.email)}</a></p></div>
   </section>`;
 }
 
@@ -1351,7 +1352,7 @@ async function companyDashboard() {
   const balance = Number(b.balance) || 0;
   const low = balance < (CONFIG.LOW_BALANCE || 500);
   const bankRef = (ref) => `<details><summary class="link">${t('payByBank')}</summary><p class="small" style="margin-top:6px">${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Ref: ${esc(ref)}</p></details>`;
-  const prepAction = (p) => p.status === 'open' ? (p.payment_link ? `<a class="btn btn-accent btn-sm" href="${esc(p.payment_link)}" target="_blank" rel="noopener">${t('payNow')}</a>` : bankRef(invoiceNo(p))) : p.status === 'requested' ? '<span class="muted small">We will send the payment details shortly</span>' : '';
+  const prepAction = (p) => p.status === 'open' ? (p.payment_link ? `<a class="btn btn-accent btn-sm" href="${esc(p.payment_link)}" target="_blank" rel="noopener">${t('payNow')}</a>` : bankRef(invoiceNo(p))) : p.status === 'requested' ? `<span class="muted small">${L('We will send the payment details shortly')}</span>` : '';
   const showInvoices = !CONFIG.PREPAYMENT_ONLY && (inv.data || []).length;
 
   // Client Terms (owner, 25.11.2026): a company account works only once the terms are accepted (e.g. after a Google sign-up).
@@ -1360,10 +1361,10 @@ async function companyDashboard() {
       html: `<section class="wrap section narrow stack-lg">
         <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
         <form id="termsF" class="card stack" style="padding:28px">
-          <h3>Please accept our Client Terms</h3>
-          <p class="muted">Before you send a request or top up your balance, please read and accept the <a href="#/legal/client" target="_blank">Client Terms</a>. They cover prepayment and refunds, confidentiality, ownership of the work and the non-solicitation of experts.</p>
-          <label class="check"><input type="checkbox" required> <span>I have read and accept the <a href="#/legal/client" target="_blank">Client Terms</a> on behalf of my company.</span></label>
-          <button class="btn btn-accent" type="submit" style="align-self:flex-start">Accept and continue</button>
+          <h3>${L('Please accept our Client Terms')}</h3>
+          <p class="muted">${L('Before you send a request or top up your balance, please read and accept the')} <a href="#/legal/client" target="_blank">${L('Client Terms')}</a>. ${L('They cover prepayment and refunds, confidentiality, ownership of the work and the non-solicitation of experts.')}</p>
+          <label class="check"><input type="checkbox" required> <span>${L('I have read and accept the')} <a href="#/legal/client" target="_blank">${L('Client Terms')}</a> ${L('on behalf of my company.')}</span></label>
+          <button class="btn btn-accent" type="submit" style="align-self:flex-start">${L('Accept and continue')}</button>
         </form>
       </section>`,
       mount() {
@@ -1374,29 +1375,29 @@ async function companyDashboard() {
   }
   const stars = (n) => (n ? '★'.repeat(n) + '<span class="muted">' + '★'.repeat(5 - n) + '</span>' : '–');
   const candCards = candidates.map((x) => `<div class="card stack" style="gap:10px">
-      <div class="row between"><h3>${esc(x.code)}</h3>${x.status === 'proposed' ? '<span class="label-new">New</span>' : pill(x.status === 'interested' ? 'approved' : 'declined')}</div>
-      <p class="muted small">${esc(fieldName(x.field))}${x.years != null ? ` · ${esc(x.years)} years experience` : ''}${x.country ? ` · ${esc(x.country)}` : ''}</p>
+      <div class="row between"><h3>${esc(x.code)}</h3>${x.status === 'proposed' ? `<span class="label-new">${L('New')}</span>` : pill(x.status === 'interested' ? 'approved' : 'declined')}</div>
+      <p class="muted small">${esc(fieldName(x.field))}${x.years != null ? ` · ${esc(x.years)} ${L('years experience')}` : ''}${x.country ? ` · ${esc(x.country)}` : ''}</p>
       ${x.headline ? `<p style="font-weight:600">${esc(x.headline)}</p>` : ''}
-      ${x.languages ? `<p class="small">Languages: ${esc(x.languages)}</p>` : ''}
+      ${x.languages ? `<p class="small">${L('Languages')}: ${esc(x.languages)}</p>` : ''}
       ${skillList(x.skills).length ? `<div class="row" style="gap:6px">${skillList(x.skills).slice(0, 6).map((k) => `<span class="chip chip-sm">${esc(k)}</span>`).join('')}</div>` : ''}
-      <div class="row" style="gap:24px"><div><p class="muted small">Field test</p><p style="font-weight:600">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div><div><p class="muted small">Interview</p><p>${stars(x.interview_score)}</p></div></div>
-      ${x.admin_note ? `<p class="small" style="white-space:pre-line"><b>Why we suggest this expert:</b> ${esc(x.admin_note)}</p>` : ''}
-      ${x.status === 'proposed' ? `<form class="stack" data-cand="${x.id}" style="gap:8px"><input name="note" maxlength="1000" placeholder="Note for us (optional)"><div class="row"><button class="btn btn-accent btn-sm" type="submit" data-int="1">Interested</button><button class="btn btn-ghost btn-sm" type="submit" data-int="0">Not a fit</button></div></form>`
-        : x.company_note ? `<p class="small muted">Your note: ${esc(x.company_note)}</p>` : ''}
+      <div class="row" style="gap:24px"><div><p class="muted small">${L('Field test')}</p><p style="font-weight:600">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div><div><p class="muted small">${L('Interview')}</p><p>${stars(x.interview_score)}</p></div></div>
+      ${x.admin_note ? `<p class="small" style="white-space:pre-line"><b>${L('Why we suggest this expert:')}</b> ${esc(x.admin_note)}</p>` : ''}
+      ${x.status === 'proposed' ? `<form class="stack" data-cand="${x.id}" style="gap:8px"><input name="note" maxlength="1000" placeholder="${esc(L('Note for us (optional)'))}"><div class="row"><button class="btn btn-accent btn-sm" type="submit" data-int="1">${L('Interested')}</button><button class="btn btn-ghost btn-sm" type="submit" data-int="0">${L('Not a fit')}</button></div></form>`
+        : x.company_note ? `<p class="small muted">${L('Your note:')} ${esc(x.company_note)}</p>` : ''}
     </div>`).join('');
   return {
     html: `<section class="wrap section stack-lg">
       <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
-      ${candidates.length ? `<div class="stack" id="candidates"><h2 style="font-size:1.6rem">Proposed experts</h2><p class="muted small">Anonymous profiles we selected for your requests. Tell us who you are interested in – we then confirm the expert and start the project. Names and contact details stay private.</p><div class="grid">${candCards}</div></div>` : ''}
+      ${candidates.length ? `<div class="stack" id="candidates"><h2 style="font-size:1.6rem">${L('Proposed experts')}</h2><p class="muted small">${L('Anonymous profiles we selected for your requests. Tell us who you are interested in – we then confirm the expert and start the project. Names and contact details stay private.')}</p><div class="grid">${candCards}</div></div>` : ''}
 
       <div class="card stack ${low ? 'offer' : ''}" id="balance">
         <div class="row between" style="align-items:flex-start;gap:20px">
-          <div class="stack" style="gap:4px"><p class="muted small">Prepaid balance</p><p class="stat-v" style="color:${balance < 0 ? 'var(--bad)' : 'var(--ink)'}">${money(balance)}</p>
-            <p class="muted small">Paid in: ${money(b.paid)} · Used for approved hours: ${money(b.used)}</p></div>
-          <form id="topF" class="row" style="align-items:flex-end"><label class="f" style="width:160px">Amount (USD)<input name="amount" type="number" min="100" max="1000000" step="1" value="1000" required></label><button class="btn btn-accent" type="submit">Top up balance</button></form>
+          <div class="stack" style="gap:4px"><p class="muted small">${L('Prepaid balance')}</p><p class="stat-v" style="color:${balance < 0 ? 'var(--bad)' : 'var(--ink)'}">${money(balance)}</p>
+            <p class="muted small">${L('Paid in')}: ${money(b.paid)} · ${L('Used for approved hours')}: ${money(b.used)}</p></div>
+          <form id="topF" class="row" style="align-items:flex-end"><label class="f" style="width:160px">${L('Amount (USD)')}<input name="amount" type="number" min="100" max="1000000" step="1" value="1000" required></label><button class="btn btn-accent" type="submit">${L('Top up balance')}</button></form>
         </div>
-        <p class="small ${low ? '' : 'muted'}">${low ? '<b>Your balance is low.</b> Experts only start or continue working while your balance covers their hours. ' : ''}Brightpeer works with prepayment: you top up your balance first, and approved expert hours are paid from it each week. Unused balance is refunded on request.</p>
-        ${(prep.data || []).length ? table(['Date', 'No.', t('amount'), t('status'), '', ''], prep.data.map((p) => [dateStr(p.created_at), esc(invoiceNo(p)), money(p.amount), pill(p.status), prepAction(p), p.status === 'cancelled' ? '' : `<a class="small" href="#/invoice/${esc(p.id)}">${p.status === 'paid' ? 'Receipt' : 'Invoice'} (PDF)</a>`])) : ''}
+        <p class="small ${low ? '' : 'muted'}">${low ? `<b>${L('Your balance is low.')}</b> ${L('Experts only start or continue working while your balance covers their hours.')} ` : ''}${L('Brightpeer works with prepayment: you top up your balance first, and approved expert hours are paid from it each week. Unused balance is refunded on request.')}</p>
+        ${(prep.data || []).length ? table([L('Date'), L('No.'), t('amount'), t('status'), '', ''], prep.data.map((p) => [dateStr(p.created_at), esc(invoiceNo(p)), money(p.amount), pill(p.status), prepAction(p), p.status === 'cancelled' ? '' : `<a class="small" href="#/invoice/${esc(p.id)}">${p.status === 'paid' ? L('Receipt (PDF)') : L('Invoice (PDF)')}</a>`])) : ''}
       </div>
 
       <form id="reqF" class="card stack"><h3>${t('newRequest')}</h3>
@@ -1432,11 +1433,11 @@ async function companyDashboard() {
     mount() {
       const tf = document.getElementById('topF');
       tf.onsubmit = async (ev) => {
-        ev.preventDefault(); const amount = Number(formData(tf).amount); if (!(amount >= 100)) return toast('Minimum top-up is $100', true);
+        ev.preventDefault(); const amount = Number(formData(tf).amount); if (!(amount >= 100)) return toast(L('Minimum top-up is $100'), true);
         busy(tf, true);
         const { error } = await sb.from('prepayments').insert({ company_id: uid, amount });
         busy(tf, false); if (error) return fail(error);
-        toast('Top-up requested – we will send the payment details shortly'); render();
+        toast(L('Top-up requested – we will send the payment details shortly')); render();
       };
       const f = document.getElementById('reqF');
       f.onsubmit = async (ev) => {
@@ -1451,7 +1452,7 @@ async function companyDashboard() {
         cf.onsubmit = async (ev) => {
           ev.preventDefault(); busy(cf, true);
           const { error } = await sb.rpc('respond_candidate', { p_id: cf.dataset.cand, p_interested: interested, p_note: formData(cf).note || null });
-          busy(cf, false); if (error) return fail(error); toast(interested ? 'Thanks – we will confirm the expert shortly.' : 'Thanks for the feedback.'); render();
+          busy(cf, false); if (error) return fail(error); toast(interested ? L('Thanks – we will confirm the expert shortly.') : L('Thanks for the feedback.')); render();
         };
       });
       $app.querySelectorAll('[data-ts]').forEach((b) => { b.onclick = async () => {
