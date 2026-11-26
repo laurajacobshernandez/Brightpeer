@@ -424,3 +424,34 @@ Object.assign(de, { checkEmailCo: 'Fast geschafft! Bitte öffne deine E-Mails un
 Object.assign(fr, { checkEmail: 'Presque fini ! Ouvrez vos e-mails et cliquez sur le lien de confirmation. Connectez-vous ensuite pour envoyer votre CV.', checkEmailCo: 'Presque fini ! Ouvrez vos e-mails et cliquez sur le lien de confirmation. Connectez-vous ensuite et envoyez votre première demande.', emailTaken: 'Cet e-mail a déjà un compte Brightpeer, aucun nouvel e-mail n’a donc été envoyé. Connectez-vous – ou utilisez une autre adresse pour un second compte (un compte par e-mail).', toLogin: 'Se connecter', forgotPw: 'Mot de passe oublié ?', checkSpam: 'Pas d’e-mail après 5 minutes ? Vérifiez vos spams.' });
 Object.assign(it, { checkEmail: 'Quasi fatto! Apri le tue e-mail e clicca sul link di conferma. Poi accedi per caricare il CV.', checkEmailCo: 'Quasi fatto! Apri le tue e-mail e clicca sul link di conferma. Poi accedi e invia la prima richiesta.', emailTaken: 'Questa e-mail ha già un account Brightpeer, quindi non è stata inviata nessuna nuova e-mail. Accedi – oppure usa un altro indirizzo per un secondo account (un account per e-mail).', toLogin: 'Accedi', forgotPw: 'Password dimenticata?', checkSpam: 'Nessuna e-mail dopo 5 minuti? Controlla lo spam.' });
 Object.assign(es, { checkEmail: '¡Casi listo! Abre tu correo y haz clic en el enlace de confirmación. Luego inicia sesión para subir tu CV.', checkEmailCo: '¡Casi listo! Abre tu correo y haz clic en el enlace de confirmación. Luego inicia sesión y envía tu primera solicitud.', emailTaken: 'Este correo ya tiene una cuenta de Brightpeer, por eso no se envió ningún correo nuevo. Inicia sesión – o usa otra dirección para una segunda cuenta (una cuenta por correo).', toLogin: 'Iniciar sesión', forgotPw: '¿Olvidaste tu contraseña?', checkSpam: '¿Sin correo después de 5 minutos? Revisa la carpeta de spam.' });
+// Fixed payday like Mercor (owner, 26.11.2026: "Fester Wochenrhythmus"): approved hours are paid every Wednesday.
+Object.assign(en, {
+  howApply4: 'Accept the offer online, log your hours and get paid every Wednesday.',
+  he3p: 'Log your hours. Payday is every Wednesday – no fees, by bank or PayPal.',
+  fa2: 'You log your hours in the dashboard (Monday to Sunday). Payday is every Wednesday: all hours the company has approved by then are paid by bank transfer or PayPal, in USD.',
+  payday: 'Payday: every Wednesday – next on {d}. All hours approved by then are paid.',
+});
+Object.assign(de, {
+  howApply4: 'Nimm das Angebot online an, trage deine Stunden ein und werde jeden Mittwoch bezahlt.',
+  he3p: 'Stunden eintragen – Zahltag ist jeden Mittwoch, ohne Gebühren, per Bank oder PayPal.',
+  fa2: 'Du trägst deine Stunden im Dashboard ein (Montag bis Sonntag). Zahltag ist jeden Mittwoch: Alle Stunden, die die Firma bis dahin bestätigt hat, werden per Banküberweisung oder PayPal in US-Dollar ausbezahlt.',
+  payday: 'Zahltag: jeden Mittwoch – nächster am {d}. Ausbezahlt werden alle bis dahin bestätigten Stunden.',
+});
+Object.assign(fr, {
+  howApply4: 'Acceptez l’offre en ligne, saisissez vos heures et soyez payé chaque mercredi.',
+  he3p: 'Saisissez vos heures. Jour de paie : chaque mercredi, sans frais.',
+  fa2: 'Vous saisissez vos heures dans le tableau de bord (du lundi au dimanche). Le jour de paie est chaque mercredi : toutes les heures validées par l’entreprise d’ici là sont payées par virement ou PayPal, en USD.',
+  payday: 'Jour de paie : chaque mercredi – prochain le {d}. Toutes les heures validées d’ici là sont payées.',
+});
+Object.assign(it, {
+  howApply4: 'Accetta l’offerta online, registra le ore e ricevi il pagamento ogni mercoledì.',
+  he3p: 'Registra le ore. Il giorno di paga è ogni mercoledì, senza commissioni.',
+  fa2: 'Registri le ore nella dashboard (da lunedì a domenica). Il giorno di paga è ogni mercoledì: tutte le ore approvate dall’azienda entro quel giorno vengono pagate tramite bonifico o PayPal, in USD.',
+  payday: 'Giorno di paga: ogni mercoledì – il prossimo è il {d}. Vengono pagate tutte le ore approvate entro quel giorno.',
+});
+Object.assign(es, {
+  howApply4: 'Acepta la oferta en línea, registra tus horas y cobra cada miércoles.',
+  he3p: 'Registra tus horas. El día de pago es cada miércoles, sin comisiones.',
+  fa2: 'Registras tus horas en el panel (de lunes a domingo). El día de pago es cada miércoles: todas las horas que la empresa haya aprobado hasta entonces se pagan por transferencia o PayPal, en USD.',
+  payday: 'Día de pago: cada miércoles – el próximo es el {d}. Se pagan todas las horas aprobadas hasta entonces.',
+});
