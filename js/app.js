@@ -104,6 +104,8 @@ function mondayOf(d = new Date()) {
   return x.toISOString().slice(0, 10);
 }
 function lastMonday() { const d = new Date(); d.setDate(d.getDate() - 7); return mondayOf(d); }
+// Fixed payday like Mercor (owner, 26.11.2026): approved hours are paid every Wednesday.
+function nextPayday() { const d = new Date(); d.setDate(d.getDate() + ((3 - d.getDay() + 7) % 7)); return d; }
 
 let toastTimer;
 function toast(msg, isErr = false) {
@@ -1158,6 +1160,7 @@ async function expertDashboard() {
         <div class="card stack">
           <h3>${t('earnings')}</h3>
           <div class="row" style="gap:32px"><div><p class="muted small">${t('totalPaid')}</p><p class="stat-v">${money(paidSum)}</p></div><div><p class="muted small">${t('totalPending')}</p><p class="stat-v">${money(pendSum)}</p></div></div>
+          <p class="small">${t('payday').replace('{d}', esc(dateStr(nextPayday())))}</p>
           ${paidHours >= 20 ? `<a class="small" href="#/confirmation">${t('wcLink')} →</a>` : `<p class="muted small">${t('wcProgress').replace('{n}', Math.round(paidHours * 100) / 100)}</p>`}
         </div>
         <div class="card stack">
@@ -1790,7 +1793,7 @@ const ADMIN_HELP = {
   hoursTab: ['Die Stunden, die Fachleute erfasst haben.', 'Normalerweise bestätigt die Firma die Stunden. Du kannst sie hier auch selbst bestätigen oder mit Begründung ablehnen.'],
   prepayTab: ['Nur Firmen zahlen im Voraus (Fachleute nie). Oben siehst du, wie viel Guthaben jede Firma noch hat.', 'Ist das Geld auf deinem Konto angekommen, tippe „Als bezahlt markieren“. Rot = Guthaben fast leer: Fachleute erst weiterarbeiten lassen, wenn die Firma aufgeladen hat.'],
   invoices: ['Rechnungen an Firmen aus bestätigten Stunden.', 'Woche wählen und „Rechnungen erstellen“ tippen. Ist bezahlt: „Als bezahlt markieren“.'],
-  payouts: ['Fachleute bekommen ihr Geld jede Woche für ihre bestätigten Stunden – nie im Voraus.', 'Betrag per Wise oder PayPal überweisen, dann „Als bezahlt markieren“ tippen.'],
+  payouts: ['Zahltag ist jeden Mittwoch: Fachleute bekommen dann ihr Geld für alle bis dahin bestätigten Stunden – nie im Voraus.', 'Jeden Mittwoch die offenen Beträge per Wise oder PayPal überweisen, dann „Als bezahlt markieren“ tippen.'],
   accountingTab: ['Deine Buchhaltung: Einnahmen, Auszahlungen und Ausgaben – füllt sich grösstenteils von selbst.', 'Nur sonstige Ausgaben (z. B. Domain, Software) selbst eintragen. Für die Steuererklärung „Als Excel herunterladen“ tippen.'],
   visitorsTab: ['Wie viele Leute die Website besuchen und woher sie kommen.', 'Nichts zu tun – nur zum Anschauen.'],
   automationTab: ['Was die Website jeden Morgen automatisch für dich erledigt.', 'Häkchen setzen oder entfernen, dann „Speichern“ tippen.'],
@@ -1851,7 +1854,7 @@ async function adminTodo() {
     ['requests', requests, 'neue Anfrage(n) von Firmen', '#/admin?tab=requests'],
     ['hoursTab', hours, 'Stunden-Eintrag/-Einträge warten auf Bestätigung', '#/admin?tab=hoursTab'],
     ['prepayTab', prepay, 'Vorauszahlung(en) von Firmen noch offen', '#/admin?tab=prepayTab'],
-    ['payouts', payouts, 'Auszahlung(en) an Fachleute überweisen', '#/admin?tab=payouts'],
+    ['payouts', payouts, 'Auszahlung(en) an Fachleute überweisen (Zahltag Mittwoch)', '#/admin?tab=payouts'],
     ['referralsTab', refs, 'Empfehlungsbonus/-boni fällig', '#/admin?tab=referralsTab'],
   ];
   return { items, byTab: Object.fromEntries(items.map(([k, n]) => [k, n])) };
@@ -2452,7 +2455,7 @@ const ADMIN = {
     return {
       html: `<div class="stack-lg">
         <form id="genPay" class="card row"><label class="f" style="flex:1 1 200px">Woche ab<input type="date" name="week" value="${lastMonday()}" required></label><button class="btn btn-ghost" type="submit" style="align-self:flex-end">Auszahlungen aus bestätigten Stunden erstellen</button></form>
-        <p class="muted">Noch zu überweisen: <b>${money(open)}</b> – per Wise oder PayPal zahlen, dann „Als bezahlt markieren“ tippen.</p>
+        <p class="muted">Noch zu überweisen: <b>${money(open)}</b> – nächster Zahltag: <b>Mittwoch, ${esc(dateStr(nextPayday()))}</b>. Per Wise oder PayPal zahlen, dann „Als bezahlt markieren“ tippen.</p>
         ${table(['Fachperson', 'Woche ab', 'Stunden', 'Betrag', 'Zahlungsart', 'Konto / PayPal', 'Status', ''], (data || []).map((p) => [
           `${esc(p.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(p.experts?.profiles?.email || '')}</span><br>${p.experts?.tax_confirmed_at ? `<span class="small muted">Steuern: ${esc(p.experts?.tax_country || '')} ✓</span>` : '<span class="pill pill-warn">Steuerangaben fehlen</span>'}`, `${dateStr(p.week_start)}<br><a class="small" href="#/statement/${p.id}">Abrechnung →</a>`, esc(p.hours), money(p.amount),
           esc(p.experts?.payout_method || '–'), `<span class="small">${esc(payoutOf[p.expert_id] || '–')}</span>`, pill(p.status),
