@@ -54,6 +54,46 @@ const DEMO_ROLES = [
 ];
 
 // ---------------------------------------------------------------- helpers
+// "How to work" per contract (26.11.2026): experts work in the company's own tools; the link must be https.
+const safeLink = (u) => (/^https:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '');
+// Disputes (26.11.2026): rejecting hours needs a reason; the expert sees it and can correct and resend.
+function reviewCell(s) {
+  return `<div class="stack" style="gap:6px"><button class="btn btn-sm" data-ts="${s.id}" data-st="approved" style="align-self:flex-start">${t('approve')}</button>
+    <details><summary class="link small">${t('reject')}…</summary><form class="stack" data-rej="${s.id}" style="gap:6px;margin-top:6px;min-width:220px">
+      <input name="reason" required minlength="5" maxlength="1000" placeholder="${esc(L('Reason (the expert sees it)'))}">
+      <button class="btn btn-danger btn-sm" type="submit" style="align-self:flex-start">${L('Reject hours')}</button></form></details></div>`;
+}
+const statusWithReason = (s) => pill(s.status) + (s.status === 'rejected' && s.review_note ? `<div class="small muted" style="max-width:260px">${L('Reason')}: ${esc(s.review_note)}</div>` : '');
+function mountReview(root) {
+  root.querySelectorAll('[data-ts]').forEach((b) => { b.onclick = async () => {
+    b.disabled = true;
+    const { error } = await sb.rpc('review_timesheet', { p_id: b.dataset.ts, p_status: b.dataset.st });
+    if (error) { b.disabled = false; return fail(error); } render();
+  }; });
+  root.querySelectorAll('[data-rej]').forEach((f) => { f.onsubmit = async (ev) => {
+    ev.preventDefault(); busy(f, true);
+    const { error } = await sb.rpc('review_timesheet', { p_id: f.dataset.rej, p_status: 'rejected', p_note: formData(f).reason });
+    busy(f, false); if (error) return fail(error); toast(t('saved')); render();
+  }; });
+}
+
+function workInfoForm(c, id) {
+  return `<form class="stack" data-work="${c.id}" id="${id || ''}" style="gap:8px">
+    <label class="f">${L('Instructions for the expert')}<textarea name="instructions" maxlength="5000" style="min-height:90px" placeholder="${esc(L('What to do, who to contact, rules and deadlines'))}">${esc(c.work_instructions || '')}</textarea></label>
+    <label class="f">${L('Access link (your tool, guide or workspace)')}<input name="link" type="url" maxlength="1000" placeholder="https://" pattern="https://.*" value="${esc(c.work_link || '')}"></label>
+    <button class="btn btn-sm" type="submit" style="align-self:flex-start">${t('save')}</button>
+  </form>`;
+}
+function mountWorkForms(root) {
+  root.querySelectorAll('[data-work]').forEach((f) => {
+    f.onsubmit = async (ev) => {
+      ev.preventDefault(); const d = formData(f); busy(f, true);
+      const { error } = await sb.rpc('set_work_info', { p_id: f.dataset.work, p_instructions: d.instructions || null, p_link: d.link || null });
+      busy(f, false); if (error) return fail(error); toast(t('saved')); render();
+    };
+  });
+}
+
 function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -1059,6 +1099,7 @@ async function expertDashboard() {
     [!!e.cv_path, t('ns2'), '#cvCard'],
     [ivStatus === 'submitted' || ivStatus === 'reviewed', ivStatus === 'in_progress' ? t('ns3c') : t('ns3'), '#/interview'],
     [!!(e.payout_method && myPayout), t('ns4'), '#payoutF'],
+    [!!e.tax_confirmed_at, L('Add your tax details'), '#taxF'],
     [(apps.data || []).length > 0, t('ns5'), '#/roles'],
   ];
   const doneN = steps.filter((x) => x[0]).length;
@@ -1113,6 +1154,12 @@ async function expertDashboard() {
         ${table([t('roles'), t('pay'), t('status')], contracts.map((c) => [esc(c.title), `${money(c.expert_rate)} ${t('perHour')}`, pill(c.status)]))}
       </div>
 
+      ${active.map((c) => `<div class="card stack" id="work-${c.id}"><p class="muted small">${L('How to work on this project')}</p><h3>${esc(c.title || '')}</h3>
+        ${c.work_instructions ? `<p style="white-space:pre-line">${esc(c.work_instructions)}</p>` : `<p class="muted">${L('The company is preparing your instructions and access. We will let you know as soon as they are ready.')}</p>`}
+        ${safeLink(c.work_link) ? `<a class="btn btn-accent" href="${esc(safeLink(c.work_link))}" target="_blank" rel="noopener noreferrer" style="align-self:flex-start">${L('Open the company workspace')} ↗</a>` : ''}
+        <p class="muted small">${L('You work in the company’s own tools. Log your hours here every week – the company approves them, and approved hours are paid out weekly.')}</p>
+      </div>`).join('')}
+
       ${active.length ? `<form id="hoursF" class="card stack"><h3>${t('logHours')}</h3>
         <div class="form-grid">
           <label class="f">${t('myContracts')}<select name="contract_id" required>${active.map((c) => `<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select></label>
@@ -1124,7 +1171,13 @@ async function expertDashboard() {
       </form>` : ''}
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('myHours')}</h2>
-        ${table([t('weekStart'), t('myContracts'), t('hoursWorked'), t('status'), ''], sheets.map((s) => [dateStr(s.week_start), esc(conTitle[s.contract_id] || ''), esc(s.hours), pill(s.status), s.status === 'submitted' ? `<button class="btn btn-danger btn-sm" data-del-ts="${s.id}">${t('delete')}</button>` : '']))}
+        ${table([t('weekStart'), t('myContracts'), t('hoursWorked'), t('status'), ''], sheets.map((s) => [dateStr(s.week_start), esc(conTitle[s.contract_id] || ''), esc(s.hours), statusWithReason(s),
+          s.status === 'submitted' ? `<button class="btn btn-danger btn-sm" data-del-ts="${s.id}">${t('delete')}</button>`
+          : s.status === 'rejected' && active.some((c) => c.id === s.contract_id) ? `<details><summary class="link small">${L('Correct and resend')}</summary><form class="stack" data-fix="${s.id}" style="gap:6px;margin-top:6px;min-width:200px">
+              <input name="hours" type="number" step="0.25" min="0.25" max="80" required value="${esc(s.hours)}">
+              <input name="note" maxlength="500" value="${esc(s.note || '')}" placeholder="${esc(t('note'))}">
+              <button class="btn btn-sm" type="submit" style="align-self:flex-start">${t('submit')}</button></form></details>` : '']))}
+        <p class="muted small">${L('If the company rejects hours, you see the reason here and can correct and resend them. If you disagree, write to us – we decide fairly.')}</p>
       </div>
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('myApps')}</h2>
@@ -1133,7 +1186,7 @@ async function expertDashboard() {
       </div>
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('payoutsH')}</h2>
-        ${table([t('weekStart'), t('hoursWorked'), t('amount'), t('status')], payouts.map((p) => [dateStr(p.week_start), esc(p.hours), money(p.amount), pill(p.status)]))}
+        ${table([t('weekStart'), t('hoursWorked'), t('amount'), t('status'), ''], payouts.map((p) => [dateStr(p.week_start), esc(p.hours), money(p.amount), pill(p.status), `<a class="small" href="#/statement/${p.id}">${L('Statement')} →</a>`]))}
       </div>
 
       <div class="grid">
@@ -1141,6 +1194,18 @@ async function expertDashboard() {
           <label class="f">${t('payoutMethod')}<select name="payout_method"><option value="bank" ${e.payout_method === 'bank' ? 'selected' : ''}>${t('bank')}</option><option value="paypal" ${e.payout_method === 'paypal' ? 'selected' : ''}>${t('paypal')}</option></select></label>
           <label class="f">${t('payoutDetails')}<textarea name="payout_details" style="min-height:80px">${esc(myPayout || '')}</textarea></label>
           <p class="muted small"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> ${t('payoutEncrypted')}</p>
+          <button class="btn" type="submit" style="align-self:flex-start">${t('save')}</button>
+        </form>
+        <form id="taxF" class="card stack"><h3>${L('Tax details')}</h3>
+          <p class="muted small">${L('You work with Brightpeer as an independent expert. We need these details for your weekly payout statements and our accounting. You pay your own taxes and social contributions in your country.')}</p>
+          <div class="form-grid">
+            <label class="f">${L('Country of tax residence')} *<input name="tax_country" required maxlength="80" value="${esc(e.tax_country || profile.country || '')}"></label>
+            <label class="f">${L('I work as')} *<select name="tax_status" required><option value="individual" ${e.tax_status !== 'company' ? 'selected' : ''}>${L('Self-employed individual')}</option><option value="company" ${e.tax_status === 'company' ? 'selected' : ''}>${L('My own company')}</option></select></label>
+            <label class="f">${L('Company name (if any)')}<input name="business_name" maxlength="160" value="${esc(e.business_name || '')}"></label>
+            <label class="f">${L('VAT or tax number (if any)')}<input name="tax_id" maxlength="60" value="${esc(e.tax_id || '')}"></label>
+          </div>
+          <label class="f">${L('Address for statements')} *<textarea name="billing_address" required maxlength="400" style="min-height:70px">${esc(e.billing_address || '')}</textarea></label>
+          <label class="check"><input type="checkbox" name="confirm" required ${e.tax_confirmed_at ? 'checked' : ''}> <span>${L('I confirm that these details are correct and that I am responsible for declaring my income and paying taxes in my country.')}</span></label>
           <button class="btn" type="submit" style="align-self:flex-start">${t('save')}</button>
         </form>
         <form id="profileF" class="card stack"><h3>${t('profileH')}</h3>
@@ -1198,6 +1263,11 @@ async function expertDashboard() {
         busy(hf, false); if (error) return fail(error);
         toast(t('saved')); render();
       };
+      $app.querySelectorAll('[data-fix]').forEach((f) => { f.onsubmit = async (ev) => {
+        ev.preventDefault(); const d = formData(f); busy(f, true);
+        const { error } = await sb.rpc('resubmit_timesheet', { p_id: f.dataset.fix, p_hours: Number(d.hours), p_note: d.note || null });
+        busy(f, false); if (error) return fail(error); toast(t('saved')); render();
+      }; });
       $app.querySelectorAll('[data-del-ts]').forEach((b) => { b.onclick = async () => {
         const { error } = await sb.from('timesheets').delete().eq('id', b.dataset.delTs); if (error) return fail(error); render();
       }; });
@@ -1206,6 +1276,12 @@ async function expertDashboard() {
         ev.preventDefault(); const d = formData(pf); busy(pf, true);
         const { error } = await sb.from('experts').update({ payout_method: d.payout_method, payout_details: d.payout_details }).eq('id', uid);
         busy(pf, false); if (error) return fail(error); toast(t('saved'));
+      };
+      const txf = document.getElementById('taxF');
+      txf.onsubmit = async (ev) => {
+        ev.preventDefault(); const d = formData(txf); busy(txf, true);
+        const { error } = await sb.from('experts').update({ tax_country: d.tax_country.trim(), tax_status: d.tax_status, business_name: d.business_name || null, tax_id: d.tax_id || null, billing_address: d.billing_address.trim(), tax_confirmed_at: e.tax_confirmed_at || new Date().toISOString() }).eq('id', uid);
+        busy(txf, false); if (error) return fail(error); toast(t('saved')); render();
       };
       const prf = document.getElementById('profileF');
       prf.onsubmit = async (ev) => {
@@ -1417,11 +1493,17 @@ async function companyDashboard() {
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('myExperts')}</h2>
         ${table([t('experts'), t('field'), t('roles'), t('pay'), t('status')], (cons.data || []).map((x) => [esc(x.expert_first_name), esc(fieldName(x.expert_field)), esc(x.title), `${money(x.client_rate)} ${t('perHour')}`, pill(x.status)]))}
+        ${(cons.data || []).filter((x) => x.status === 'active' || x.status === 'offered').map((x) => `<div class="card stack" style="gap:8px">
+          <div class="row between"><h3>${esc(x.expert_first_name)} · ${esc(x.title || '')}</h3>${x.work_instructions || x.work_link ? `<span class="pill pill-ok">${L('Ready')}</span>` : `<span class="pill pill-warn">${L('Instructions missing')}</span>`}</div>
+          <p class="muted small">${L('Experts work in your own tools. Add instructions and an access link – the expert sees them after accepting the offer. Then they log their hours here for you to approve.')}</p>
+          ${workInfoForm(x)}
+        </div>`).join('')}
       </div>
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('approveHours')}</h2>
-        ${table([t('experts'), t('roles'), t('weekStart'), t('hoursWorked'), t('note'), t('status'), ''], sheets.map((s) => [esc(s.expert_first_name), esc(s.title), dateStr(s.week_start), esc(s.hours), esc(s.note || ''), pill(s.status),
-          s.status === 'submitted' ? `<div class="row"><button class="btn btn-sm" data-ts="${s.id}" data-st="approved">${t('approve')}</button><button class="btn btn-danger btn-sm" data-ts="${s.id}" data-st="rejected">${t('reject')}</button></div>` : '']))}
+        ${table([t('experts'), t('roles'), t('weekStart'), t('hoursWorked'), t('note'), t('status'), ''], sheets.map((s) => [esc(s.expert_first_name), esc(s.title), dateStr(s.week_start), esc(s.hours), esc(s.note || ''), statusWithReason(s),
+          s.status === 'submitted' ? reviewCell(s) : '']))}
+        <p class="muted small">${L('Please check the hours within 7 days. If you reject hours, give a short reason – the expert can correct and resend them. Hours you do not check count as approved after 7 days (Client Terms, section 4).')}</p>
         ${toApprove.length ? '' : ''}
       </div>
 
@@ -1455,11 +1537,8 @@ async function companyDashboard() {
           busy(cf, false); if (error) return fail(error); toast(interested ? L('Thanks – we will confirm the expert shortly.') : L('Thanks for the feedback.')); render();
         };
       });
-      $app.querySelectorAll('[data-ts]').forEach((b) => { b.onclick = async () => {
-        b.disabled = true;
-        const { error } = await sb.rpc('review_timesheet', { p_id: b.dataset.ts, p_status: b.dataset.st });
-        if (error) return fail(error); render();
-      }; });
+      mountWorkForms($app);
+      mountReview($app);
     },
   };
 }
@@ -1506,6 +1585,57 @@ async function pageInvoice(id) {
     mount() {
       document.getElementById('printInv').onclick = () => {
         const old = document.title; document.title = `Brightpeer ${title} ${no}`;
+        window.print(); setTimeout(() => { document.title = old; }, 500);
+      };
+    },
+  };
+}
+
+// ---------------------------------------------------------------- weekly payout statement (26.11.2026)
+// One page per payout that the expert (or the admin) saves as PDF: hours per project, rate, total, tax details.
+async function pageStatement(id) {
+  if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
+  if (!session) return needLogin();
+  if (!profile) await loadProfile();
+  const { data: p } = id ? await sb.from('payouts').select('*').eq('id', id).maybeSingle() : { data: null };
+  if (!p) return pageNotFound();
+  const admin = profile?.role === 'admin';
+  const [{ data: ex }, { data: pr }, { data: sheets }] = await Promise.all([
+    sb.from('experts').select('*').eq('id', p.expert_id).maybeSingle(),
+    sb.from('profiles').select('full_name, email, country').eq('id', p.expert_id).maybeSingle(),
+    sb.from('timesheets').select(admin ? '*, contracts(title, expert_rate, roles(title))' : '*').eq('expert_id', p.expert_id).eq('week_start', p.week_start).eq('status', 'approved'),
+  ]);
+  let rate = {}; let title = {};
+  if (admin) (sheets || []).forEach((s) => { rate[s.contract_id] = Number(s.contracts?.expert_rate || 0); title[s.contract_id] = s.contracts?.title || s.contracts?.roles?.title || ''; });
+  else { const { data: cs } = await sb.rpc('expert_contracts'); (cs || []).forEach((c) => { rate[c.id] = Number(c.expert_rate); title[c.id] = c.title || ''; }); }
+  const e = ex || {}; const who = pr || {}; const C = CONFIG.COMPANY;
+  const no = `PS-${String(p.id).slice(0, 8).toUpperCase()}`;
+  const end = new Date(p.week_start + 'T12:00:00'); end.setDate(end.getDate() + 6);
+  const back = admin ? '#/admin?tab=payouts' : '#/dashboard';
+  const rows = (sheets || []).map((s) => `<tr><td>${esc(title[s.contract_id] || '')}${s.note ? `<br><span class="muted small">${esc(s.note)}</span>` : ''}</td><td style="text-align:right">${esc(s.hours)}</td><td style="text-align:right">${money(rate[s.contract_id] || 0)}</td><td style="text-align:right">${money(Number(s.hours) * (rate[s.contract_id] || 0))}</td></tr>`).join('');
+  return {
+    html: `<section class="wrap section narrow stack-lg">
+      <div class="row between no-print"><a href="${back}">${t('back')}</a><button class="btn btn-accent" id="printSt">Download PDF / Print</button></div>
+      <article class="invoice card stack-lg" style="padding:40px">
+        <div class="row between" style="align-items:flex-start;gap:24px">
+          <div class="stack" style="gap:4px"><p style="font-weight:700;font-size:1.3rem;display:flex;align-items:center;gap:8px"><span class="logo" aria-hidden="true"></span>Brightpeer</p>
+            <p class="small muted">${esc(C.name)}<br>${esc(C.address)}<br>${esc(C.email)}</p></div>
+          <div class="stack" style="gap:4px;text-align:right"><h1 style="font-size:2rem">Payout statement</h1>
+            <p class="small">No. <b>${esc(no)}</b><br>Work week: ${dateStr(p.week_start)} – ${dateStr(end.toISOString().slice(0, 10))}${p.paid_at ? `<br>Paid on: ${dateStr(p.paid_at)}` : ''}</p></div>
+        </div>
+        <div class="stack" style="gap:4px"><p class="muted small">Paid to (independent expert)</p>
+          <p><b>${esc(e.business_name || who.full_name || '')}</b>${e.business_name ? `<br>${esc(who.full_name || '')}` : ''}${e.billing_address ? `<br><span style="white-space:pre-line">${esc(e.billing_address)}</span>` : ''}${e.tax_country || who.country ? `<br>${esc(e.tax_country || who.country)}` : ''}${e.tax_id ? `<br>Tax/VAT no.: ${esc(e.tax_id)}` : ''}${who.email ? `<br>${esc(who.email)}` : ''}</p>
+          ${e.tax_confirmed_at ? '' : '<p class="form-msg err small no-print">Tax details are missing – please add them in the dashboard.</p>'}</div>
+        <div class="table-wrap"><table><thead><tr><th>Project</th><th style="text-align:right">Hours</th><th style="text-align:right">Rate (USD/h)</th><th style="text-align:right">Amount (USD)</th></tr></thead><tbody>
+          ${rows || '<tr><td colspan="4" class="muted">–</td></tr>'}
+          <tr><td><b>Total</b></td><td style="text-align:right"><b>${esc(p.hours)}</b></td><td></td><td style="text-align:right"><b>${money(p.amount)}</b></td></tr>
+        </tbody></table></div>
+        <p class="small muted">Fees for independent expert services. No tax or social contributions were withheld; the expert declares this income in their country of residence. Status: ${p.status === 'paid' ? 'paid' : 'payout in preparation'}.</p>
+      </article>
+    </section>`,
+    mount() {
+      document.getElementById('printSt').onclick = () => {
+        const old = document.title; document.title = `Brightpeer ${no}`;
         window.print(); setTimeout(() => { document.title = old; }, 500);
       };
     },
@@ -1684,7 +1814,7 @@ const ADMIN = {
     return {
       html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
         `<details><summary class="link">${esc(e.profiles?.full_name || '')}</summary><p class="small" style="max-width:320px;white-space:pre-line;margin-top:6px">${esc(e.bio || '')}</p></details>`, scoreCell(e.id),
-        `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || ''), esc(fieldName(e.field)) + (e.languages ? `<div class="small muted">${esc(e.languages)}</div>` : ''), esc(e.years_experience ?? ''),
+        `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || '') + (e.tax_confirmed_at ? `<div class="small muted">Tax: ${esc(e.tax_country || '')}${e.tax_status === 'company' ? ` · ${esc(e.business_name || 'company')}` : ''}</div>` : '<div class="small muted">Tax: –</div>'), esc(fieldName(e.field)) + (e.languages ? `<div class="small muted">${esc(e.languages)}</div>` : ''), esc(e.years_experience ?? ''),
         e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
         e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', esc(e.referred_by || ''),
         `<span class="small">${esc(e.payout_method || '')} ${esc(payoutOf[e.id] || '')}</span>`, pill(e.status),
@@ -1875,7 +2005,7 @@ const ADMIN = {
     const from = `${year}-01-01`; const to = `${year + 1}-01-01`;
     const [pr, po, rf, ex] = await Promise.all([
       sb.from('prepayments').select('id, invoice_no, amount, paid_at, companies(company_name)').eq('status', 'paid').gte('paid_at', from).lt('paid_at', to),
-      sb.from('payouts').select('id, amount, hours, week_start, paid_at, experts(profiles(full_name, country))').eq('status', 'paid').gte('paid_at', from).lt('paid_at', to),
+      sb.from('payouts').select('id, amount, hours, week_start, paid_at, experts(tax_country, profiles(full_name, country))').eq('status', 'paid').gte('paid_at', from).lt('paid_at', to),
       sb.rpc('admin_referrals'),
       sb.from('expenses').select('*').gte('spent_on', from).lt('spent_on', to).order('spent_on', { ascending: false }),
     ]);
@@ -1884,7 +2014,7 @@ const ADMIN = {
     const swiss = (c) => /^(ch|che|schweiz|switzerland|suisse|svizzera|svizra)$/i.test(String(c || '').trim());
     const rows = [];
     (pr.data || []).forEach((p) => rows.push({ date: p.paid_at, type: 'Income', what: `Prepayment ${invoiceNo(p)}`, who: p.companies?.company_name || '', amount: Number(p.amount), cur: 'USD', foreign: false }));
-    (po.data || []).forEach((p) => { const c = p.experts?.profiles?.country; rows.push({ date: p.paid_at, type: 'Expert payout', what: `Week of ${dateStr(p.week_start)}, ${p.hours} h`, who: p.experts?.profiles?.full_name || '', amount: -Number(p.amount), cur: 'USD', foreign: !swiss(c), country: c }); });
+    (po.data || []).forEach((p) => { const c = p.experts?.tax_country || p.experts?.profiles?.country; rows.push({ date: p.paid_at, type: 'Expert payout', what: `Week of ${dateStr(p.week_start)}, ${p.hours} h`, who: p.experts?.profiles?.full_name || '', amount: -Number(p.amount), cur: 'USD', foreign: !swiss(c), country: c }); });
     (rf.data || []).filter((r) => r.bonus_paid_at && String(r.bonus_paid_at).slice(0, 4) === String(year)).forEach((r) => {
       rows.push({ date: r.bonus_paid_at, type: 'Referral bonus', what: 'Bonus for the new expert', who: r.referred_name || '', amount: -100, cur: 'USD', foreign: true });
       if (r.referrer_email && r.referrer_email !== profile?.email) rows.push({ date: r.bonus_paid_at, type: 'Referral bonus', what: 'Bonus for referring', who: r.referrer_name || '', amount: -100, cur: 'USD', foreign: true });
@@ -2107,7 +2237,7 @@ const ADMIN = {
         ${table(['Expert', 'Company', 'Role', 'Expert pay', 'Company price', 'Margin', t('status'), ''], (cons || []).map((c) => [
           esc(c.experts?.profiles?.full_name || ''), esc(c.companies?.company_name || ''), esc(c.title || c.roles?.title || ''), money(c.expert_rate), money(c.client_rate),
           money(Number(c.client_rate) - Number(c.expert_rate)), pill(c.status) + (c.accepted_at ? `<div class="muted small">✍ ${esc(c.accepted_name || '')} · ${dateStr(c.accepted_at)}</div>` : ''),
-          c.status === 'active' ? `<button class="btn btn-ghost btn-sm" data-endcon="${c.id}">End</button>` : '',
+          `${c.status === 'active' ? `<button class="btn btn-ghost btn-sm" data-endcon="${c.id}">End</button>` : ''}${c.status === 'active' || c.status === 'offered' ? `<details><summary class="link small">${c.work_instructions || c.work_link ? 'Work info ✓' : 'Work info (missing)'}</summary>${workInfoForm(c)}</details>` : ''}`,
         ]))}
       </div>`,
       mount() {
@@ -2119,6 +2249,7 @@ const ADMIN = {
           const { error } = await sb.from('contracts').insert({ expert_id: d.expert_id, company_id: d.company_id, role_id: d.role_id || null, title: d.title || null, expert_rate: Number(d.expert_rate), client_rate: Number(d.client_rate), status: 'offered', start_date: d.start_date || null, offer_note: d.offer_note || null });
           busy(f, false); if (error) return fail(error); toast(t('saved')); render();
         };
+        mountWorkForms($app);
         $app.querySelectorAll('[data-endcon]').forEach((b) => { b.onclick = async () => { const { error } = await sb.from('contracts').update({ status: 'ended' }).eq('id', b.dataset.endcon); if (error) return fail(error); render(); }; });
       },
     };
@@ -2130,11 +2261,11 @@ const ADMIN = {
     return {
       html: table(['Expert', 'Company', 'Role', t('weekStart'), t('hoursWorked'), 'Pay', 'Price', t('note'), t('status'), ''], (data || []).map((s) => [
         esc(s.experts?.profiles?.full_name || ''), esc(s.contracts?.companies?.company_name || ''), esc(s.contracts?.title || s.contracts?.roles?.title || ''), dateStr(s.week_start), esc(s.hours),
-        money(s.hours * (s.contracts?.expert_rate || 0)), money(s.hours * (s.contracts?.client_rate || 0)), esc(s.note || ''), pill(s.status),
-        s.status === 'submitted' ? `<div class="row"><button class="btn btn-sm" data-ts="${s.id}" data-st="approved">${t('approve')}</button><button class="btn btn-danger btn-sm" data-ts="${s.id}" data-st="rejected">${t('reject')}</button></div>` : '',
+        money(s.hours * (s.contracts?.expert_rate || 0)), money(s.hours * (s.contracts?.client_rate || 0)), esc(s.note || ''), statusWithReason(s),
+        s.status === 'submitted' ? reviewCell(s) : (s.status === 'rejected' ? `<button class="btn btn-ghost btn-sm" data-ts="${s.id}" data-st="approved">${L('Approve anyway')}</button>` : ''),
       ])),
       mount() {
-        $app.querySelectorAll('[data-ts]').forEach((b) => { b.onclick = async () => { const { error: er } = await sb.rpc('review_timesheet', { p_id: b.dataset.ts, p_status: b.dataset.st }); if (er) return fail(er); render(); }; });
+        mountReview($app);
       },
     };
   },
@@ -2167,7 +2298,7 @@ const ADMIN = {
 
   async payouts() {
     const [{ data, error }, { data: pd }] = await Promise.all([
-      sb.from('payouts').select('*, experts(payout_method, profiles(full_name,email))').order('week_start', { ascending: false }),
+      sb.from('payouts').select('*, experts(payout_method, tax_country, tax_confirmed_at, profiles(full_name,email))').order('week_start', { ascending: false }),
       sb.rpc('admin_payout_details'),
     ]);
     const payoutOf = Object.fromEntries((pd || []).map((x) => [x.id, x.details]));
@@ -2178,7 +2309,7 @@ const ADMIN = {
         <form id="genPay" class="card row"><label class="f" style="flex:1 1 200px">${t('weekStart')}<input type="date" name="week" value="${lastMonday()}" required></label><button class="btn btn-accent" type="submit" style="align-self:flex-end">Create payouts from approved hours</button></form>
         <p class="muted">Open payouts: <b>${money(open)}</b> – pay them via Wise or PayPal, then click “Mark paid”.</p>
         ${table(['Expert', t('weekStart'), t('hoursWorked'), t('amount'), t('payoutMethod'), t('payoutDetails'), t('status'), ''], (data || []).map((p) => [
-          `${esc(p.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(p.experts?.profiles?.email || '')}</span>`, dateStr(p.week_start), esc(p.hours), money(p.amount),
+          `${esc(p.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(p.experts?.profiles?.email || '')}</span><br>${p.experts?.tax_confirmed_at ? `<span class="small muted">Tax: ${esc(p.experts?.tax_country || '')} ✓</span>` : '<span class="pill pill-warn">Tax details missing</span>'}`, `${dateStr(p.week_start)}<br><a class="small" href="#/statement/${p.id}">Statement →</a>`, esc(p.hours), money(p.amount),
           esc(p.experts?.payout_method || '–'), `<span class="small">${esc(payoutOf[p.expert_id] || '–')}</span>`, pill(p.status),
           p.status === 'pending' ? `<button class="btn btn-sm" data-paidpay="${p.id}">Mark paid</button>` : dateStr(p.paid_at),
         ]))}
@@ -2413,6 +2544,7 @@ async function render() {
       case 'test': page = await pageTest(parts[1]); break;
       case 'interview': page = await pageInterview(); break;
       case 'invoice': page = await pageInvoice(parts[1]); break;
+      case 'statement': page = await pageStatement(parts[1]); break;
       case 'confirmation': page = await pageConfirmation(); break;
       default: page = pageNotFound();
     }
@@ -2439,7 +2571,7 @@ let viewEntry = true;
 let lastViewed = '';
 function trackView(parts) {
   try {
-    if (!sb || profile?.role === 'admin' || parts[0] === 'admin' || parts[0] === 'invoice') return;
+    if (!sb || profile?.role === 'admin' || parts[0] === 'admin' || parts[0] === 'invoice' || parts[0] === 'statement') return;
     const path = '/' + parts.slice(0, 2).map((x) => (/^[0-9a-f-]{8,}$/i.test(x) ? ':id' : x)).join('/');
     if (path === lastViewed) return;
     lastViewed = path;

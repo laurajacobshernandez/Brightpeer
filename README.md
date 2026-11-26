@@ -65,6 +65,14 @@ Firmen sehen nie den Lohn der Fachleute, Fachleute nie den Firmenpreis.
 ## Automatik (25.11.2026)
 Admin → *Automation*: Vorschläge für neue Anfragen (an), automatische Freigabe von Fachleuten (aus, Schwelle Test % / Interview-Sterne), Stunden nach 7 Tagen automatisch bestätigt (an), Auszahlungen jeden Morgen vorbereitet (an). Läuft täglich ca. 06:00 (pg_cron `brightpeer-automation`). Admin → *Accounting*: Buchhaltung aus bezahlten Vorauszahlungen, Auszahlungen, Boni und eigenen Ausgaben, CSV-Export. Datenbank: `supabase/automation-2026-11-25.sql`.
 
+## Neu (26.11.2026) – So wird gearbeitet
+Die Fachleute arbeiten in den Tools der Firma, auf Brightpeer werden nur die Stunden erfasst und bestätigt.
+- **Anleitung + Zugang:** Firma → *Meine Fachleute* → pro Auftrag Anleitung und Link (https). Fachperson sieht nach Annahme die Karte „So arbeitest du an diesem Projekt“. Admin → *Contracts* → „Work info“.
+- **Streitfälle:** Ablehnen von Stunden nur mit Grund. Die Fachperson sieht den Grund, korrigiert und sendet neu (die 7-Tage-Frist beginnt neu). Admin → *Hours* → „Approve anyway“.
+- **Abrechnungen:** pro Auszahlung eine Seite `#/statement/<id>` (PDF) für Fachperson und Admin.
+- **Steuerangaben:** Fachleute tragen Steuerland, Status, Firmenname, MWST-/Steuernummer und Adresse ein und bestätigen, dass sie selbst versteuern. Sichtbar im Admin (*Experts*, *Payouts*), Buchhaltung nutzt das Steuerland.
+- Datenbank: `supabase/work-access-2026-11-26.sql` und `supabase/disputes-tax-2026-11-26.sql` (schon eingespielt).
+
 ## Optional
 - **Anmelden mit Google und Microsoft:** Die Knöpfe erscheinen von selbst, sobald der Anbieter in Supabase eingeschaltet ist (vorher sieht man nur E-Mail + Passwort). Rückleitungs-Adresse für beide: `https://wlslnfgfbcanfwlbxaap.supabase.co/auth/v1/callback`.
   - **Google:** [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → *Create credentials → OAuth client ID* → Typ *Web application* → bei *Authorized redirect URIs* die Rückleitungs-Adresse eintragen → Client-ID und Client-Secret kopieren → Supabase → Authentication → Providers → **Google** → einschalten, beide Werte einfügen → Save. (Vorher in der Console den *OAuth consent screen* mit App-Name „Brightpeer“ ausfüllen und auf *In production* stellen.)
