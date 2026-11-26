@@ -1775,7 +1775,7 @@ const ADMIN_GROUPS = [
 const ADMIN_LABEL = {
   overview: 'Übersicht', experts: 'Bewerbungen', interviewsTab: 'Interviews', testsTab: 'Fachtests', referralsTab: 'Empfehlungen',
   requests: 'Anfragen von Firmen', roles: 'Talent-Pool', contracts: 'Angebote & Verträge', hoursTab: 'Stunden',
-  prepayTab: 'Vorauszahlungen', invoices: 'Rechnungen', payouts: 'Auszahlungen', accountingTab: 'Buchhaltung',
+  prepayTab: 'Vorauszahlungen der Firmen', invoices: 'Rechnungen', payouts: 'Auszahlungen an Fachleute', accountingTab: 'Buchhaltung',
   visitorsTab: 'Besucher', automationTab: 'Automatik',
 };
 const ADMIN_HELP = {
@@ -1788,9 +1788,9 @@ const ADMIN_HELP = {
   roles: ['Die Einträge im Talent-Pool auf der Website und wer sich dafür gemeldet hat.', 'Neuen Eintrag oben erstellen. Unter „Bewerbungen“ siehst du, wer sich gemeldet hat.'],
   contracts: ['Angebote an Fachleute und laufende Verträge mit Lohn und Firmenpreis.', 'Fachperson und Firma wählen, Lohn eingeben (der Firmenpreis = Lohn + 30 % wird automatisch ausgefüllt), dann „Angebot senden“. Bei laufenden Verträgen die Arbeitsinfos ausfüllen.'],
   hoursTab: ['Die Stunden, die Fachleute erfasst haben.', 'Normalerweise bestätigt die Firma die Stunden. Du kannst sie hier auch selbst bestätigen oder mit Begründung ablehnen.'],
-  prepayTab: ['Firmen zahlen im Voraus. Oben siehst du, wie viel Guthaben jede Firma noch hat.', 'Ist das Geld auf deinem Konto angekommen, tippe „Als bezahlt markieren“. Rot = Guthaben fast leer: Fachleute erst weiterarbeiten lassen, wenn die Firma aufgeladen hat.'],
+  prepayTab: ['Nur Firmen zahlen im Voraus (Fachleute nie). Oben siehst du, wie viel Guthaben jede Firma noch hat.', 'Ist das Geld auf deinem Konto angekommen, tippe „Als bezahlt markieren“. Rot = Guthaben fast leer: Fachleute erst weiterarbeiten lassen, wenn die Firma aufgeladen hat.'],
   invoices: ['Rechnungen an Firmen aus bestätigten Stunden.', 'Woche wählen und „Rechnungen erstellen“ tippen. Ist bezahlt: „Als bezahlt markieren“.'],
-  payouts: ['Was du den Fachleuten pro Woche schuldest.', 'Betrag per Wise oder PayPal überweisen, dann „Als bezahlt markieren“ tippen.'],
+  payouts: ['Fachleute bekommen ihr Geld jede Woche für ihre bestätigten Stunden – nie im Voraus.', 'Betrag per Wise oder PayPal überweisen, dann „Als bezahlt markieren“ tippen.'],
   accountingTab: ['Deine Buchhaltung: Einnahmen, Auszahlungen und Ausgaben – füllt sich grösstenteils von selbst.', 'Nur sonstige Ausgaben (z. B. Domain, Software) selbst eintragen. Für die Steuererklärung „Als Excel herunterladen“ tippen.'],
   visitorsTab: ['Wie viele Leute die Website besuchen und woher sie kommen.', 'Nichts zu tun – nur zum Anschauen.'],
   automationTab: ['Was die Website jeden Morgen automatisch für dich erledigt.', 'Häkchen setzen oder entfernen, dann „Speichern“ tippen.'],
@@ -1850,8 +1850,8 @@ async function adminTodo() {
     ['testsTab', tests, 'Fachtest(s) prüfen', '#/admin?tab=testsTab'],
     ['requests', requests, 'neue Anfrage(n) von Firmen', '#/admin?tab=requests'],
     ['hoursTab', hours, 'Stunden-Eintrag/-Einträge warten auf Bestätigung', '#/admin?tab=hoursTab'],
-    ['prepayTab', prepay, 'Vorauszahlung(en) noch nicht bezahlt', '#/admin?tab=prepayTab'],
-    ['payouts', payouts, 'Auszahlung(en) überweisen', '#/admin?tab=payouts'],
+    ['prepayTab', prepay, 'Vorauszahlung(en) von Firmen noch offen', '#/admin?tab=prepayTab'],
+    ['payouts', payouts, 'Auszahlung(en) an Fachleute überweisen', '#/admin?tab=payouts'],
     ['referralsTab', refs, 'Empfehlungsbonus/-boni fällig', '#/admin?tab=referralsTab'],
   ];
   return { items, byTab: Object.fromEntries(items.map(([k, n]) => [k, n])) };
@@ -2139,7 +2139,7 @@ const ADMIN = {
       ${bars}
       <div class="grid">${list('Meistbesuchte Seiten', s.pages, 'path', 'views', 'Aufrufe')}${list('Woher die Besucher kommen', s.referrers, 'referrer', 'visits', 'Besuche')}</div>
       <div class="grid">${list('Geräte', s.devices, 'device', 'visits', 'Besuche')}${list('Sprachen', s.langs, 'lang', 'visits', 'Besuche')}</div>
-      <p class="muted small">Anonym gezählt, ohne Cookies oder IP-Adressen. Ein Besuch = die erste Seite, die jemand öffnet. Deine eigenen Besuche als Admin zählen nicht.</p>
+      <p class="muted small">Anonym gezählt, ohne Cookies oder IP-Adressen. Ein Besuch = die erste Seite, die jemand öffnet. Deine eigenen Besuche zählen nicht – auch nicht, wenn du ausgeloggt bist, auf jedem Gerät, auf dem du dich einmal als Admin angemeldet hast.</p>
     </div>` };
   },
 
@@ -2714,9 +2714,17 @@ async function render() {
 // with the referring website's name. The admin's own visits and the admin area are not counted.
 let viewEntry = true;
 let lastViewed = '';
+// Owner, 26.11.2026: her own visits must never count – also when she is logged out. Once she is signed in as admin
+// on a device, that device is remembered and never counted again.
+function isOwnerDevice() {
+  try {
+    if (profile?.role === 'admin') localStorage.setItem('bp_owner', '1');
+    return localStorage.getItem('bp_owner') === '1';
+  } catch { return profile?.role === 'admin'; }
+}
 function trackView(parts) {
   try {
-    if (!sb || profile?.role === 'admin' || parts[0] === 'admin' || parts[0] === 'invoice' || parts[0] === 'statement') return;
+    if (!sb || isOwnerDevice() || parts[0] === 'admin' || parts[0] === 'invoice' || parts[0] === 'statement') return;
     const path = '/' + parts.slice(0, 2).map((x) => (/^[0-9a-f-]{8,}$/i.test(x) ? ':id' : x)).join('/');
     if (path === lastViewed) return;
     lastViewed = path;
