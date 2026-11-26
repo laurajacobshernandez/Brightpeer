@@ -37,7 +37,7 @@ export const CONFIG = {
   // e.g. instagram: 'https://www.instagram.com/brightpeer'.
   // Leave a value empty ('') to hide that icon.
   SOCIAL: {
-    instagram: '',
+    instagram: 'https://www.instagram.com/brightpeerr',
     linkedin: '',
     x: '',
     youtube: '',
