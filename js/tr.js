@@ -163,6 +163,19 @@ const D = {
   'VAT or tax number (if any)': T('MWST- oder Steuernummer (falls vorhanden)', 'Numéro de TVA ou fiscal (le cas échéant)', 'Partita IVA o codice fiscale (se presente)', 'NIF o número de IVA (si lo hay)'),
   'Address for statements': T('Adresse für Abrechnungen', 'Adresse pour les relevés', 'Indirizzo per i rendiconti', 'Dirección para las liquidaciones'),
   'I confirm that these details are correct and that I am responsible for declaring my income and paying taxes in my country.': T('Ich bestätige, dass die Angaben stimmen und dass ich mein Einkommen selbst in meinem Land versteuere.', 'Je confirme que ces informations sont exactes et que je déclare moi-même mes revenus et paie mes impôts dans mon pays.', 'Confermo che i dati sono corretti e che dichiaro io stesso il mio reddito e pago le tasse nel mio Paese.', 'Confirmo que estos datos son correctos y que declaro mis ingresos y pago mis impuestos en mi país.'),
+  // Expert documents (26.11.2026)
+  'Documents': T('Dokumente', 'Documents', 'Documenti', 'Documentos'),
+  'Besides your CV you can upload diplomas, certificates, an ID document, a profile photo, work samples and tax forms. PDF, JPG, PNG or WebP, max. 10 MB each. Only you and the Brightpeer team can see these files – companies never see them.': T('Neben deinem Lebenslauf kannst du Diplome, Zertifikate, einen Ausweis, ein Profilfoto, Arbeitsproben und Steuerformulare hochladen. PDF, JPG, PNG oder WebP, je max. 10 MB. Nur du und das Brightpeer-Team sehen diese Dateien – Firmen sehen sie nie.', 'En plus de ton CV, tu peux télécharger des diplômes, des certificats, une pièce d’identité, une photo de profil, des exemples de travaux et des formulaires fiscaux. PDF, JPG, PNG ou WebP, 10 Mo max. chacun. Seuls toi et l’équipe Brightpeer voyez ces fichiers – les entreprises ne les voient jamais.', 'Oltre al CV puoi caricare diplomi, certificati, un documento d’identità, una foto profilo, esempi di lavoro e moduli fiscali. PDF, JPG, PNG o WebP, max. 10 MB ciascuno. Solo tu e il team Brightpeer vedete questi file – le aziende non li vedono mai.', 'Además de tu CV puedes subir diplomas, certificados, un documento de identidad, una foto de perfil, muestras de trabajo y formularios fiscales. PDF, JPG, PNG o WebP, máx. 10 MB cada uno. Solo tú y el equipo de Brightpeer veis estos archivos; las empresas nunca los ven.'),
+  'Diplomas': T('Diplome', 'Diplômes', 'Diplomi', 'Diplomas'),
+  'Certificates': T('Zertifikate', 'Certificats', 'Certificati', 'Certificados'),
+  'ID document (passport or ID card)': T('Ausweis (Pass oder ID)', 'Pièce d’identité (passeport ou carte d’identité)', 'Documento d’identità (passaporto o carta d’identità)', 'Documento de identidad (pasaporte o DNI)'),
+  'Profile photo': T('Profilfoto', 'Photo de profil', 'Foto profilo', 'Foto de perfil'),
+  'Work samples / portfolio': T('Arbeitsproben / Portfolio', 'Exemples de travaux / portfolio', 'Esempi di lavoro / portfolio', 'Muestras de trabajo / portafolio'),
+  'Tax forms (e.g. W-8BEN)': T('Steuerformulare (z. B. W-8BEN)', 'Formulaires fiscaux (p. ex. W-8BEN)', 'Moduli fiscali (es. W-8BEN)', 'Formularios fiscales (p. ej. W-8BEN)'),
+  'Nothing uploaded yet': T('Noch nichts hochgeladen', 'Rien téléchargé pour l’instant', 'Ancora nulla caricato', 'Aún no se ha subido nada'),
+  'Remove': T('Entfernen', 'Supprimer', 'Rimuovi', 'Eliminar'),
+  'Remove this file?': T('Diese Datei entfernen?', 'Supprimer ce fichier ?', 'Rimuovere questo file?', '¿Eliminar este archivo?'),
+  'Only PDF, JPG, PNG or WebP files': T('Nur PDF-, JPG-, PNG- oder WebP-Dateien', 'Uniquement des fichiers PDF, JPG, PNG ou WebP', 'Solo file PDF, JPG, PNG o WebP', 'Solo archivos PDF, JPG, PNG o WebP'),
 };
 
 export const L = (s) => (D[s] && D[s][lang]) || s;

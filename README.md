@@ -73,6 +73,9 @@ Die Fachleute arbeiten in den Tools der Firma, auf Brightpeer werden nur die Stu
 - **Steuerangaben:** Fachleute tragen Steuerland, Status, Firmenname, MWST-/Steuernummer und Adresse ein und bestätigen, dass sie selbst versteuern. Sichtbar im Admin (*Experts*, *Payouts*), Buchhaltung nutzt das Steuerland.
 - Datenbank: `supabase/work-access-2026-11-26.sql` und `supabase/disputes-tax-2026-11-26.sql` (schon eingespielt).
 
+## Neu (26.11.2026) – Dokumente der Fachleute
+Neben dem Lebenslauf können Fachleute im Dashboard unter *Dokumente* hochladen: Diplome, Zertifikate, Ausweis, Profilfoto, Arbeitsproben/Portfolio und Steuerformulare (PDF/JPG/PNG/WebP, je max. 10 MB). Ausweis und Foto ersetzen jeweils das alte. Nur die Fachperson und der Admin sehen die Dateien (Admin → *Experts* → Spalte *Documents*), Firmen nie. Gelöscht wird nach 24 Monaten wie beim Lebenslauf. Datenbank: `supabase/documents-2026-11-26.sql` (schon eingespielt).
+
 ## Optional
 - **Anmelden mit Google und Microsoft:** Die Knöpfe erscheinen von selbst, sobald der Anbieter in Supabase eingeschaltet ist (vorher sieht man nur E-Mail + Passwort). Rückleitungs-Adresse für beide: `https://wlslnfgfbcanfwlbxaap.supabase.co/auth/v1/callback`.
   - **Google:** [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → *Create credentials → OAuth client ID* → Typ *Web application* → bei *Authorized redirect URIs* die Rückleitungs-Adresse eintragen → Client-ID und Client-Secret kopieren → Supabase → Authentication → Providers → **Google** → einschalten, beide Werte einfügen → Save. (Vorher in der Console den *OAuth consent screen* mit App-Name „Brightpeer“ ausfüllen und auf *In production* stellen.)

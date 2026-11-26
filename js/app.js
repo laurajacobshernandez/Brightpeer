@@ -1065,6 +1065,19 @@ function needLogin() {
   return { html: '', mount() { go('#/login'); } };
 }
 
+// ---------------------------------------------------------------- expert documents (26.11.2026)
+// Besides the CV: diplomas, certificates, ID, profile photo, work samples, tax forms. Private bucket, expert + admin only.
+const DOC_KINDS = ['diploma', 'certificate', 'id', 'photo', 'portfolio', 'tax_form'];
+const DOC_LABEL = { diploma: 'Diplomas', certificate: 'Certificates', id: 'ID document (passport or ID card)', photo: 'Profile photo', portfolio: 'Work samples / portfolio', tax_form: 'Tax forms (e.g. W-8BEN)' };
+const DOC_SHORT = { diploma: 'Diploma', certificate: 'Certificate', id: 'ID', photo: 'Photo', portfolio: 'Work sample', tax_form: 'Tax form' };
+const DOC_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+async function openDoc(path) {
+  const w = window.open('', '_blank');
+  const { data: u, error } = await sb.storage.from('expert-docs').createSignedUrl(path, 300);
+  if (error) { if (w) w.close(); return fail(error); }
+  if (w) { w.opener = null; w.location = u.signedUrl; } else window.location.href = u.signedUrl;
+}
+
 // ---------------------------------------------------------------- expert dashboard
 async function expertDashboard() {
   const uid = session.user.id;
@@ -1076,6 +1089,8 @@ async function expertDashboard() {
     sb.from('payouts').select('*').eq('expert_id', uid).order('week_start', { ascending: false }),
     sb.from('interviews').select('status').eq('expert_id', uid).maybeSingle(),
   ]);
+  const { data: myDocs } = await sb.from('expert_documents').select('*').eq('expert_id', uid).order('created_at', { ascending: false });
+  const docs = myDocs || [];
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
   const [{ data: myPayout }, { data: myRefs }] = await Promise.all([sb.rpc('my_payout_details'), sb.rpc('my_referrals')]);
   const rs = myRefs || {};
@@ -1145,6 +1160,17 @@ async function expertDashboard() {
           <p class="muted small">${t('referralH')}</p>
           <div class="row" style="flex-wrap:nowrap"><input id="refLink" readonly value="${esc(refLink)}"><button class="btn btn-sm" id="copyRef">${t('copy')}</button></div>
           <p class="small">${t('refStats').replace('{a}', Number(rs.signed_up) || 0).replace('{b}', Number(rs.qualified) || 0).replace('{c}', Number(rs.paid) || 0)}</p>
+        </div>
+      </div>
+
+      <div class="card stack" id="docsCard">
+        <h3>${L('Documents')}</h3>
+        <p class="muted small">${L('Besides your CV you can upload diplomas, certificates, an ID document, a profile photo, work samples and tax forms. PDF, JPG, PNG or WebP, max. 10 MB each. Only you and the Brightpeer team can see these files – companies never see them.')}</p>
+        <div class="form-grid">
+          ${DOC_KINDS.map((k) => { const list = docs.filter((d) => d.kind === k); return `<div class="stack" style="gap:6px">
+            <label class="f">${L(DOC_LABEL[k])}<input type="file" data-doc-kind="${k}" accept="${k === 'photo' ? 'image/jpeg,image/png,image/webp' : 'application/pdf,image/jpeg,image/png,image/webp'}" ${k === 'photo' || k === 'id' ? '' : 'multiple'}></label>
+            ${list.length ? `<ul class="small" style="margin:0;padding-left:18px">${list.map((d) => `<li><button class="link" data-doc-open="${esc(d.path)}">${esc(d.file_name || L(DOC_LABEL[k]))}</button> · <button class="link" data-doc-del="${d.id}" data-doc-path="${esc(d.path)}">${L('Remove')}</button></li>`).join('')}</ul>` : `<p class="muted small" style="margin:0">${L('Nothing uploaded yet')}</p>`}
+          </div>`; }).join('')}
         </div>
       </div>
 
@@ -1256,6 +1282,35 @@ async function expertDashboard() {
         if (n) { toast(t('cvFilledSave')); prf.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         else { toast(t('cvUploaded')); render(); }
       };
+      $app.querySelectorAll('[data-doc-kind]').forEach((inp) => { inp.onchange = async (ev) => {
+        const kind = inp.dataset.docKind; const files = [...ev.target.files]; if (!files.length) return;
+        for (const file of files) {
+          if (!DOC_MIME.includes(file.type) || (kind === 'photo' && file.type === 'application/pdf')) return toast(L('Only PDF, JPG, PNG or WebP files'), true);
+          if (file.size > 10 * 1024 * 1024) return toast('Max. 10 MB', true);
+        }
+        inp.disabled = true;
+        // Only one ID document and one profile photo: replace the old one.
+        if (kind === 'photo' || kind === 'id') {
+          const old = docs.filter((d) => d.kind === kind);
+          if (old.length) { await sb.storage.from('expert-docs').remove(old.map((d) => d.path)); await sb.from('expert_documents').delete().in('id', old.map((d) => d.id)); }
+        }
+        for (const file of files) {
+          const ext = (file.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'pdf';
+          const path = `${uid}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const up = await sb.storage.from('expert-docs').upload(path, file, { contentType: file.type });
+          if (up.error) { inp.disabled = false; return fail(up.error); }
+          const { error } = await sb.from('expert_documents').insert({ expert_id: uid, kind, path, file_name: file.name.slice(0, 200), mime: file.type, size_bytes: file.size });
+          if (error) { inp.disabled = false; return fail(error); }
+        }
+        toast(t('saved')); render();
+      }; });
+      $app.querySelectorAll('[data-doc-open]').forEach((b) => { b.onclick = () => openDoc(b.dataset.docOpen); });
+      $app.querySelectorAll('[data-doc-del]').forEach((b) => { b.onclick = async () => {
+        if (!window.confirm(L('Remove this file?'))) return;
+        await sb.storage.from('expert-docs').remove([b.dataset.docPath]);
+        const { error } = await sb.from('expert_documents').delete().eq('id', b.dataset.docDel);
+        if (error) return fail(error); toast(t('saved')); render();
+      }; });
       const hf = document.getElementById('hoursF');
       if (hf) hf.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(hf); busy(hf, true);
@@ -1733,9 +1788,12 @@ async function deleteQueuedFiles() {
   try {
     const { data } = await sb.from('file_deletions').select('path,bucket').limit(100);
     if (!data || !data.length) return;
-    const paths = data.filter((f) => f.bucket === 'cvs').map((f) => f.path);
-    const { error } = await sb.storage.from('cvs').remove(paths);
-    if (!error) await sb.from('file_deletions').delete().in('path', paths);
+    for (const bucket of ['cvs', 'expert-docs']) {
+      const paths = data.filter((f) => f.bucket === bucket).map((f) => f.path);
+      if (!paths.length) continue;
+      const { error } = await sb.storage.from(bucket).remove(paths);
+      if (!error) await sb.from('file_deletions').delete().in('path', paths);
+    }
   } catch (e) { console.error(e); }
 }
 
@@ -1803,7 +1861,9 @@ const ADMIN = {
     const filter = parseHash().query.get('st') || 'pending';
     let qy = sb.from('experts').select('*, profiles(full_name,email,country)').order('created_at', { ascending: false });
     if (filter !== 'all') qy = qy.eq('status', filter);
-    const [{ data: rows0, error }, { data: pd }, { data: sc }] = await Promise.all([qy, sb.rpc('admin_payout_details'), sb.rpc('admin_expert_scores')]);
+    const [{ data: rows0, error }, { data: pd }, { data: sc }, { data: allDocs }] = await Promise.all([qy, sb.rpc('admin_payout_details'), sb.rpc('admin_expert_scores'), sb.from('expert_documents').select('expert_id,kind,path,file_name').order('created_at')]);
+    const docsOf = {}; (allDocs || []).forEach((d) => { (docsOf[d.expert_id] = docsOf[d.expert_id] || []).push(d); });
+    const docsCell = (id) => { const l = docsOf[id] || []; return l.length ? l.map((d) => `<button class="link small" data-doc-open="${esc(d.path)}" title="${esc(d.file_name || '')}">${esc(DOC_SHORT[d.kind] || d.kind)}</button>`).join('<br>') : '–'; };
     if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
     const payoutOf = Object.fromEntries((pd || []).map((x) => [x.id, x.details]));
     const scoreOf = Object.fromEntries((sc || []).map((x) => [x.expert_id, x]));
@@ -1812,11 +1872,11 @@ const ADMIN = {
     const scoreCell = (id) => { const x = scoreOf[id] || {}; return `<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.ai_score ? `${'★'.repeat(x.ai_score)} (AI)` : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
-      html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
+      html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Documents', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
         `<details><summary class="link">${esc(e.profiles?.full_name || '')}</summary><p class="small" style="max-width:320px;white-space:pre-line;margin-top:6px">${esc(e.bio || '')}</p></details>`, scoreCell(e.id),
         `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || '') + (e.tax_confirmed_at ? `<div class="small muted">Tax: ${esc(e.tax_country || '')}${e.tax_status === 'company' ? ` · ${esc(e.business_name || 'company')}` : ''}</div>` : '<div class="small muted">Tax: –</div>'), esc(fieldName(e.field)) + (e.languages ? `<div class="small muted">${esc(e.languages)}</div>` : ''), esc(e.years_experience ?? ''),
         e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
-        e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', esc(e.referred_by || ''),
+        e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', docsCell(e.id), esc(e.referred_by || ''),
         `<span class="small">${esc(e.payout_method || '')} ${esc(payoutOf[e.id] || '')}</span>`, pill(e.status),
         `<div class="row"><button class="btn btn-sm" data-ex="${e.id}" data-st="approved">${t('approve')}</button><button class="btn btn-danger btn-sm" data-ex="${e.id}" data-st="rejected">${t('reject')}</button></div>`,
       ]))}</div>`,
@@ -1825,6 +1885,7 @@ const ADMIN = {
           const { data: u, error: er } = await sb.storage.from('cvs').createSignedUrl(b.dataset.cv, 300);
           if (er) return fail(er); window.open(u.signedUrl, '_blank', 'noopener');
         }; });
+        $app.querySelectorAll('[data-doc-open]').forEach((b) => { b.onclick = () => openDoc(b.dataset.docOpen); });
         $app.querySelectorAll('[data-ex]').forEach((b) => { b.onclick = async () => {
           const { error: er } = await sb.from('experts').update({ status: b.dataset.st }).eq('id', b.dataset.ex);
           if (er) return fail(er); render();
