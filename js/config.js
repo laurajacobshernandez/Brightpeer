@@ -39,7 +39,7 @@ export const CONFIG = {
   SOCIAL: {
     instagram: 'https://www.instagram.com/brightpeerr',
     linkedin: '',
-    x: '',
+    x: 'https://x.com/brightpeerr',
     youtube: '',
   },
 };
