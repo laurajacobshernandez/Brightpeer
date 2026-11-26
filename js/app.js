@@ -2139,7 +2139,7 @@ const ADMIN = {
       ${bars}
       <div class="grid">${list('Meistbesuchte Seiten', s.pages, 'path', 'views', 'Aufrufe')}${list('Woher die Besucher kommen', s.referrers, 'referrer', 'visits', 'Besuche')}</div>
       <div class="grid">${list('Geräte', s.devices, 'device', 'visits', 'Besuche')}${list('Sprachen', s.langs, 'lang', 'visits', 'Besuche')}</div>
-      <p class="muted small">Anonym gezählt, ohne Cookies oder IP-Adressen. Ein Besuch = die erste Seite, die jemand öffnet. Deine eigenen Besuche als Admin zählen nicht.</p>
+      <p class="muted small">Anonym gezählt, ohne Cookies oder IP-Adressen. Ein Besuch = die erste Seite, die jemand öffnet. Deine eigenen Besuche zählen nicht – auch nicht, wenn du ausgeloggt bist, auf jedem Gerät, auf dem du dich einmal als Admin angemeldet hast.</p>
     </div>` };
   },
 
@@ -2714,9 +2714,17 @@ async function render() {
 // with the referring website's name. The admin's own visits and the admin area are not counted.
 let viewEntry = true;
 let lastViewed = '';
+// Owner, 26.11.2026: her own visits must never count – also when she is logged out. Once she is signed in as admin
+// on a device, that device is remembered and never counted again.
+function isOwnerDevice() {
+  try {
+    if (profile?.role === 'admin') localStorage.setItem('bp_owner', '1');
+    return localStorage.getItem('bp_owner') === '1';
+  } catch { return profile?.role === 'admin'; }
+}
 function trackView(parts) {
   try {
-    if (!sb || profile?.role === 'admin' || parts[0] === 'admin' || parts[0] === 'invoice' || parts[0] === 'statement') return;
+    if (!sb || isOwnerDevice() || parts[0] === 'admin' || parts[0] === 'invoice' || parts[0] === 'statement') return;
     const path = '/' + parts.slice(0, 2).map((x) => (/^[0-9a-f-]{8,}$/i.test(x) ? ':id' : x)).join('/');
     if (path === lastViewed) return;
     lastViewed = path;
