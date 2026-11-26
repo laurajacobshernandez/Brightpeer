@@ -320,12 +320,3 @@ details.faq p{margin-top:10px;color:var(--ink2)}
   #adminView .grid-sm{grid-template-columns:repeat(2,minmax(0,1fr))}
   #adminView .stat-v{font-size:1.5rem}
 }
-/* Admin, 26.11.2026 ("verständlicher und einfacher"): 5 big area buttons, help box, bigger buttons */
-.adm-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
-.adm-group{display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);font:inherit;font-weight:700;color:var(--ink);cursor:pointer;text-align:center;line-height:1.2}
-.adm-group:hover{border-color:var(--accent)}
-.adm-group.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.adm-group.active .tab-count{background:#fff;color:var(--accent)}
-.adm-help{background:var(--accent-soft);border-radius:12px;padding:14px 16px;display:grid;gap:6px;max-width:900px}
-.adm .btn-sm{min-height:42px;padding:0 16px;font-size:.95rem}
-@media (max-width:640px){.adm-groups{grid-template-columns:1fr 1fr}.adm-group:last-child:nth-child(odd){grid-column:1/-1}.adm-group{min-height:52px;font-size:.95rem}}
