@@ -721,7 +721,12 @@ function mountSignup(kind) {
       }
       go('#/dashboard'); return;
     }
-    f.innerHTML = `<div class="form-msg ok">${t('checkEmail')}</div>`;
+    // An address that already has an account comes back without identities and gets NO e-mail – say so instead of "check your email".
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      msg.innerHTML = `<div class="form-msg err">${t('emailTaken')}</div><div class="row" style="margin-top:10px"><a class="btn btn-sm" href="#/login">${t('toLogin')}</a><a class="btn btn-ghost btn-sm" href="#/reset">${t('forgot')}</a></div>`;
+      return;
+    }
+    f.innerHTML = `<div class="form-msg ok">${t(kind === 'company' ? 'checkEmailCo' : 'checkEmail')}</div><p class="muted small" style="margin-top:10px">${t('checkSpam')}</p>`;
   };
 }
 
@@ -1772,15 +1777,54 @@ async function pageAdmin() {
   const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab', 'accountingTab', 'automationTab'];
   const TAB_LABEL = { prepayTab: 'Prepayments', visitorsTab: 'Visitors', referralsTab: 'Referrals', accountingTab: 'Accounting', automationTab: 'Automation' };
   if (!TABS.includes(adminTab)) adminTab = 'overview';
-  const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${TAB_LABEL[k] || t(k)}</button>`).join('')}</div>`;
-  const view = await ADMIN[adminTab]();
+  // Owner, 26.11.2026 ("Verbessere Admin"): every tab shows how many things wait for her, the overview lists them as a to-do list.
+  const [todo, view] = await Promise.all([adminTodo(), ADMIN[adminTab]()]);
+  const badge = (k) => { const n = todo.byTab[k] || 0; return n ? ` <span class="tab-count" aria-label="${n} open">${n}</span>` : ''; };
+  const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${TAB_LABEL[k] || t(k)}${badge(k)}</button>`).join('')}</div>`;
+  if (adminTab === 'overview') view.html = todoBox(todo) + view.html;
   return {
     html: `<section class="wrap section stack-lg"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('admin')}</h1>${tabBar}<div id="adminView">${view.html}</div></section>`,
     mount() {
       $app.querySelectorAll('[data-tab]').forEach((b) => { b.onclick = () => { adminTab = b.dataset.tab; go('#/admin?tab=' + adminTab); }; });
+      // On phones the tabs are one scrollable row: keep the open tab in view.
+      const act = $app.querySelector('.tabs .tab.active'); const bar = act && act.parentElement;
+      if (bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = act.offsetLeft - (bar.clientWidth - act.offsetWidth) / 2;
       view.mount && view.mount();
     },
   };
+}
+
+// Open work for the admin: counted on every admin page. A failing count shows 0 instead of breaking the page.
+async function adminTodo() {
+  const cnt = (table, col, vals) => {
+    let qy = sb.from(table).select('id', { count: 'exact', head: true });
+    qy = Array.isArray(vals) ? qy.in(col, vals) : qy.eq(col, vals);
+    return qy.then((r) => (r.error ? 0 : r.count || 0), () => 0);
+  };
+  const [experts, interviews, tests, requests, hours, prepay, payouts, refs] = await Promise.all([
+    cnt('experts', 'status', 'pending'), cnt('interviews', 'status', 'submitted'), cnt('test_attempts', 'status', 'submitted'),
+    cnt('requests', 'status', 'new'), cnt('timesheets', 'status', 'submitted'), cnt('prepayments', 'status', ['requested', 'open']),
+    cnt('payouts', 'status', 'pending'),
+    sb.rpc('admin_referrals').then((r) => (r.data || []).filter((x) => x.qualified && !x.bonus_paid_at).length, () => 0),
+  ]);
+  const items = [
+    ['experts', experts, 'expert application(s) to review', '#/admin?tab=experts&st=pending'],
+    ['interviewsTab', interviews, 'interview(s) to rate', '#/admin?tab=interviewsTab'],
+    ['testsTab', tests, 'field test(s) to check', '#/admin?tab=testsTab'],
+    ['requests', requests, 'new company request(s)', '#/admin?tab=requests'],
+    ['hoursTab', hours, 'hour entr(ies) waiting for approval', '#/admin?tab=hoursTab'],
+    ['prepayTab', prepay, 'prepayment(s) not paid yet', '#/admin?tab=prepayTab'],
+    ['payouts', payouts, 'payout(s) to transfer', '#/admin?tab=payouts'],
+    ['referralsTab', refs, 'referral bonus(es) due', '#/admin?tab=referralsTab'],
+  ];
+  return { items, byTab: Object.fromEntries(items.map(([k, n]) => [k, n])) };
+}
+
+function todoBox(todo) {
+  const open = todo.items.filter(([, n]) => n > 0);
+  return `<div class="card stack todo-box" style="margin-bottom:20px"><h3>To do</h3>${open.length
+    ? `<div class="todo-list">${open.map(([, n, label, href]) => `<a class="todo-item" href="${href}"><span class="todo-n">${n}</span><span>${label}</span><span class="todo-go" aria-hidden="true">→</span></a>`).join('')}</div>`
+    : '<p class="muted">Nothing waiting – everything is done.</p>'}</div>`;
 }
 
 // CVs of accounts deleted after 24 months (queued by the daily cleanup job)

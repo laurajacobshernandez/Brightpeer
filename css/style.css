@@ -307,3 +307,16 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 @media (max-width:600px){.ben-grid{grid-template-columns:1fr}}
 .stats-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;border-top:1px solid var(--line2);padding-top:24px;margin-top:8px}
 @media (max-width:800px){.stats-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Admin to-do list and tab counters (owner, 26.11.2026: "Verbessere Admin") */
+.tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;margin-left:4px;border-radius:999px;background:var(--accent);color:#fff;font-size:.75rem;font-weight:700;line-height:1;vertical-align:1px}
+.todo-list{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.todo-item{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);text-decoration:none}
+.todo-item:hover{border-color:var(--accent);color:var(--ink)}
+.todo-n{flex:none;min-width:32px;height:32px;padding:0 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.todo-go{margin-left:auto;color:var(--accent);font-weight:700}
+@media (max-width:700px){
+  #app .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  #app .tabs::-webkit-scrollbar{display:none}
+  #adminView .grid-sm{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #adminView .stat-v{font-size:1.5rem}
+}
