@@ -1,11 +1,13 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js';
+import { lang } from './i18n.js?v=20261127f';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
   // Navigation / services
+  'Built for AI labs': T('Für KI-Firmen gemacht', 'Conçu pour les laboratoires d’IA', 'Pensato per i laboratori di IA', 'Pensado para laboratorios de IA'),
+  'AI labs and AI teams need real professionals to train, test and improve their models. Brightpeer gives you vetted doctors, lawyers, engineers and scientists who work in your own tools – fast, flexible and paid by the hour.': T('KI-Firmen und KI-Teams brauchen echte Fachleute, um ihre Modelle zu trainieren, zu testen und zu verbessern. Brightpeer gibt dir geprüfte Ärzt:innen, Jurist:innen, Ingenieur:innen und Wissenschaftler:innen, die in deinen eigenen Tools arbeiten – schnell, flexibel und pro Stunde bezahlt.', 'Les laboratoires et équipes d’IA ont besoin de vrais professionnels pour entraîner, tester et améliorer leurs modèles. Brightpeer vous donne accès à des médecins, juristes, ingénieurs et scientifiques vérifiés qui travaillent dans vos propres outils – rapide, flexible et payé à l’heure.', 'I laboratori e i team di IA hanno bisogno di veri professionisti per addestrare, testare e migliorare i loro modelli. Brightpeer ti offre medici, avvocati, ingegneri e scienziati verificati che lavorano nei tuoi strumenti – veloce, flessibile e pagato a ore.', 'Los laboratorios y equipos de IA necesitan profesionales reales para entrenar, probar y mejorar sus modelos. Brightpeer te da médicos, abogados, ingenieros y científicos verificados que trabajan en tus propias herramientas: rápido, flexible y pagado por hora.'),
   'Solutions': T('Angebote', 'Solutions', 'Soluzioni', 'Soluciones'),
   'All solutions': T('Alle Angebote', 'Toutes les solutions', 'Tutte le soluzioni', 'Todas las soluciones'),
   'Everything companies need to build better AI with real experts.': T('Alles, was Firmen brauchen, um mit echten Fachleuten bessere KI zu bauen.', 'Tout ce dont les entreprises ont besoin pour créer une meilleure IA avec de vrais experts.', 'Tutto ciò che serve alle aziende per creare un’IA migliore con veri esperti.', 'Todo lo que las empresas necesitan para crear una IA mejor con expertos reales.'),
