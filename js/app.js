@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127b';
-import { t, lang } from './i18n.js?v=20261127b';
-import { L } from './tr.js?v=20261127b';
+import { CONFIG } from './config.js?v=20261127c';
+import { t, lang } from './i18n.js?v=20261127c';
+import { L } from './tr.js?v=20261127c';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -947,7 +947,7 @@ function pageHelp() {
     ['How many hours do I need to work?', 'It depends on the project – most roles are 5 to 30 hours per week, and you can choose what fits you.'],
     ['How does the referral bonus work?', 'Share your link from your dashboard. When your colleague completes their first 10 paid hours, you both get $100.'],
     ['I am a company – how do I start?', 'Create a company account and send a request. We will contact you within 1–2 business days with a quote.'],
-    ['How do companies pay?', 'By prepayment. You top up your Brightpeer balance by card or bank transfer, and approved expert hours are paid from it every week. You can see your balance in your dashboard at any time, and unused balance is refunded on request.'],
+    ['How do companies pay?', 'Through a prepaid balance (retainer). You top up your Brightpeer balance by card or bank transfer, and approved expert hours are paid from it every week. You can see your balance in your dashboard at any time, and unused balance is refunded on request.'],
     ['How do I delete my account or data?', L('Write to {email} and we will delete your data.').replace('{email}', CONFIG.COMPANY.email)],
   ];
   return `<section class="wrap section narrow stack-lg">
