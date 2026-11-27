@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127t';
-import { t, lang } from './i18n.js?v=20261127t';
-import { L } from './tr.js?v=20261127t';
+import { CONFIG } from './config.js?v=20261127u';
+import { t, lang } from './i18n.js?v=20261127u';
+import { L } from './tr.js?v=20261127u';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -1227,6 +1227,8 @@ async function expertDashboard() {
   const { data: timer } = await sb.from('work_timers').select('*').eq('expert_id', uid).maybeSingle();
   const docs = myDocs || [];
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
+  const { data: evalTasks } = await sb.rpc('my_eval_projects');
+  const evalOpen = (evalTasks || []).filter((x) => x.done < x.total);
   const [{ data: myPayout }, { data: myRefs }] = await Promise.all([sb.rpc('my_payout_details'), sb.rpc('my_referrals')]);
   const rs = myRefs || {};
   const e = ex.data || {};
@@ -1276,6 +1278,7 @@ async function expertDashboard() {
     html: `<section class="wrap section stack-lg">
       <div class="row between"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc((profile.full_name || '').split(' ')[0])}</h1><span>${t('status')}: ${pill(st)}</span></div>
       <div class="card stack" style="gap:6px"><h3>${t(stKey)}</h3><p class="muted">${t(stKey + 'P')}</p></div>
+      ${evalOpen.length ? `<a class="card card-link row between offer" href="#/evals" style="gap:16px;flex-direction:row;align-items:center"><span class="stack" style="gap:4px"><b>${L('Evaluation tasks')}</b><span class="muted small">${L('{n} project(s) waiting for your rating').replace('{n}', evalOpen.length)}</span></span><span class="rate">${L('Start')} →</span></a>` : ''}
       ${offerCards}
       ${nextCard}
 
@@ -1725,6 +1728,7 @@ async function companyDashboard() {
   return {
     html: `<section class="wrap section stack-lg">
       <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
+      <a class="card card-link row between" href="#/evals" style="gap:16px;flex-direction:row;align-items:center"><span class="stack" style="gap:4px"><b>${L('Model evaluations')}</b><span class="muted small">${L('Compare two AI models with blind expert ratings.')}</span></span><span class="rate">${L('Open')} →</span></a>
       ${candidates.length ? `<div class="stack" id="candidates"><h2 style="font-size:1.6rem">${L('Proposed experts')}</h2><p class="muted small">${L('Anonymous profiles we selected for your requests. Tell us who you are interested in – we then confirm the expert and start the project. Names and contact details stay private.')}</p><div class="grid">${candCards}</div></div>` : ''}
 
       <div class="card stack ${low ? 'offer' : ''}" id="balance">
@@ -1987,8 +1991,8 @@ async function pageAdmin() {
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
   await deleteQueuedFiles();
-  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab', 'accountingTab', 'automationTab'];
-  const TAB_LABEL = { prepayTab: 'Prepayments', visitorsTab: 'Statistics', referralsTab: 'Referrals', accountingTab: 'Accounting', automationTab: 'Automation' };
+  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'evalsTab', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab', 'accountingTab', 'automationTab'];
+  const TAB_LABEL = { evalsTab: 'Evaluations', prepayTab: 'Prepayments', visitorsTab: 'Statistics', referralsTab: 'Referrals', accountingTab: 'Accounting', automationTab: 'Automation' };
   if (!TABS.includes(adminTab)) adminTab = 'overview';
   // Owner, 26.11.2026 ("Verbessere Admin"): every tab shows how many things wait for her, the overview lists them as a to-do list.
   const [todo, view] = await Promise.all([adminTodo(), ADMIN[adminTab]()]);
@@ -2016,12 +2020,12 @@ async function adminTodo() {
     qy = Array.isArray(vals) ? qy.in(col, vals) : qy.eq(col, vals);
     return qy.then((r) => (r.error ? 0 : r.count || 0), () => 0);
   };
-  const [experts, interviews, tests, requests, hours, prepay, payouts, refs, idChecks] = await Promise.all([
+  const [experts, interviews, tests, requests, hours, prepay, payouts, refs, idChecks, evals] = await Promise.all([
     cnt('experts', 'status', 'pending'), cnt('interviews', 'status', 'submitted'), cnt('test_attempts', 'status', 'submitted'),
     cnt('requests', 'status', 'new'), cnt('timesheets', 'status', 'submitted'), cnt('prepayments', 'status', ['requested', 'open']),
     cnt('payouts', 'status', 'pending'),
     sb.rpc('admin_referrals').then((r) => (r.data || []).filter((x) => x.qualified && !x.bonus_paid_at).length, () => 0),
-    cnt('experts', 'id_status', 'submitted'),
+    cnt('experts', 'id_status', 'submitted'), cnt('eval_projects', 'status', 'submitted'),
   ]);
   const items = [
     ['experts', experts, 'expert application(s) to review', '#/admin?tab=experts&st=pending'],
@@ -2029,6 +2033,7 @@ async function adminTodo() {
     ['interviewsTab', interviews, 'interview(s) to rate', '#/admin?tab=interviewsTab'],
     ['testsTab', tests, 'field test(s) to check', '#/admin?tab=testsTab'],
     ['requests', requests, 'new company request(s)', '#/admin?tab=requests'],
+    ['evalsTab', evals, 'model evaluation(s) waiting for experts', '#/admin?tab=evalsTab'],
     ['hoursTab', hours, 'hour entr(ies) waiting for approval', '#/admin?tab=hoursTab'],
     ['prepayTab', prepay, 'prepayment(s) not paid yet', '#/admin?tab=prepayTab'],
     ['payouts', payouts, 'payout(s) to transfer (payday Wednesday)', '#/admin?tab=payouts'],
@@ -2242,6 +2247,8 @@ const ADMIN = {
       },
     };
   },
+
+  evalsTab() { return adminEvals(); },
 
   async overview() {
     const { data, error } = await sb.rpc('admin_stats');
@@ -2980,6 +2987,392 @@ function openBigVideo() {
   document.body.appendChild(m);
 }
 
+// ---------------------------------------------------------------- model evaluations + Brightpeer Bench (owner, 27.11.2026)
+// "Modell-Bewertung und Brightpeer Bench soll auch funktionieren" – chosen: real, like Mercor. Companies upload tasks with
+// the answers of two AI models, assigned experts compare them blind and side by side, the company gets a report.
+// Benchmark projects (admin) feed the public Brightpeer Bench, which is computed only from real expert ratings.
+const EVAL_ERRORS = ['factual', 'reasoning', 'incomplete', 'unsafe', 'language', 'format'];
+const EVAL_ERROR_LABEL = { factual: 'Factual error', reasoning: 'Wrong reasoning', incomplete: 'Incomplete', unsafe: 'Unsafe or harmful', language: 'Language problem', format: 'Ignores instructions' };
+const evalErr = (k) => L(EVAL_ERROR_LABEL[k] || k);
+const BENCH_MIN = 10; // same minimum as in bench_leaderboard()
+
+// CSV / TSV / pasted Excel rows → [{prompt, answer_a, answer_b}]
+function parseEvalRows(text) {
+  const src = String(text || '').replace(/\r\n?/g, '\n').replace(/^﻿/, '');
+  const first = src.split('\n')[0] || '';
+  const sep = (first.match(/\t/g) || []).length >= 2 ? '\t' : ((first.match(/;/g) || []).length >= 2 && !(first.match(/,/g) || []).length ? ';' : ',');
+  const rows = []; let row = []; let cell = ''; let q = false;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (q) { if (ch === '"') { if (src[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"' && cell === '') q = true;
+    else if (ch === sep) { row.push(cell); cell = ''; }
+    else if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  const clean = rows.filter((r) => r.some((c) => c.trim()));
+  if (!clean.length) return [];
+  const head = clean[0].map((c) => c.trim().toLowerCase());
+  const find = (re, d) => { const i = head.findIndex((h) => re.test(h)); return i >= 0 ? i : d; };
+  const hasHead = head.some((h) => /prompt|question|task|aufgabe|frage|answer|antwort/.test(h));
+  const ip = hasHead ? find(/prompt|question|task|aufgabe|frage/, 0) : 0;
+  const ia = hasHead ? find(/(answer|antwort|model|modell)[ _-]?a$|^a$/, 1) : 1;
+  const ib = hasHead ? find(/(answer|antwort|model|modell)[ _-]?b$|^b$/, 2) : 2;
+  return (hasHead ? clean.slice(1) : clean).map((r) => ({ prompt: (r[ip] || '').trim(), answer_a: (r[ia] || '').trim(), answer_b: (r[ib] || '').trim() }))
+    .filter((r) => r.prompt && r.answer_a && r.answer_b);
+}
+
+// The expert sees the two answers in a fixed but item-dependent order, never which model wrote them.
+const evalFlip = (id) => [...String(id)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % 2 === 1;
+const csvCell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+function downloadCsv(name, rows) {
+  const blob = new Blob(['﻿' + rows.map((r) => r.map(csvCell).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const pct = (n, d) => (d ? Math.round((100 * n) / d) : 0);
+
+async function pageEvals(id) {
+  if (!sb) return `<section class="wrap section"><p class="banner">${t('notConfigured')}</p></section>`;
+  if (!session) return needLogin();
+  if (!profile) await loadProfile();
+  const role = profile?.role;
+  if (role === 'company' || role === 'admin') {
+    if (id) return evalProject(id);
+    if (role === 'admin') return { html: '', mount() { go('#/admin?tab=evalsTab'); } };
+    return evalCompanyList();
+  }
+  if (role === 'expert') return id ? evalRate(id) : evalExpertList();
+  return pageNotFound();
+}
+
+// ---------- company: list + new project
+async function evalCompanyList() {
+  const { data, error } = await sb.from('eval_projects').select('*, eval_items(count)').eq('company_id', session.user.id).order('created_at', { ascending: false });
+  if (error) return `<section class="wrap section"><p class="form-msg err">${esc(error.message)}</p></section>`;
+  const rows = data || [];
+  return {
+    html: `<section class="wrap section stack-lg">
+      <div class="stack" style="gap:8px"><a class="small" href="#/dashboard">← ${L('Dashboard')}</a><h1 style="font-size:clamp(2rem,4vw,3rem)">${L('Model evaluations')}</h1>
+      <p class="muted" style="max-width:44rem">${L('Upload your tasks with the answers of two AI models. Experts from your field compare them blind, side by side – you get a clear report.')}</p></div>
+      ${rows.length ? table([L('Evaluation'), L('Models'), L('Tasks'), t('status'), ''], rows.map((p) => [
+        `<a class="link" style="font-weight:600" href="#/evals/${esc(p.id)}">${esc(p.title)}</a><div class="small muted">${esc(p.language)}${p.field ? ' · ' + esc(fieldName(p.field)) : ''}</div>`,
+        `${esc(p.model_a)} <span class="muted">vs</span> ${esc(p.model_b)}`, esc((p.eval_items && p.eval_items[0] && p.eval_items[0].count) || 0), evalPill(p.status),
+        `<a class="small" href="#/evals/${esc(p.id)}">${L('Open')} →</a>`])) : ''}
+      <form id="evNew" class="card stack" style="padding:28px">
+        <h3>${L('New evaluation')}</h3>
+        <label class="f">${L('Name of the evaluation')}<input name="title" required minlength="2" maxlength="160" placeholder="${L('e.g. Medical answers in German')}"></label>
+        <div class="grid" style="gap:12px">
+          <label class="f">${L('Model A')}<input name="model_a" required maxlength="80" placeholder="${L('e.g. our current model')}"></label>
+          <label class="f">${L('Model B')}<input name="model_b" required maxlength="80" placeholder="${L('e.g. the new version')}"></label>
+        </div>
+        <div class="grid" style="gap:12px">
+          <label class="f">${t('field')}<select name="field">${fieldOptions()}</select></label>
+          <label class="f">${L('Language of the tasks')}<input name="language" required maxlength="60" value="English"></label>
+        </div>
+        <label class="f">${L('Instructions for the experts (optional)')}<textarea name="instructions" rows="3" maxlength="4000" placeholder="${L('What should they pay attention to?')}"></textarea></label>
+        <button class="btn btn-accent" type="submit" style="align-self:flex-start">${L('Create and add tasks')}</button>
+      </form>
+    </section>`,
+    mount() {
+      const f = document.getElementById('evNew');
+      f.onsubmit = async (e) => {
+        e.preventDefault(); const d = formData(f); busy(f, true);
+        const { data: p, error: er } = await sb.from('eval_projects').insert({ company_id: session.user.id, title: d.title.trim(), model_a: d.model_a.trim(), model_b: d.model_b.trim(), field: d.field || null, language: d.language.trim() || 'English', instructions: d.instructions.trim() || null }).select('id').single();
+        busy(f, false);
+        if (er) return fail(er);
+        go('#/evals/' + p.id);
+      };
+    },
+  };
+}
+
+const evalPill = (s) => `<span class="pill pill-${{ draft: 'grey', submitted: 'warn', open: 'info', done: 'ok' }[s] || 'grey'}">${esc(L({ draft: 'Draft', submitted: 'Waiting for experts', open: 'Experts are rating', done: 'Finished' }[s] || s))}</span>`;
+
+// ---------- one project: tasks while it is a draft, report afterwards (company owner or admin)
+async function evalProject(id) {
+  const isAdmin = profile?.role === 'admin';
+  const [{ data: p, error }, { data: items }] = await Promise.all([
+    sb.from('eval_projects').select('*').eq('id', id).maybeSingle(),
+    sb.from('eval_items').select('id,position,prompt,answer_a,answer_b').eq('project_id', id).order('position').order('created_at'),
+  ]);
+  if (error || !p) return pageNotFound();
+  const list = items || [];
+  const editable = p.status === 'draft';
+  const back = isAdmin ? `<a class="small" href="#/admin?tab=evalsTab">← Admin · Evaluations</a>` : `<a class="small" href="#/evals">← ${L('Model evaluations')}</a>`;
+  const head = `<div class="stack" style="gap:8px">${back}
+    <div class="row between" style="align-items:flex-start;gap:12px"><h1 style="font-size:clamp(1.8rem,3.5vw,2.6rem)">${esc(p.title)}</h1>${evalPill(p.status)}</div>
+    <p class="muted">${p.is_benchmark ? 'Brightpeer Bench · ' : ''}<b>${esc(p.model_a)}</b> vs <b>${esc(p.model_b)}</b> · ${esc(p.language)}${p.field ? ' · ' + esc(fieldName(p.field)) : ''}</p>
+    ${p.instructions ? `<p class="small" style="white-space:pre-line;max-width:48rem">${esc(p.instructions)}</p>` : ''}</div>`;
+
+  if (!editable) {
+    const report = await evalReportHtml(p);
+    return { html: `<section class="wrap section stack-lg">${head}${report.html}</section>`, mount: report.mount };
+  }
+
+  const itemList = list.length ? `<ol class="stack" style="gap:8px;padding-left:20px">${list.map((it) => `<li><div class="row between" style="gap:12px;align-items:flex-start"><span style="white-space:pre-line">${esc(it.prompt.slice(0, 220))}${it.prompt.length > 220 ? '…' : ''}</span><button class="link small" data-del="${esc(it.id)}">${L('Remove')}</button></div></li>`).join('')}</ol>` : `<p class="muted">${L('No tasks yet.')}</p>`;
+  return {
+    html: `<section class="wrap section stack-lg">${head}
+      <div class="card stack" style="padding:28px">
+        <h3>${L('Add tasks')}</h3>
+        <p class="muted small">${L('One row per task with three columns: prompt, answer of model A, answer of model B. Paste from Excel or Google Sheets, or upload a CSV file. A header row is recognised automatically.')}</p>
+        <label class="f">${L('Upload CSV')}<input type="file" id="evFile" accept=".csv,.tsv,.txt,text/csv,text/plain"></label>
+        <label class="f">${L('Or paste rows')}<textarea id="evPaste" rows="5" placeholder="prompt,answer_a,answer_b"></textarea></label>
+        <div class="row"><button class="btn" id="evImport">${L('Add rows')}</button><span class="muted small" id="evImportMsg"></span></div>
+        <details><summary class="link">${L('Add one task by hand')}</summary>
+          <form id="evOne" class="stack" style="margin-top:12px">
+            <label class="f">${L('Task / prompt')}<textarea name="prompt" rows="3" required maxlength="20000"></textarea></label>
+            <div class="grid" style="gap:12px"><label class="f">${esc(p.model_a)}<textarea name="answer_a" rows="5" required maxlength="40000"></textarea></label>
+            <label class="f">${esc(p.model_b)}<textarea name="answer_b" rows="5" required maxlength="40000"></textarea></label></div>
+            <button class="btn" type="submit" style="align-self:flex-start">${L('Add task')}</button>
+          </form></details>
+      </div>
+      <div class="card stack" style="padding:28px"><h3>${L('Tasks')} (${list.length})</h3>${itemList}</div>
+      <div class="row">
+        <button class="btn btn-accent" id="evSubmit" ${list.length ? '' : 'disabled'}>${isAdmin ? 'Open for experts' : L('Send to expert review')}</button>
+        <button class="btn btn-ghost" id="evDelete">${L('Delete draft')}</button>
+      </div>
+      ${isAdmin ? '' : `<p class="muted small">${L('After sending, we assign experts from your field and the results appear here. Tasks can no longer be changed then.')}</p>`}
+    </section>`,
+    mount() {
+      const nextPos = list.length ? Math.max(...list.map((x) => x.position || 0)) + 1 : 1;
+      const addRows = async (rows) => {
+        if (!rows.length) { document.getElementById('evImportMsg').textContent = L('No complete rows found (3 columns needed).'); return; }
+        const chunk = rows.slice(0, 2000).map((r, i) => ({ project_id: id, position: nextPos + i, ...r }));
+        for (let i = 0; i < chunk.length; i += 200) {
+          const { error: er } = await sb.from('eval_items').insert(chunk.slice(i, i + 200));
+          if (er) return fail(er);
+        }
+        toast(L('{n} tasks added').replace('{n}', chunk.length)); render();
+      };
+      document.getElementById('evImport').onclick = async () => {
+        const file = document.getElementById('evFile').files[0];
+        const text = file ? await file.text() : document.getElementById('evPaste').value;
+        await addRows(parseEvalRows(text));
+      };
+      const one = document.getElementById('evOne');
+      one.onsubmit = async (e) => { e.preventDefault(); const d = formData(one); await addRows([{ prompt: d.prompt.trim(), answer_a: d.answer_a.trim(), answer_b: d.answer_b.trim() }]); };
+      $app.querySelectorAll('[data-del]').forEach((b) => { b.onclick = async () => { const { error: er } = await sb.from('eval_items').delete().eq('id', b.dataset.del); if (er) return fail(er); render(); }; });
+      document.getElementById('evSubmit').onclick = async () => {
+        const { error: er } = await sb.from('eval_projects').update({ status: isAdmin ? 'open' : 'submitted' }).eq('id', id);
+        if (er) return fail(er);
+        toast(isAdmin ? 'Opened – assign experts in Admin → Evaluations.' : L('Sent – we assign experts now.')); render();
+      };
+      document.getElementById('evDelete').onclick = async () => {
+        if (!window.confirm(L('Delete this draft with all tasks?'))) return;
+        const { error: er } = await sb.from('eval_projects').delete().eq('id', id);
+        if (er) return fail(er);
+        go(isAdmin ? '#/admin?tab=evalsTab' : '#/evals');
+      };
+    },
+  };
+}
+
+async function evalReportHtml(p) {
+  const { data: r, error } = await sb.rpc('eval_report', { p: p.id });
+  if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+  const n = Number(r.ratings) || 0;
+  const wait = p.status === 'submitted' ? `<div class="card"><p>${L('We are assigning experts from your field. Results appear here as soon as the first ratings come in.')}</p></div>` : '';
+  if (!n) return { html: wait || `<div class="card"><p class="muted">${L('No ratings yet.')}</p></div>` };
+  const wa = Number(r.wins_a) || 0; const wb = Number(r.wins_b) || 0; const ti = Number(r.ties) || 0;
+  const box = (label, v) => `<div class="card"><p class="muted small">${label}</p><p class="stat-v">${v}</p></div>`;
+  const errs = (o) => { const e = Object.entries(o || {}).sort((a, b) => b[1] - a[1]); return e.length ? `<ul class="stack" style="gap:4px;padding-left:18px">${e.map(([k, c]) => `<li>${esc(evalErr(k))}: <b>${c}</b></li>`).join('')}</ul>` : `<p class="muted small">${L('None reported')}</p>`; };
+  const win = (w) => (w === 'a' ? esc(p.model_a) : w === 'b' ? esc(p.model_b) : L('Tie'));
+  const rows = (r.rows || []);
+  return {
+    html: `${wait}<div class="grid-sm">${box(L('Tasks'), r.items)}${box(L('Ratings'), n)}${box(L('Experts'), r.raters)}</div>
+      <div class="card stack">
+        <h3>${L('Which answer was better?')}</h3>
+        <div class="evbar" role="img" aria-label="${esc(p.model_a)} ${pct(wa, n)} %, ${L('Tie')} ${pct(ti, n)} %, ${esc(p.model_b)} ${pct(wb, n)} %">
+          <span style="width:${pct(wa, n)}%;background:var(--accent)"></span><span style="width:${pct(ti, n)}%;background:var(--line2)"></span><span style="width:${pct(wb, n)}%;background:var(--ink)"></span></div>
+        <div class="row between small"><span><b>${esc(p.model_a)}</b> ${pct(wa, n)} % (${wa})</span><span>${L('Tie')} ${pct(ti, n)} % (${ti})</span><span><b>${esc(p.model_b)}</b> ${pct(wb, n)} % (${wb})</span></div>
+      </div>
+      <div class="grid">
+        <div class="card stack"><h3>${esc(p.model_a)}</h3><p>${L('Average score')}: <b>${esc(r.avg_a ?? '–')}</b> / 5</p><p class="muted small">${L('Error types')}</p>${errs(r.errors_a)}</div>
+        <div class="card stack"><h3>${esc(p.model_b)}</h3><p>${L('Average score')}: <b>${esc(r.avg_b ?? '–')}</b> / 5</p><p class="muted small">${L('Error types')}</p>${errs(r.errors_b)}</div>
+      </div>
+      <div class="stack"><div class="row between"><h3>${L('Task by task')}</h3><button class="btn btn-ghost btn-sm" id="evCsv">${L('Download CSV')}</button></div>
+        ${rows.map((it, i) => `<details class="card"><summary class="row between" style="gap:12px;cursor:pointer"><span>${i + 1}. ${esc(it.prompt.slice(0, 140))}${it.prompt.length > 140 ? '…' : ''}</span><span class="muted small">${it.ratings.length ? it.ratings.map((x) => win(x.winner)).join(', ') : L('not rated yet')}</span></summary>
+          <div class="stack" style="margin-top:12px"><p style="white-space:pre-line">${esc(it.prompt)}</p>
+          <div class="ev-pair"><div class="ev-ans"><p class="muted small">${esc(p.model_a)}</p><div style="white-space:pre-line">${esc(it.answer_a)}</div></div><div class="ev-ans"><p class="muted small">${esc(p.model_b)}</p><div style="white-space:pre-line">${esc(it.answer_b)}</div></div></div>
+          ${it.ratings.map((x) => `<div class="small"><b>${L('Better')}: ${win(x.winner)}</b> · ${esc(p.model_a)} ${x.score_a}/5 · ${esc(p.model_b)} ${x.score_b}/5${x.errors_a.length ? ` · ${esc(p.model_a)}: ${x.errors_a.map(evalErr).map(esc).join(', ')}` : ''}${x.errors_b.length ? ` · ${esc(p.model_b)}: ${x.errors_b.map(evalErr).map(esc).join(', ')}` : ''}${x.comment ? `<div class="muted" style="white-space:pre-line">“${esc(x.comment)}”</div>` : ''}</div>`).join('')}
+          </div></details>`).join('')}
+      </div>`,
+    mount() {
+      const b = document.getElementById('evCsv');
+      if (b) b.onclick = () => downloadCsv(`${p.title.replace(/[^\w-]+/g, '_')}.csv`, [['task', 'prompt', 'better', `score ${p.model_a}`, `score ${p.model_b}`, `errors ${p.model_a}`, `errors ${p.model_b}`, 'comment'],
+        ...rows.flatMap((it, i) => (it.ratings.length ? it.ratings : [null]).map((x) => [i + 1, it.prompt, x ? (x.winner === 'a' ? p.model_a : x.winner === 'b' ? p.model_b : 'tie') : '', x ? x.score_a : '', x ? x.score_b : '', x ? x.errors_a.join('; ') : '', x ? x.errors_b.join('; ') : '', x ? x.comment || '' : '']))]);
+    },
+  };
+}
+
+// ---------- experts: assigned projects and the blind side-by-side rating
+async function evalExpertList() {
+  const { data, error } = await sb.rpc('my_eval_projects');
+  if (error) return `<section class="wrap section"><p class="form-msg err">${esc(error.message)}</p></section>`;
+  const list = data || [];
+  return `<section class="wrap section stack-lg">
+    <div class="stack" style="gap:8px"><a class="small" href="#/dashboard">← ${L('Dashboard')}</a><h1 style="font-size:clamp(2rem,4vw,3rem)">${L('Evaluation tasks')}</h1>
+    <p class="muted">${L('Compare two AI answers and say which one is better – honestly, in your own words.')}</p></div>
+    ${list.length ? `<div class="grid">${list.map((p) => `<a class="card card-link stack" href="#/evals/${esc(p.id)}"><h3>${esc(p.title)}</h3><p class="muted small">${esc(p.language)}${p.field ? ' · ' + esc(fieldName(p.field)) : ''}</p>
+      <div class="evbar"><span style="width:${pct(p.done, p.total)}%;background:var(--accent)"></span></div><p class="small">${p.done} / ${p.total} ${L('rated')}</p>
+      <span class="rate">${p.done >= p.total ? L('Done – thank you') : p.done ? L('Continue') : L('Start')} →</span></a>`).join('')}</div>` : `<div class="card"><p class="muted">${L('No evaluation tasks for you right now.')}</p></div>`}
+  </section>`;
+}
+
+async function evalRate(id) {
+  const [{ data: projects }, { data: nextRows, error }] = await Promise.all([sb.rpc('my_eval_projects'), sb.rpc('my_eval_next', { p: id })]);
+  const p = (projects || []).find((x) => x.id === id);
+  if (error || !p) return pageNotFound();
+  const it = (nextRows || [])[0];
+  const top = `<div class="stack" style="gap:8px"><a class="small" href="#/evals">← ${L('Evaluation tasks')}</a><h1 style="font-size:clamp(1.6rem,3vw,2.2rem)">${esc(p.title)}</h1>
+    ${p.instructions ? `<details><summary class="link">${L('Instructions')}</summary><p class="small" style="white-space:pre-line;margin-top:6px">${esc(p.instructions)}</p></details>` : ''}</div>`;
+  if (!it) return `<section class="wrap section narrow stack-lg">${top}<div class="card stack"><h3>${L('All tasks rated – thank you!')}</h3><p class="muted">${p.done} / ${p.total} ${L('rated')}</p><a class="btn" href="#/evals" style="align-self:flex-start">${L('Back')}</a></div></section>`;
+  const flip = evalFlip(it.id);
+  const first = flip ? it.answer_b : it.answer_a; const second = flip ? it.answer_a : it.answer_b;
+  const errBoxes = (side) => `<div class="row" style="gap:6px 14px">${EVAL_ERRORS.map((k) => `<label class="small row" style="gap:6px"><input type="checkbox" name="err${side}" value="${k}">${esc(evalErr(k))}</label>`).join('')}</div>`;
+  const scoreSel = (name) => `<select name="${name}" required><option value="">–</option>${[5, 4, 3, 2, 1].map((s) => `<option value="${s}">${s}</option>`).join('')}</select>`;
+  return {
+    html: `<section class="wrap section stack-lg">${top}
+      <div class="evbar"><span style="width:${pct(it.done, it.total)}%;background:var(--accent)"></span></div>
+      <p class="muted small">${L('Task')} ${it.pos} / ${it.total} · ${it.done} ${L('rated')}</p>
+      <div class="card"><p class="muted small">${L('Task / prompt')}</p><div style="white-space:pre-line;font-size:1.05rem">${esc(it.prompt)}</div></div>
+      <form id="evRate" class="stack">
+        <div class="ev-pair">
+          <div class="ev-ans stack"><h3>${L('Answer 1')}</h3><div style="white-space:pre-line">${esc(first)}</div>
+            <label class="f">${L('Score (1 = poor, 5 = excellent)')}${scoreSel('s1')}</label>${errBoxes('1')}</div>
+          <div class="ev-ans stack"><h3>${L('Answer 2')}</h3><div style="white-space:pre-line">${esc(second)}</div>
+            <label class="f">${L('Score (1 = poor, 5 = excellent)')}${scoreSel('s2')}</label>${errBoxes('2')}</div>
+        </div>
+        <fieldset class="card stack" style="gap:10px"><legend style="font-weight:600;padding:0 6px">${L('Which answer is better?')}</legend>
+          <div class="row ev-choice" style="gap:10px 24px">
+            <label class="row" style="gap:8px;align-items:center"><input type="radio" name="win" value="1" required>${L('Answer 1')}</label>
+            <label class="row" style="gap:8px;align-items:center"><input type="radio" name="win" value="tie">${L('Equally good')}</label>
+            <label class="row" style="gap:8px;align-items:center"><input type="radio" name="win" value="2">${L('Answer 2')}</label>
+          </div>
+          <label class="f">${L('Why? (optional, helps the company most)')}<textarea name="comment" rows="3" maxlength="4000"></textarea></label>
+        </fieldset>
+        <button class="btn btn-accent" type="submit" style="align-self:flex-start">${L('Save and next')}</button>
+      </form>
+    </section>`,
+    mount() {
+      const f = document.getElementById('evRate');
+      f.onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(f);
+        const s1 = Number(fd.get('s1')); const s2 = Number(fd.get('s2')); const w = fd.get('win');
+        const e1 = fd.getAll('err1'); const e2 = fd.getAll('err2');
+        // map the blind order back to model A / B
+        const winner = w === 'tie' ? 'tie' : (w === '1') !== flip ? 'a' : 'b';
+        busy(f, true);
+        const { error: er } = await sb.rpc('rate_eval', { p_item: it.id, p_winner: winner, p_score_a: flip ? s2 : s1, p_score_b: flip ? s1 : s2, p_errors_a: flip ? e2 : e1, p_errors_b: flip ? e1 : e2, p_comment: fd.get('comment') || null });
+        busy(f, false);
+        if (er) return fail(er);
+        render();
+      };
+    },
+  };
+}
+
+// ---------- public pages
+function pageEvalInfo() {
+  const s = SERVICES.find((x) => x.id === 'evaluations');
+  const cta = session && profile?.role === 'company' ? `<a class="btn btn-accent" href="#/evals">${L('Start an evaluation')}</a>` : !session ? `<a class="btn btn-accent" href="#/company-signup">${L('Start an evaluation')}</a>` : '';
+  const steps = [['Upload your tasks', 'Prompts with the answers of two models – as CSV or pasted from a spreadsheet.'], ['Experts compare blind', 'Vetted experts from your field see both answers side by side, without knowing which model wrote which.'], ['Scores and error types', 'For every task: which answer is better, a score from 1 to 5 and the kind of mistake.'], ['Clear report', 'Win rate, average scores, the most common errors and every comment – also as CSV.']];
+  return `<section class="wrap section stack-lg">
+    <div class="stack" style="gap:10px;max-width:46rem"><div class="row" style="gap:12px;align-items:center">${svcIcon('evaluations')}<span class="svc-kicker">${esc(L(s.nav))}</span></div>
+      <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${esc(L(s.title))}</h1><p style="font-size:1.15rem;color:var(--ink2)">${esc(L(s.short))}</p>
+      <div class="row">${cta}<a class="btn btn-ghost" href="#/services/benchmarks">Brightpeer Bench</a></div></div>
+    <div class="svc-grid">${steps.map(([h, x], i) => `<div class="svc"><span class="step-n">${i + 1}</span><h3>${esc(L(h))}</h3><p class="muted">${esc(L(x))}</p></div>`).join('')}</div>
+    <ul class="ticks">${s.points.map((x) => `<li>${esc(L(x))}</li>`).join('')}</ul>
+  </section>`;
+}
+
+async function pageBench() {
+  let rows = []; let sum = {};
+  if (sb) {
+    const [lb, sm] = await Promise.all([sb.rpc('bench_leaderboard'), sb.rpc('bench_summary')]);
+    rows = lb.data || []; sum = sm.data || {};
+  }
+  const board = rows.length ? table(['#', L('Model'), L('Win rate'), L('Average score'), L('Comparisons'), L('Languages')], rows.map((r, i) => [
+    `<b>${i + 1}</b>`, `<b>${esc(r.model)}</b>`, `${esc(r.win_rate)} %<div class="evbar" style="margin-top:6px;max-width:160px"><span style="width:${Number(r.win_rate) || 0}%;background:var(--accent)"></span></div>`,
+    `${esc(r.avg_score)} / 5`, esc(r.comparisons), esc(r.languages || '')]))
+    : `<div class="card stack"><h3>${L('First results coming soon')}</h3><p class="muted">${L('The ranking appears as soon as each model has at least {n} expert ratings. Nothing here is estimated or made up – every number comes from real ratings by our experts.').replace('{n}', BENCH_MIN)}</p></div>`;
+  const stat = (label, v) => `<div class="card"><p class="muted small">${label}</p><p class="stat-v">${esc(v)}</p></div>`;
+  return `<section class="wrap section stack-lg">
+    <div class="stack" style="gap:10px;max-width:46rem"><div class="row" style="gap:12px;align-items:center">${svcIcon('benchmarks')}<span class="svc-kicker">Brightpeer Bench</span></div>
+      <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Brightpeer Bench</h1>
+      <p style="font-size:1.15rem;color:var(--ink2)">${L('How well do AI models really answer in many languages? Native-speaker experts compare the answers of two models at a time – blind, task by task.')}</p></div>
+    ${Number(sum.ratings) ? `<div class="grid-sm">${stat(L('Expert ratings'), sum.ratings)}${stat(L('Tasks'), sum.tasks)}${stat(L('Languages'), sum.languages || '–')}</div>` : ''}
+    <div class="stack"><h2 style="font-size:1.6rem">${L('Leaderboard')}</h2>${board}${sum.updated && rows.length ? `<p class="muted small">${L('Last updated')}: ${dateStr(sum.updated)}</p>` : ''}</div>
+    <div class="card stack"><h3>${L('Method')}</h3><ul class="ticks">
+      <li>${L('Tasks are written by native-speaker experts – everyday questions, not word lists.')}</li>
+      <li>${L('Experts see two answers side by side without the model names and choose the better one.')}</li>
+      <li>${L('Win rate = wins plus half of the ties, divided by all comparisons. Each answer also gets a score from 1 to 5.')}</li>
+      <li>${L('A model is listed only with at least {n} ratings.').replace('{n}', BENCH_MIN)}</li></ul></div>
+    <div class="dark row between" style="gap:24px"><div class="stack" style="gap:10px;max-width:640px"><h2>${L('Your own private benchmark')}</h2><p class="muted">${L('Test your model on your own tasks with experts from your field – the results stay private.')}</p></div>
+      <a class="btn btn-accent" href="${session && profile?.role === 'company' ? '#/evals' : '#/company-signup'}">${L('Start an evaluation')}</a></div>
+  </section>`;
+}
+
+// ---------- admin tab
+async function adminEvals() {
+  const [{ data: projects, error }, { data: items }, { data: ratings }, { data: assigns }, { data: experts }, { data: cos }] = await Promise.all([
+    sb.from('eval_projects').select('*').order('created_at', { ascending: false }),
+    sb.from('eval_items').select('project_id'),
+    sb.from('eval_ratings').select('eval_items(project_id)'),
+    sb.from('eval_assignments').select('project_id,expert_id'),
+    sb.from('experts').select('id,field,profiles(full_name,email)').eq('status', 'approved'),
+    sb.from('companies').select('id,company_name'),
+  ]);
+  if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+  const count = (arr, f) => (arr || []).reduce((m, x) => { const k = f(x); if (k) m[k] = (m[k] || 0) + 1; return m; }, {});
+  const nItems = count(items, (x) => x.project_id); const nRates = count(ratings, (x) => x.eval_items && x.eval_items.project_id);
+  const coName = Object.fromEntries((cos || []).map((c) => [c.id, c.company_name]));
+  const assigned = (pid) => new Set((assigns || []).filter((a) => a.project_id === pid).map((a) => a.expert_id));
+  const ex = experts || [];
+  const assignBox = (p) => { const set = assigned(p.id); return `<details><summary class="link small">Experts (${set.size})</summary><form class="stack" data-assign="${esc(p.id)}" style="margin-top:8px;gap:6px;min-width:240px">
+      ${ex.length ? ex.map((e) => `<label class="small row" style="gap:6px"><input type="checkbox" name="ex" value="${esc(e.id)}" ${set.has(e.id) ? 'checked' : ''}>${esc(e.profiles?.full_name || e.profiles?.email || e.id.slice(0, 6))} <span class="muted">· ${esc(fieldName(e.field))}</span></label>`).join('') : '<span class="muted small">No approved experts yet.</span>'}
+      ${ex.length ? '<button class="btn btn-sm" type="submit" style="align-self:flex-start">Save</button>' : ''}</form></details>`; };
+  const action = (p) => p.status === 'done' ? `<button class="btn btn-ghost btn-sm" data-evst="${esc(p.id)}" data-to="open">Reopen</button>`
+    : p.status === 'open' ? `<button class="btn btn-ghost btn-sm" data-evst="${esc(p.id)}" data-to="done">Finish</button>`
+    : `<button class="btn btn-sm" data-evst="${esc(p.id)}" data-to="open">Open for experts</button>`;
+  return {
+    html: `<div class="stack">
+      ${table(['Evaluation', 'For', 'Tasks', 'Ratings', 'Status', 'Experts', ''], (projects || []).map((p) => [
+        `<a class="link" style="font-weight:600" href="#/evals/${esc(p.id)}">${esc(p.title)}</a><div class="small muted">${esc(p.model_a)} vs ${esc(p.model_b)} · ${esc(p.language)}</div>`,
+        p.is_benchmark ? 'Brightpeer Bench' : esc(coName[p.company_id] || '–'), esc(nItems[p.id] || 0), esc(nRates[p.id] || 0), evalPill(p.status), assignBox(p),
+        `<div class="row">${action(p)}<button class="btn btn-ghost btn-sm" data-evdel="${esc(p.id)}">Delete</button></div>`]))}
+      <form id="benchNew" class="card stack" style="padding:24px"><h3>New Brightpeer Bench project</h3>
+        <div class="grid" style="gap:12px"><label class="f">Name<input name="title" required minlength="2" maxlength="160" placeholder="e.g. Everyday questions in Spanish"></label>
+        <label class="f">Language<input name="language" required maxlength="60" placeholder="Spanish"></label></div>
+        <div class="grid" style="gap:12px"><label class="f">Model A<input name="model_a" required maxlength="80"></label><label class="f">Model B<input name="model_b" required maxlength="80"></label></div>
+        <label class="f">Instructions for the experts<textarea name="instructions" rows="2" maxlength="4000"></textarea></label>
+        <button class="btn" type="submit" style="align-self:flex-start">Create and add tasks</button></form>
+    </div>`,
+    mount() {
+      $app.querySelectorAll('[data-evst]').forEach((b) => { b.onclick = async () => { const { error: er } = await sb.from('eval_projects').update({ status: b.dataset.to }).eq('id', b.dataset.evst); if (er) return fail(er); render(); }; });
+      $app.querySelectorAll('[data-evdel]').forEach((b) => { b.onclick = async () => { if (!window.confirm('Delete this evaluation with all tasks and ratings? This cannot be undone.')) return; const { error: er } = await sb.from('eval_projects').delete().eq('id', b.dataset.evdel); if (er) return fail(er); render(); }; });
+      $app.querySelectorAll('[data-assign]').forEach((f) => { f.onsubmit = async (e) => {
+        e.preventDefault(); const pid = f.dataset.assign; const want = new Set(new FormData(f).getAll('ex')); const have = assigned(pid);
+        const add = [...want].filter((x) => !have.has(x)).map((x) => ({ project_id: pid, expert_id: x }));
+        const del = [...have].filter((x) => !want.has(x));
+        if (add.length) { const { error: er } = await sb.from('eval_assignments').insert(add); if (er) return fail(er); }
+        if (del.length) { const { error: er } = await sb.from('eval_assignments').delete().eq('project_id', pid).in('expert_id', del); if (er) return fail(er); }
+        toast('Experts saved'); render();
+      }; });
+      const f = document.getElementById('benchNew');
+      f.onsubmit = async (e) => {
+        e.preventDefault(); const d = formData(f);
+        const { data: p, error: er } = await sb.from('eval_projects').insert({ is_benchmark: true, company_id: null, title: d.title.trim(), language: d.language.trim(), model_a: d.model_a.trim(), model_b: d.model_b.trim(), instructions: d.instructions.trim() || null }).select('id').single();
+        if (er) return fail(er);
+        go('#/evals/' + p.id);
+      };
+    },
+  };
+}
+
 // ---------------------------------------------------------------- router
 let renderSeq = 0;
 async function render() {
@@ -3003,7 +3396,8 @@ async function render() {
       case 'login': page = pageLogin(); break;
       case 'reset': page = pageReset(); break;
       case 'companies': page = pageCompanies(); break;
-      case 'services': page = pageServices(parts[1]); break;
+      case 'services': page = parts[1] === 'benchmarks' ? await pageBench() : parts[1] === 'evaluations' ? pageEvalInfo() : pageServices(parts[1]); break;
+      case 'evals': page = await pageEvals(parts[1]); break;
       case 'research': page = pageResearch(); break;
       case 'info': page = pageInfo(); break;
       case 'about': page = pageAbout(); break;
