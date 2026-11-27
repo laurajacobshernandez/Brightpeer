@@ -31,7 +31,7 @@ const en = {
   howCompaniesH: 'How it works for companies',
   hc1h: 'Tell us what you need', hc1p: 'Describe the expertise, the hours and your budget.',
   hc2h: 'We pick the experts', hc2p: 'We select vetted professionals and handle contracts and payments.',
-  hc3h: 'Prepay, then approve hours', hc3p: 'You top up your balance in advance. Approved hours are paid from it every week.',
+  hc3h: 'Prepaid balance, then approve hours', hc3p: 'You top up your balance in advance. Approved hours are paid from it every week.',
   featuredH: 'Open roles', featuredSub: 'Remote, flexible, paid by the hour.', allRoles: 'See all roles',
   payH: 'What experts earn', payNote: 'Typical hourly pay. The exact rate is shown on each role.',
   referralH: 'Invite a colleague – you both get $100',
@@ -58,11 +58,11 @@ const en = {
   sendReset: 'Send reset link', resetSent: 'If an account exists, we sent you a link to reset your password.',
   newPassword: 'New password', savePassword: 'Save password', passwordSaved: 'Password saved.',
   // company
-  companiesH: 'Expert knowledge, on demand.', companiesSub: 'Tell us what you need. We find vetted professionals, handle contracts and pay them – you simply prepay your balance and approve the hours.',
+  companiesH: 'Expert knowledge, on demand.', companiesSub: 'Tell us what you need. We find vetted professionals, handle contracts and pay them – you simply top up a prepaid balance (retainer) and approve the hours.',
   cp1h: 'Vetted experts', cp1p: 'Every expert is reviewed: CV, experience and an interview.',
   cp2h: 'Fast start', cp2p: 'Most projects start within a few days.',
   cp3h: 'No admin work', cp3p: 'We handle contracts, time tracking and payouts worldwide.',
-  cpPriceH: 'Pricing', cpPriceP: 'You pay per approved expert hour, by prepayment: top up your balance, and approved hours are deducted every week. We send you a clear quote for every project – no setup fees, no long-term commitment, unused balance refunded on request.',
+  cpPriceH: 'Pricing', cpPriceP: 'You pay per approved expert hour from a prepaid balance (retainer): top up your balance, and approved hours are deducted every week. We send you a clear quote for every project – no setup fees, no long-term commitment, unused balance refunded on request.',
   companySignupH: 'Create a company account', companyName: 'Company name', website: 'Website (optional)', contactName: 'Your name',
   // dashboard (expert)
   welcome: 'Welcome', status: 'Status', stPending: 'In review', stApproved: 'Approved', stRejected: 'Not approved',
