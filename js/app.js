@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127a';
-import { t, lang } from './i18n.js?v=20261127a';
-import { L } from './tr.js?v=20261127a';
+import { CONFIG } from './config.js?v=20261127b';
+import { t, lang } from './i18n.js?v=20261127b';
+import { L } from './tr.js?v=20261127b';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -843,6 +843,7 @@ function pageCompanies() {
     <div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div>
     <div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">${i}</span><h3>${t('cp' + i + 'h')}</h3><p class="muted">${t('cp' + i + 'p')}</p></div>`).join('')}</div>
   </section>
+  <section class="wrap section"><div class="stack" style="border-top:1px solid var(--ink);padding-top:32px"><h2>${L('Built for AI labs')}</h2><p class="muted" style="max-width:42rem">${L('AI labs and AI teams need real professionals to train, test and improve their models. Brightpeer gives you vetted doctors, lawyers, engineers and scientists who work in your own tools – fast, flexible and paid by the hour.')}</p><div class="grid-sm" style="margin-top:12px">${SERVICES.map((x) => `<a class="chip" href="#/services/${x.id}">${esc(L(x.nav))}</a>`).join('')}</div></div></section>
   <section class="wrap"><div class="dark stack-lg"><h2>${t('howCompaniesH')}</h2><div class="steps">${[1, 2, 3].map((i) => `<div class="step"><span class="step-n">${i}</span><h3>${t('hc' + i + 'h')}</h3><p class="muted">${t('hc' + i + 'p')}</p></div>`).join('')}</div></div></section>
   <section class="wrap section"><div class="stack" style="border-top:1px solid var(--ink);padding-top:32px"><h2>${t('cpPriceH')}</h2><p class="muted" style="max-width:42rem">${t('cpPriceP')}</p><div class="grid-sm" style="margin-top:12px">${FIELDS.slice(0, 7).map((f) => `<span class="chip">${esc(fieldName(f))}</span>`).join('')}</div><a class="btn" style="align-self:flex-start;margin-top:8px" href="${session ? '#/dashboard' : '#/company-signup'}">${t('hire')}</a></div></section>`;
 }
