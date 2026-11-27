@@ -360,3 +360,6 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .hb-m.bot{background:var(--chip);align-self:flex-start}.hb-m.me{background:var(--accent);color:#fff;align-self:flex-end}
 .hb-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
 .hb-form input{flex:1;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px}
+/* Interview shared with companies (27.11.2026) */
+.iv-box{border-top:1px solid var(--line);padding-top:10px;gap:12px}
+.iv-q{display:flex;flex-direction:column;gap:6px}

@@ -119,3 +119,8 @@ create index if not exists assistant_log_user on public.assistant_log (user_id, 
 alter table public.assistant_log enable row level security;
 drop policy if exists p_al_admin on public.assistant_log;
 create policy p_al_admin on public.assistant_log for select using (public.is_admin());
+
+-- 27.11.2026 (applied): interview shared with companies (expert consent)
+-- experts.share_interview boolean default false; company_candidates() also returns interview_shared.
+-- Edge Function candidate-interview (verify_jwt true) returns questions, text answers and 15-min audio links,
+-- only if the candidate belongs to the caller's request and the expert agreed.
