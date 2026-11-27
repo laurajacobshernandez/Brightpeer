@@ -320,3 +320,43 @@ details.faq p{margin-top:10px;color:var(--ink2)}
   #adminView .grid-sm{grid-template-columns:repeat(2,minmax(0,1fr))}
   #adminView .stat-v{font-size:1.5rem}
 }
+/* Admin improvements (27.11.2026): expert detail view, search/CSV above tables, phone cards */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.kv>span:last-child{text-align:right;overflow-wrap:anywhere}
+.table-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.table-tools input{flex:1 1 240px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:#fff}
+.table-tools input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:700px){
+  #adminView .admin-cards{border:0;background:none;overflow:visible}
+  #adminView .admin-cards thead{display:none}
+  #adminView .admin-cards tr{display:block;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:12px}
+  #adminView .admin-cards tr[hidden]{display:none}
+  #adminView .admin-cards td{display:flex;justify-content:space-between;gap:12px;border:0;padding:6px 0;text-align:right}
+  #adminView .admin-cards td::before{content:attr(data-l);color:var(--ink3);font-size:.8rem;font-weight:600;text-align:left;flex:0 0 40%}
+  #adminView .admin-cards td[data-l=""]::before{content:none}
+  #adminView .admin-cards td .row{justify-content:flex-end}
+  #adminView .admin-cards td .btn{min-height:44px}
+}
+/* Mercor features (27.11.2026): time tracker, quality stars, help assistant */
+.timer-v{font-family:var(--font-display,inherit);font-size:2.6rem;font-weight:700;font-variant-numeric:tabular-nums;margin:0;line-height:1}
+.stars{color:#e0a100;letter-spacing:1px;white-space:nowrap}.stars .muted{color:var(--line)}
+.rate{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:220px}
+.rate input[name=note]{flex:1 1 140px;min-height:36px;padding:0 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:.85rem}
+.star-pick{display:inline-flex;flex-direction:row-reverse;border:0;margin:0;padding:0;gap:2px}
+.star-pick label{cursor:pointer;font-size:1.5rem;line-height:1;color:var(--line);min-width:28px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
+.star-pick input{position:absolute;opacity:0;width:1px;height:1px}
+.star-pick input:checked~span,.star-pick label:has(input:checked)~label,.star-pick label:has(input:checked),.star-pick label:hover,.star-pick label:hover~label{color:#e0a100}
+.star-pick label:has(input:focus-visible){outline:2px solid var(--accent);border-radius:6px}
+#helpBot{position:fixed;right:18px;bottom:18px;z-index:60}
+.hb-btn{width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:1.6rem;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgb(0 0 0/18%)}
+.hb-btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.hb-panel{position:absolute;right:0;bottom:70px;width:min(360px,calc(100vw - 36px));background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 50px rgb(0 0 0/18%);display:flex;flex-direction:column;overflow:hidden}
+.hb-panel[hidden]{display:none}
+.hb-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.hb-x{border:0;background:none;font-size:1.5rem;cursor:pointer;min-width:44px;min-height:44px}
+.hb-msgs{max-height:min(50vh,360px);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.hb-m{margin:0;padding:9px 12px;border-radius:14px;max-width:88%;white-space:pre-line;font-size:.92rem}
+.hb-m.bot{background:var(--chip);align-self:flex-start}.hb-m.me{background:var(--accent);color:#fff;align-self:flex-end}
+.hb-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.hb-form input{flex:1;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px}

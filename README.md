@@ -76,6 +76,17 @@ Die Fachleute arbeiten in den Tools der Firma, auf Brightpeer werden nur die Stu
 ## Neu (26.11.2026) – Dokumente der Fachleute
 Neben dem Lebenslauf können Fachleute im Dashboard unter *Dokumente* hochladen: Diplome, Zertifikate, Ausweis, Profilfoto, Arbeitsproben/Portfolio und Steuerformulare (PDF/JPG/PNG/WebP, je max. 10 MB). Ausweis und Foto ersetzen jeweils das alte. Nur die Fachperson und der Admin sehen die Dateien (Admin → *Experts* → Spalte *Documents*), Firmen nie. Gelöscht wird nach 24 Monaten wie beim Lebenslauf. Datenbank: `supabase/documents-2026-11-26.sql` (schon eingespielt).
 
+## Neu (27.11.2026) – wie bei Mercor
+- **Qualität:** Firmen bewerten jede Arbeitswoche mit 1–5 Sternen (+ kurzes Feedback). Fachleute sehen die Bewertung, Admin sieht den Durchschnitt pro Fachperson.
+- **Hilfe-Assistent:** runder „?“-Knopf unten rechts für angemeldete Fachleute und Firmen; antwortet mit KI nur aus den Brightpeer-Fakten (Edge Function `help-assistant`, max. 30 Fragen pro Person und Tag, nutzt den Secret `ANTHROPIC_API_KEY`).
+- **Ausweisprüfung:** Fachleute laden Ausweis + Selfie mit Ausweis hoch → Status „In Prüfung“; Admin → Experts → Profil → „Verify ID“ oder „Ask to redo“ (mit Grund). Neuer Punkt in der To-do-Liste.
+- **Automatische Ausweisprüfung (Stripe Identity):** Knopf „Identität jetzt prüfen“ im Dashboard → Stripe prüft Ausweis + Selfie, das Ergebnis setzt den Status automatisch (Edge Functions `identity-start`, `identity-webhook`). Einschalten: in Supabase → Edge Functions → Secrets `STRIPE_SECRET_KEY` und `STRIPE_IDENTITY_WEBHOOK_SECRET` eintragen; in Stripe → Developers → Webhooks Endpoint `https://wlslnfgfbcanfwlbxaap.supabase.co/functions/v1/identity-webhook` mit den Events `identity.verification_session.verified`, `.requires_input`, `.canceled`. Kosten bei Stripe: ca. $1.50 pro Prüfung, die ersten 50 gratis. Ohne Schlüssel bleibt das Hochladen von Ausweis + Selfie mit Prüfung durch die Admin.
+- **Hintergrundprüfung:** Fachleute geben im Dashboard ihre Zustimmung; die Prüfung macht ein externer Anbieter (z. B. Certn), das Ergebnis trägt die Admin im Profil ein.
+- **Hintergrundprüfung nur bei Bedarf (gratis für Brightpeer):** Firmen kreuzen bei der Anfrage „Unsere Fachleute brauchen eine Hintergrundprüfung“ an (Kosten kommen zur Vorauszahlung). Fachleute können alternativ ihren eigenen amtlichen Strafregisterauszug hochladen (Dokumentart „Strafregisterauszug“).
+- **Zeiterfassung:** Start/Stopp im Dashboard; beim Stoppen wird die Zeit (auf 15 Min. gerundet) zu den Stunden der Woche addiert.
+- **Slack:** das Link-Feld bei „Work info“ ist der Slack-Kanal des Projekts.
+- Datenbank: `supabase/mercor-gaps-2026-11-27.sql` (schon eingespielt).
+
 ## Optional
 - **Anmelden mit Google und Microsoft:** Die Knöpfe erscheinen von selbst, sobald der Anbieter in Supabase eingeschaltet ist (vorher sieht man nur E-Mail + Passwort). Rückleitungs-Adresse für beide: `https://wlslnfgfbcanfwlbxaap.supabase.co/auth/v1/callback`.
   - **Google:** [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → *Create credentials → OAuth client ID* → Typ *Web application* → bei *Authorized redirect URIs* die Rückleitungs-Adresse eintragen → Client-ID und Client-Secret kopieren → Supabase → Authentication → Providers → **Google** → einschalten, beide Werte einfügen → Save. (Vorher in der Console den *OAuth consent screen* mit App-Name „Brightpeer“ ausfüllen und auf *In production* stellen.)
