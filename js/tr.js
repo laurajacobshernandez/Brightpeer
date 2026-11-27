@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127n';
+import { lang } from './i18n.js?v=20261127o';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -237,6 +237,8 @@ const D = {
   'Companies may see my interview answers (anonymous)': T('Firmen dürfen meine Interview-Antworten sehen (anonym)', 'Les entreprises peuvent voir mes réponses d’entretien (anonymes)', 'Le aziende possono vedere le mie risposte al colloquio (anonime)', 'Las empresas pueden ver mis respuestas de la entrevista (anónimas)'),
   'View interview': T('Interview ansehen', 'Voir l’entretien', 'Vedi il colloquio', 'Ver la entrevista'),
   'The interview could not be loaded.': T('Das Interview konnte nicht geladen werden.', 'L’entretien n’a pas pu être chargé.', 'Non è stato possibile caricare il colloquio.', 'No se pudo cargar la entrevista.'),
+  'Search roles, skills …': T('Stellen, Fähigkeiten suchen …', 'Rechercher postes, compétences …', 'Cerca ruoli, competenze …', 'Buscar puestos, habilidades …'),
+  'No matching role – apply anyway, we add new fields all the time.': T('Keine passende Stelle – bewirb dich trotzdem, wir ergänzen laufend neue Fachrichtungen.', 'Aucun poste correspondant – postulez quand même, nous ajoutons sans cesse de nouveaux domaines.', 'Nessun ruolo corrispondente – candidati comunque, aggiungiamo continuamente nuovi settori.', 'Ningún puesto coincide: postúlate igualmente, añadimos nuevas áreas constantemente.'),
 };
 
 export const L = (s) => (D[s] && D[s][lang]) || s;
