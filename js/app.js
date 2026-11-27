@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127f';
-import { t, lang } from './i18n.js?v=20261127f';
-import { L } from './tr.js?v=20261127f';
+import { CONFIG } from './config.js?v=20261127g';
+import { t, lang } from './i18n.js?v=20261127g';
+import { L } from './tr.js?v=20261127g';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -1793,6 +1793,8 @@ async function pageAdmin() {
       const act = $app.querySelector('.tabs .tab.active'); const bar = act && act.parentElement;
       if (bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = act.offsetLeft - (bar.clientWidth - act.offsetWidth) / 2;
       view.mount && view.mount();
+      enhanceAdminTables();
+      guardAdminActions();
     },
   };
 }
@@ -1842,6 +1844,123 @@ async function deleteQueuedFiles() {
       if (!error) await sb.from('file_deletions').delete().in('path', paths);
     }
   } catch (e) { console.error(e); }
+}
+
+// ---------------------------------------------------------------- admin: one expert on one page (owner, 27.11.2026: "verbessere das Admin-Bereich")
+async function expertDetail(id) {
+  const [ex, sc, pd, docs, tests, iv, cons, pays] = await Promise.all([
+    sb.from('experts').select('*, profiles(full_name,email,country)').eq('id', id).maybeSingle(),
+    sb.rpc('admin_expert_scores'), sb.rpc('admin_payout_details'),
+    sb.from('expert_documents').select('kind,path,file_name,created_at').eq('expert_id', id).order('created_at'),
+    sb.rpc('admin_test_attempts'),
+    sb.from('interviews').select('*').eq('expert_id', id).maybeSingle(),
+    sb.from('contracts').select('id,title,status,expert_rate,client_rate,start_date,companies(company_name)').eq('expert_id', id).order('created_at', { ascending: false }),
+    sb.from('payouts').select('id,week_start,hours,amount,status,paid_at').eq('expert_id', id).order('week_start', { ascending: false }),
+  ]);
+  const back = `<a class="link" href="#/admin?tab=experts">← ${L('All experts')}</a>`;
+  if (ex.error || !ex.data) return { html: `<div class="stack">${back}<p class="form-msg err">${esc(ex.error?.message || t('error'))}</p></div>` };
+  const e = ex.data; const pr = e.profiles || {};
+  const x = (sc.data || []).find((r) => r.expert_id === id) || {};
+  const payout = ((pd.data || []).find((r) => r.id === id) || {}).details || '';
+  const attempts = (tests.data || []).filter((a) => a.expert_id === id);
+  const i = iv.data || null;
+  const row = (k, v) => (v || v === 0 ? `<div class="kv"><span class="muted small">${esc(k)}</span><span>${v}</span></div>` : '');
+  const sec = (title, body) => `<div class="card stack">${`<h3>${esc(title)}</h3>`}${body}</div>`;
+  const stars = (n) => (n ? `<span style="color:var(--accent)">${'★'.repeat(n)}</span><span class="muted">${'★'.repeat(5 - n)}</span>` : '');
+  const docBtns = (docs.data || []).length ? `<div class="row" style="gap:8px">${(docs.data || []).map((d) => `<button class="btn btn-ghost btn-sm" data-doc-open="${esc(d.path)}" title="${esc(d.file_name || '')}">${esc(DOC_SHORT[d.kind] || d.kind)}</button>`).join('')}</div>` : `<p class="muted small">${L('No documents yet')}</p>`;
+  return {
+    html: `<div class="stack-lg">
+      ${back}
+      <div class="card stack">
+        <div class="row between" style="align-items:flex-start">
+          <div class="stack" style="gap:4px"><h2 style="font-size:clamp(1.6rem,3vw,2.2rem)">${esc(pr.full_name || '–')}</h2>
+            <p class="muted">${esc(fieldName(e.field))}${e.years_experience != null ? ` · ${esc(e.years_experience)} ${L('years')}` : ''}${pr.country ? ` · ${esc(pr.country)}` : ''}</p>
+            <p><a href="mailto:${esc(pr.email || '')}">${esc(pr.email || '')}</a></p></div>
+          <div class="stack" style="gap:8px;align-items:flex-end">${pill(e.status)}
+            <div class="row"><button class="btn btn-sm" data-ex="${e.id}" data-st="approved">${t('approve')}</button><button class="btn btn-danger btn-sm" data-ex="${e.id}" data-st="rejected">${t('reject')}</button></div></div>
+        </div>
+        <div class="grid-sm">
+          <div><p class="muted small">Score</p><p class="stat-v">${esc(x.score ?? 0)}<span class="muted small"> / 100</span></p>${x.ready ? '<span class="pill pill-ok">ready</span>' : ''}</div>
+          <div><p class="muted small">CV</p><p class="stat-v">${x.has_cv ? '✓' : '✗'}</p></div>
+          <div><p class="muted small">${L('Field test')}</p><p class="stat-v">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div>
+          <div><p class="muted small">Interview</p><p class="stat-v">${x.interview_score ? stars(x.interview_score) : x.ai_score ? stars(x.ai_score) + ' <span class="small muted">(AI)</span>' : '–'}</p></div>
+          <div><p class="muted small">${L('Expected rate')}</p><p class="stat-v">${e.rate_expectation ? money(e.rate_expectation) : '–'}</p></div>
+        </div>
+      </div>
+      <div class="grid">
+        ${sec(L('Profile'), row(L('Headline'), esc(e.headline || '')) + row(L('Skills'), esc(e.skills || '')) + row(L('Languages'), esc(e.languages || '')) + row('LinkedIn', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">${esc(e.linkedin)}</a>` : '') + row(L('Referred by'), esc(e.referred_by || '')) + row(L('Signed up'), dateStr(e.created_at)) + (e.bio ? `<p style="white-space:pre-line">${esc(e.bio)}</p>` : ''))}
+        ${sec(L('CV and documents'), (e.cv_path ? `<button class="btn btn-sm" data-cv="${esc(e.cv_path)}" style="align-self:flex-start">CV (PDF)</button>` : `<p class="muted small">${L('No CV yet')}</p>`) + docBtns)}
+        ${sec(L('Field test'), attempts.length ? attempts.map((a) => `<div class="kv"><span>${esc(a.title || '')} · ${a.submitted_at ? dateStr(a.submitted_at) : t('stInProgress')}</span><span>${pill(a.status)} ${a.mc_max ? Math.round((a.mc_score / a.mc_max) * 100) + ' %' : ''}</span></div>`).join('') + `<a class="link small" href="#/admin?tab=testsTab">${L('Check answers')} →</a>` : `<p class="muted small">${L('No test yet')}</p>`)}
+        ${sec('Interview', i ? row('Status', pill(i.status)) + row(L('Submitted'), i.submitted_at ? dateStr(i.submitted_at) : '') + row(L('AI rating'), i.ai_score ? stars(i.ai_score) : '') + (i.ai_summary ? `<p class="small" style="white-space:pre-line">${esc(i.ai_summary)}</p>` : '') + `<a class="link small" href="#/admin?tab=interviewsTab">${L('Listen and rate')} →</a>` : `<p class="muted small">${L('No interview yet')}</p>`)}
+        ${sec(L('Tax details'), e.tax_confirmed_at ? row(L('Country'), esc(e.tax_country || '')) + row('Status', esc(e.tax_status === 'company' ? 'Company' : 'Self-employed')) + row(L('Company'), esc(e.business_name || '')) + row(L('Tax number'), esc(e.tax_id || '')) + row(L('Address'), `<span style="white-space:pre-line">${esc(e.billing_address || '')}</span>`) + row(L('Confirmed'), dateStr(e.tax_confirmed_at)) : `<p class="muted small">${L('Not filled in yet')}</p>`)}
+        ${sec(L('Payout details'), e.payout_method ? row(L('Method'), esc(e.payout_method)) + row(L('Details'), `<span style="white-space:pre-line">${esc(payout)}</span>`) : `<p class="muted small">${L('Not filled in yet')}</p>`)}
+      </div>
+      <div class="stack"><h3>${t('contracts')}</h3>${table([L('Project'), L('Company'), t('status'), L('Expert rate'), L('Client rate'), t('startDate')], (cons.data || []).map((c) => [esc(c.title || ''), esc(c.companies?.company_name || ''), pill(c.status), money(c.expert_rate), money(c.client_rate), c.start_date ? dateStr(c.start_date) : '']))}</div>
+      <div class="stack"><h3>${t('payoutsH')}</h3>${table([t('weekStart'), t('hoursWorked'), t('amount'), t('status'), ''], (pays.data || []).map((p) => [dateStr(p.week_start), esc(p.hours), money(p.amount), pill(p.status), `<a class="small" href="#/statement/${p.id}">${L('Statement')} →</a>`]))}</div>
+    </div>`,
+    mount() {
+      $app.querySelectorAll('[data-cv]').forEach((b) => { b.onclick = async () => {
+        const { data: u, error: er } = await sb.storage.from('cvs').createSignedUrl(b.dataset.cv, 300);
+        if (er) return fail(er); window.open(u.signedUrl, '_blank', 'noopener');
+      }; });
+      $app.querySelectorAll('[data-doc-open]').forEach((b) => { b.onclick = () => openDoc(b.dataset.docOpen); });
+      $app.querySelectorAll('[data-ex]').forEach((b) => { b.onclick = async () => {
+        const { error: er } = await sb.from('experts').update({ status: b.dataset.st }).eq('id', b.dataset.ex);
+        if (er) return fail(er); toast(t('saved')); render();
+      }; });
+    },
+  };
+}
+
+// Search + CSV export above every admin table, and labels for the phone card view (owner, 27.11.2026).
+function enhanceAdminTables() {
+  const view = document.getElementById('adminView'); if (!view) return;
+  view.querySelectorAll('.table-wrap').forEach((wrap, n) => {
+    const tbl = wrap.querySelector('table'); if (!tbl || wrap.dataset.enhanced) return;
+    wrap.dataset.enhanced = '1'; wrap.classList.add('admin-cards');
+    const heads = [...tbl.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+    const rows = [...tbl.querySelectorAll('tbody tr')];
+    rows.forEach((tr) => [...tr.children].forEach((td, i) => { td.dataset.l = heads[i] || ''; }));
+    if (rows.length < 2) return;
+    const bar = document.createElement('div'); bar.className = 'table-tools';
+    const id = `tsearch-${n}`;
+    bar.innerHTML = `<label class="sr-only" for="${id}">${esc(L('Search'))}</label><input id="${id}" type="search" placeholder="${esc(L('Search name, e-mail, company …'))}" autocomplete="off"><span class="muted small" aria-live="polite"></span><button class="btn btn-ghost btn-sm" type="button">CSV</button>`;
+    wrap.before(bar);
+    const input = bar.querySelector('input'); const info = bar.querySelector('span');
+    input.oninput = () => {
+      const q = input.value.trim().toLowerCase(); let shown = 0;
+      rows.forEach((tr) => { const hit = !q || tr.textContent.toLowerCase().includes(q); tr.hidden = !hit; if (hit) shown += 1; });
+      info.textContent = q ? `${shown} / ${rows.length}` : '';
+    };
+    bar.querySelector('button').onclick = () => {
+      const cell = (v) => `"${String(v).replace(/\s+/g, ' ').trim().replace(/"/g, '""')}"`;
+      const lines = [heads.map(cell).join(','), ...rows.filter((tr) => !tr.hidden).map((tr) => [...tr.children].map((td) => cell(td.innerText)).join(','))];
+      const url = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
+      const a = document.createElement('a'); a.href = url; a.download = `brightpeer-${adminTab}-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  });
+}
+
+// Safety question before actions that are hard to undo (owner, 27.11.2026). Buttons that already ask are left alone.
+const ADMIN_CONFIRM = [
+  ['[data-st="rejected"]', 'Really reject?'],
+  ['[data-paidpay]', 'Mark this payout as paid? Only after you really transferred the money.'],
+  ['[data-paidinv]', 'Mark this invoice as paid?'],
+  ['[data-rbpaid]', 'Mark this referral bonus as paid?'],
+  ['[data-endcon]', 'End this contract? The expert can no longer log hours for it.'],
+  ['[data-uncand]', 'Remove this expert from the request?'],
+  ['[data-ta-reset]', 'Reset this test attempt? The answers will be deleted.'],
+];
+function guardAdminActions() {
+  const view = document.getElementById('adminView'); if (!view || view.dataset.guarded) return;
+  view.dataset.guarded = '1';
+  view.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button'); if (!btn || !view.contains(btn)) return;
+    const hit = ADMIN_CONFIRM.find(([sel]) => btn.matches(sel));
+    const msg = hit ? hit[1] : (btn.classList.contains('btn-danger') && !btn.matches('[data-delrole],[data-delexp],[data-rbundo]') ? 'Are you sure?' : null);
+    if (msg && !window.confirm(L(msg))) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+  }, true);
 }
 
 const ADMIN = {
@@ -1905,6 +2024,8 @@ const ADMIN = {
   },
 
   async experts() {
+    const detailId = parseHash().query.get('id');
+    if (detailId) return expertDetail(detailId);
     const filter = parseHash().query.get('st') || 'pending';
     let qy = sb.from('experts').select('*, profiles(full_name,email,country)').order('created_at', { ascending: false });
     if (filter !== 'all') qy = qy.eq('status', filter);
@@ -1920,7 +2041,7 @@ const ADMIN = {
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
       html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Documents', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
-        `<details><summary class="link">${esc(e.profiles?.full_name || '')}</summary><p class="small" style="max-width:320px;white-space:pre-line;margin-top:6px">${esc(e.bio || '')}</p></details>`, scoreCell(e.id),
+        `<a class="link" style="font-weight:600" href="#/admin?tab=experts&id=${esc(e.id)}">${esc(e.profiles?.full_name || '–')}</a><div class="small muted">${L('Open profile')} →</div>`, scoreCell(e.id),
         `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || '') + (e.tax_confirmed_at ? `<div class="small muted">Tax: ${esc(e.tax_country || '')}${e.tax_status === 'company' ? ` · ${esc(e.business_name || 'company')}` : ''}</div>` : '<div class="small muted">Tax: –</div>'), esc(fieldName(e.field)) + (e.languages ? `<div class="small muted">${esc(e.languages)}</div>` : ''), esc(e.years_experience ?? ''),
         e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
         e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', docsCell(e.id), esc(e.referred_by || ''),

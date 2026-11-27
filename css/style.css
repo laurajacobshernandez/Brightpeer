@@ -320,3 +320,21 @@ details.faq p{margin-top:10px;color:var(--ink2)}
   #adminView .grid-sm{grid-template-columns:repeat(2,minmax(0,1fr))}
   #adminView .stat-v{font-size:1.5rem}
 }
+/* Admin improvements (27.11.2026): expert detail view, search/CSV above tables, phone cards */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.kv>span:last-child{text-align:right;overflow-wrap:anywhere}
+.table-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.table-tools input{flex:1 1 240px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:#fff}
+.table-tools input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:700px){
+  #adminView .admin-cards{border:0;background:none;overflow:visible}
+  #adminView .admin-cards thead{display:none}
+  #adminView .admin-cards tr{display:block;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:12px}
+  #adminView .admin-cards tr[hidden]{display:none}
+  #adminView .admin-cards td{display:flex;justify-content:space-between;gap:12px;border:0;padding:6px 0;text-align:right}
+  #adminView .admin-cards td::before{content:attr(data-l);color:var(--ink3);font-size:.8rem;font-weight:600;text-align:left;flex:0 0 40%}
+  #adminView .admin-cards td[data-l=""]::before{content:none}
+  #adminView .admin-cards td .row{justify-content:flex-end}
+  #adminView .admin-cards td .btn{min-height:44px}
+}
