@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127n';
-import { t, lang } from './i18n.js?v=20261127n';
-import { L } from './tr.js?v=20261127n';
+import { CONFIG } from './config.js?v=20261127o';
+import { t, lang } from './i18n.js?v=20261127o';
+import { L } from './tr.js?v=20261127o';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -437,7 +437,8 @@ async function pageHome() {
   </section>
   <section class="wrap section stack-lg" style="padding-top:0">
     <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
-    ${fields.length > 1 ? `<div class="row" style="gap:8px" id="homeChips"><button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}</div>` : ''}
+    <div class="row" style="gap:8px" id="homeChips">${fields.length > 1 ? `<button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}` : ''}<input type="search" id="homeSearch" class="home-search" placeholder="${esc(L('Search roles, skills …'))}" aria-label="${esc(L('Search roles, skills …'))}"></div>
+    <p class="muted" id="homeNone" hidden>${L('No matching role – apply anyway, we add new fields all the time.')}</p>
     <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" class="card card-link role-card"`)).join('')}</div>
   </section>
   <section class="wrap"><div class="dark stack-lg"><h2>${t('howExpertsH')}</h2><div class="steps">${homeSteps('he')}</div><a class="btn btn-accent" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a></div></section>
@@ -461,11 +462,22 @@ async function pageHome() {
   return {
     html,
     mount() {
+      // Owner, 27.11.2026: search field on the far right of the field filters; works together with the chips.
       const chips = $app.querySelectorAll('[data-hf]');
-      chips.forEach((b) => { b.onclick = () => {
-        chips.forEach((x) => x.classList.toggle('btn-ghost', x !== b));
-        $app.querySelectorAll('#homeRoles [data-field]').forEach((c) => { c.style.display = !b.dataset.hf || c.dataset.field === b.dataset.hf ? '' : 'none'; });
-      }; });
+      const q = document.getElementById('homeSearch');
+      let field = '';
+      const apply = () => {
+        const words = (q.value || '').toLowerCase().split(/\s+/).filter(Boolean);
+        let shown = 0;
+        $app.querySelectorAll('#homeRoles [data-field]').forEach((c) => {
+          const txt = c.textContent.toLowerCase();
+          const ok = (!field || c.dataset.field === field) && words.every((w) => txt.includes(w));
+          c.style.display = ok ? '' : 'none'; if (ok) shown++;
+        });
+        document.getElementById('homeNone').hidden = shown > 0;
+      };
+      chips.forEach((b) => { b.onclick = () => { chips.forEach((x) => x.classList.toggle('btn-ghost', x !== b)); field = b.dataset.hf; apply(); }; });
+      q.oninput = apply;
     },
   };
 }
