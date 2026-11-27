@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127q';
-import { t, lang } from './i18n.js?v=20261127q';
-import { L } from './tr.js?v=20261127q';
+import { CONFIG } from './config.js?v=20261127r';
+import { t, lang } from './i18n.js?v=20261127r';
+import { L } from './tr.js?v=20261127r';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -438,6 +438,67 @@ function roleSearchText(r) {
   return normQ(base + ' ' + langs);
 }
 
+// Owner, 27.11.2026: role list toolbar like Mercor "Explore opportunities" – tabs Project-based / One-time, search,
+// Priority (sort), Filter (field + minimum pay) and "Refer & earn", instead of the row of field names.
+// A role counts as one-time when its title or hours text says so (e.g. "One-time task", "einmalig").
+const isOneTime = (r) => /one[- ]?time|einmalig|unique|una tantum|única vez|per task|single task/i.test(`${r.title || ''} ${r.hours_per_week || ''}`);
+function roleToolbar(fields) {
+  const radio = (name, val, label, on) => `<label class="drop-opt"><input type="radio" name="${name}" value="${esc(val)}"${on ? ' checked' : ''}> ${esc(label)}</label>`;
+  const referHref = session && profile?.role === 'expert' ? '#/dashboard' : '#/apply';
+  return `<div class="role-tabs" role="tablist">
+      <button type="button" role="tab" class="role-tab on" data-rt="project" aria-selected="true">${L('Project-based')}</button>
+      <button type="button" role="tab" class="role-tab" data-rt="one" aria-selected="false">${L('One-time')}</button>
+    </div>
+    <div class="role-tools">
+      <input type="search" id="homeSearch" class="role-search" placeholder="${esc(L('Type to search'))}" aria-label="${esc(L('Type to search'))}">
+      <div class="role-tools-r">
+        <label class="tool-btn"><span class="sr-only">${L('Priority')}</span><select id="homeSort" aria-label="${esc(L('Priority'))}">
+          <option value="prio">${L('Priority')}</option><option value="pay">${L('Highest pay')}</option><option value="new">${L('Newest')}</option>
+        </select></label>
+        <details class="tool-drop" id="homeFilter"><summary class="tool-btn">${L('Filter')} <span id="homeFilterN"></span></summary>
+          <div class="drop-menu">
+            <p class="drop-h">${L('Field')}</p>${radio('hf', '', t('allFields'), true)}${fields.map((f) => radio('hf', f, fieldName(f), false)).join('')}
+            <p class="drop-h">${L('Minimum pay')}</p>${[['', L('Any')], ['50', '$50+'], ['80', '$80+'], ['100', '$100+']].map(([v, l], i) => radio('hp', v, l, i === 0)).join('')}
+          </div>
+        </details>
+        <a class="btn btn-accent btn-sm" href="${referHref}">${L('Refer & earn')}</a>
+      </div>
+    </div>`;
+}
+function mountRoleToolbar() {
+  const grid = document.getElementById('homeRoles');
+  if (!grid) return;
+  const q = document.getElementById('homeSearch');
+  const sortSel = document.getElementById('homeSort');
+  const drop = document.getElementById('homeFilter');
+  let type = 'project';
+  const val = (n) => (drop.querySelector(`input[name="${n}"]:checked`) || {}).value || '';
+  const apply = () => {
+    const words = normQ(q.value).split(/[\s,]+/).filter(Boolean);
+    const field = val('hf'); const minPay = Number(val('hp')) || 0;
+    document.getElementById('homeFilterN').textContent = [field, minPay].filter(Boolean).length ? `(${[field, minPay].filter(Boolean).length})` : '';
+    const cards = [...grid.querySelectorAll('[data-field]')];
+    const key = sortSel.value;
+    cards.sort((a, b) => key === 'pay' ? b.dataset.pay - a.dataset.pay : key === 'new' ? String(b.dataset.new).localeCompare(String(a.dataset.new)) : a.dataset.prio - b.dataset.prio)
+      .forEach((c) => grid.appendChild(c));
+    let shown = 0;
+    cards.forEach((c) => {
+      const ok = c.dataset.type === type && (!field || c.dataset.field === field) && Number(c.dataset.pay) >= minPay && words.every((w) => (c.dataset.q || normQ(c.textContent)).includes(w));
+      c.style.display = ok ? '' : 'none'; if (ok) shown++;
+    });
+    const none = document.getElementById('homeNone');
+    none.hidden = shown > 0;
+    none.textContent = type === 'one' && !cards.some((c) => c.dataset.type === 'one') ? L('No one-time tasks right now – check back soon.') : L('No matching role – apply anyway, we add new fields all the time.');
+  };
+  document.querySelectorAll('[data-rt]').forEach((b) => { b.onclick = () => {
+    type = b.dataset.rt;
+    document.querySelectorAll('[data-rt]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+    apply();
+  }; });
+  q.oninput = apply; sortSel.onchange = apply; drop.onchange = apply;
+  document.addEventListener('click', (e) => { if (drop.open && !drop.contains(e.target)) drop.open = false; });
+  apply();
+}
 async function pageHome() {
   // Owner, 25.11.2026: intro first, then all roles ("Gesuchte Fachrichtungen") with quick field filters.
   const roles = [...(await getRoles())].sort((a, b) => FIELDS.indexOf(a.field) - FIELDS.indexOf(b.field));
@@ -457,9 +518,9 @@ async function pageHome() {
   </section>
   <section class="wrap section stack-lg" style="padding-top:0">
     <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
-    <div class="row" style="gap:8px" id="homeChips">${fields.length > 1 ? `<button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}` : ''}<input type="search" id="homeSearch" class="home-search" placeholder="${esc(L('Search roles, skills …'))}" aria-label="${esc(L('Search roles, skills …'))}"></div>
+    ${roleToolbar(fields)}
     <p class="muted" id="homeNone" hidden>${L('No matching role – apply anyway, we add new fields all the time.')}</p>
-    <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" data-q="${esc(roleSearchText(r))}" class="card card-link role-card"`)).join('')}</div>
+    <div class="grid" id="homeRoles">${roles.map((r, i) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" data-q="${esc(roleSearchText(r))}" data-type="${isOneTime(r) ? 'one' : 'project'}" data-pay="${Number(r.rate_max) || 0}" data-new="${esc(r.created_at || '')}" data-prio="${i}" class="card card-link role-card"`)).join('')}</div>
   </section>
   <section class="wrap"><div class="dark stack-lg"><h2>${t('howExpertsH')}</h2><div class="steps">${homeSteps('he')}</div><a class="btn btn-accent" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a></div></section>
   <section class="wrap section"><div class="soft stack-lg">
@@ -482,22 +543,7 @@ async function pageHome() {
   return {
     html,
     mount() {
-      // Owner, 27.11.2026: search field on the far right of the field filters; works together with the chips.
-      const chips = $app.querySelectorAll('[data-hf]');
-      const q = document.getElementById('homeSearch');
-      let field = '';
-      const apply = () => {
-        const words = normQ(q.value).split(/[\s,]+/).filter(Boolean);
-        let shown = 0;
-        $app.querySelectorAll('#homeRoles [data-field]').forEach((c) => {
-          const txt = c.dataset.q || normQ(c.textContent);
-          const ok = (!field || c.dataset.field === field) && words.every((w) => txt.includes(w));
-          c.style.display = ok ? '' : 'none'; if (ok) shown++;
-        });
-        document.getElementById('homeNone').hidden = shown > 0;
-      };
-      chips.forEach((b) => { b.onclick = () => { chips.forEach((x) => x.classList.toggle('btn-ghost', x !== b)); field = b.dataset.hf; apply(); }; });
-      q.oninput = () => { if (q.value && field) { field = ''; chips.forEach((x) => x.classList.toggle('btn-ghost', x.dataset.hf !== '')); } apply(); };
+      mountRoleToolbar();
     },
   };
 }

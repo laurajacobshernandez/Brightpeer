@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127q';
+import { lang } from './i18n.js?v=20261127r';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -239,6 +239,18 @@ const D = {
   'The interview could not be loaded.': T('Das Interview konnte nicht geladen werden.', 'L’entretien n’a pas pu être chargé.', 'Non è stato possibile caricare il colloquio.', 'No se pudo cargar la entrevista.'),
   'Search roles, skills …': T('Stellen, Fähigkeiten suchen …', 'Rechercher postes, compétences …', 'Cerca ruoli, competenze …', 'Buscar puestos, habilidades …'),
   'No matching role – apply anyway, we add new fields all the time.': T('Keine passende Stelle – bewirb dich trotzdem, wir ergänzen laufend neue Fachrichtungen.', 'Aucun poste correspondant – postulez quand même, nous ajoutons sans cesse de nouveaux domaines.', 'Nessun ruolo corrispondente – candidati comunque, aggiungiamo continuamente nuovi settori.', 'Ningún puesto coincide: postúlate igualmente, añadimos nuevas áreas constantemente.'),
+  'Project-based': T('Projekte', 'Projets', 'Progetti', 'Proyectos'),
+  'One-time': T('Einmalig', 'Ponctuel', 'Una tantum', 'Puntual'),
+  'Type to search': T('Suchen …', 'Rechercher …', 'Cerca …', 'Buscar …'),
+  'Priority': T('Priorität', 'Priorité', 'Priorità', 'Prioridad'),
+  'Highest pay': T('Höchster Lohn', 'Meilleure rémunération', 'Paga più alta', 'Mayor pago'),
+  'Newest': T('Neueste', 'Plus récents', 'Più recenti', 'Más recientes'),
+  'Filter': T('Filter', 'Filtrer', 'Filtra', 'Filtrar'),
+  'Field': T('Fachrichtung', 'Domaine', 'Settore', 'Área'),
+  'Minimum pay': T('Mindestlohn pro Stunde', 'Rémunération minimale', 'Paga minima', 'Pago mínimo'),
+  'Any': T('Alle', 'Tous', 'Tutti', 'Todos'),
+  'Refer & earn': T('Empfehlen & verdienen', 'Parrainer & gagner', 'Invita e guadagna', 'Recomienda y gana'),
+  'No one-time tasks right now – check back soon.': T('Gerade keine einmaligen Aufgaben – schau bald wieder vorbei.', 'Aucune mission ponctuelle pour le moment – revenez bientôt.', 'Nessun incarico una tantum al momento – torna presto.', 'Ahora no hay tareas puntuales: vuelve pronto.'),
 };
 
 export const L = (s) => (D[s] && D[s][lang]) || s;
