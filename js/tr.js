@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127j';
+import { lang } from './i18n.js?v=20261127k';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -225,6 +225,9 @@ const D = {
   'Automatic answers – for personal cases write to': T('Automatische Antworten – bei persönlichen Fragen schreib an', 'Réponses automatiques – pour les cas personnels, écrivez à', 'Risposte automatiche – per casi personali scrivi a', 'Respuestas automáticas: para casos personales escribe a'),
   'You asked many questions today – please try again tomorrow or write to us.': T('Du hast heute schon viele Fragen gestellt – bitte versuch es morgen wieder oder schreib uns.', 'Vous avez posé beaucoup de questions aujourd’hui – réessayez demain ou écrivez-nous.', 'Hai fatto molte domande oggi – riprova domani o scrivici.', 'Hoy has hecho muchas preguntas: inténtalo mañana o escríbenos.'),
   'Sorry, that did not work. Please try again or write to us.': T('Das hat leider nicht geklappt. Bitte versuch es nochmals oder schreib uns.', 'Désolé, cela n’a pas fonctionné. Réessayez ou écrivez-nous.', 'Spiacenti, non ha funzionato. Riprova o scrivici.', 'Lo siento, no funcionó. Inténtalo de nuevo o escríbenos.'),
+  'Verify my identity now (about 2 minutes)': T('Identität jetzt prüfen (ca. 2 Minuten)', 'Vérifier mon identité maintenant (environ 2 minutes)', 'Verifica ora la mia identità (circa 2 minuti)', 'Verificar mi identidad ahora (unos 2 minutos)'),
+  'Automatic check by Stripe Identity: you photograph your passport, ID card or driving licence and take a selfie. The result comes within minutes.': T('Automatische Prüfung durch Stripe Identity: Du fotografierst deinen Pass, deine Identitätskarte oder deinen Führerausweis und machst ein Selfie. Das Ergebnis kommt innert Minuten.', 'Vérification automatique par Stripe Identity : vous photographiez votre passeport, carte d’identité ou permis de conduire et prenez un selfie. Le résultat arrive en quelques minutes.', 'Verifica automatica con Stripe Identity: fotografi passaporto, carta d’identità o patente e scatti un selfie. Il risultato arriva in pochi minuti.', 'Verificación automática con Stripe Identity: fotografías tu pasaporte, documento de identidad o carné de conducir y te haces un selfie. El resultado llega en minutos.'),
+  'The automatic check is not available yet – please upload your ID document and a selfie below.': T('Die automatische Prüfung ist noch nicht verfügbar – bitte lade unten deinen Ausweis und ein Selfie hoch.', 'La vérification automatique n’est pas encore disponible – téléversez votre pièce d’identité et un selfie ci-dessous.', 'La verifica automatica non è ancora disponibile – carica qui sotto il documento e un selfie.', 'La verificación automática aún no está disponible: sube abajo tu documento y un selfie.'),
 };
 
 export const L = (s) => (D[s] && D[s][lang]) || s;
