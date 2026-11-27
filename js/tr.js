@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127o';
+import { lang } from './i18n.js?v=20261127p';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
