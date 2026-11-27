@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127s';
-import { t, lang } from './i18n.js?v=20261127s';
-import { L } from './tr.js?v=20261127s';
+import { CONFIG } from './config.js?v=20261127t';
+import { t, lang } from './i18n.js?v=20261127t';
+import { L } from './tr.js?v=20261127t';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -1996,7 +1996,7 @@ async function pageAdmin() {
   const tabBar = `<div class="tabs" role="tablist">${TABS.map((k) => `<button class="tab ${adminTab === k ? 'active' : ''}" role="tab" data-tab="${k}">${TAB_LABEL[k] || t(k)}${badge(k)}</button>`).join('')}</div>`;
   if (adminTab === 'overview') view.html = todoBox(todo) + view.html;
   return {
-    html: `<section class="wrap section stack-lg"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('admin')}</h1>${tabBar}<div id="adminView">${view.html}</div></section>`,
+    html: `<section class="wrap section stack-lg admin-area"><h1 style="font-size:clamp(1.8rem,3vw,2.4rem)">${t('admin')}</h1>${tabBar}<div id="adminView">${view.html}</div></section>`,
     mount() {
       $app.querySelectorAll('[data-tab]').forEach((b) => { b.onclick = () => { adminTab = b.dataset.tab; go('#/admin?tab=' + adminTab); }; });
       // On phones the tabs are one scrollable row: keep the open tab in view.
@@ -2212,14 +2212,14 @@ const ADMIN = {
       html: `<div class="stack-lg">
         <div class="stack"><h3>Balances</h3>
           ${table(['Company', 'Paid in', 'Used', 'Balance'], bals.map(([id, b]) => [esc(name[id]), money(b.paid || 0), money(b.used || 0), `<b style="color:${Number(b.balance) < (CONFIG.LOW_BALANCE || 500) ? 'var(--bad)' : 'var(--ok)'}">${money(b.balance || 0)}</b>`]))}
-          <p class="muted small">Only let experts work (and approve hours) while the company's balance covers them. Red = low or negative.</p>
+          
         </div>
         <form id="addPrep" class="card row" style="align-items:flex-end">
           <label class="f" style="flex:1 1 200px">Company<select name="company_id" required>${(cos || []).map((c) => `<option value="${c.id}">${esc(c.company_name || c.id)}</option>`).join('')}</select></label>
           <label class="f" style="width:150px">Amount (USD)<input name="amount" type="number" min="1" required></label>
           <button class="btn btn-accent" type="submit">Create prepayment request</button>
         </form>
-        <p class="muted small">Flow: company requests a top-up (or you create one) → paste a Stripe Payment Link for the amount (stripe.com → Payment Links) → status becomes “open” and the company sees “Pay now” → when the money has arrived, click “Mark paid”. Without a link the company sees your bank details.</p>
+        
         ${table(['Company', 'Date', 'No.', t('amount'), 'Payment link', t('status'), ''], (data || []).map((p) => [
           `${esc(p.companies?.company_name || '')}<br><span class="small muted">${esc(p.companies?.profiles?.email || '')}</span>`, dateStr(p.created_at), `<a href="#/invoice/${esc(p.id)}">${esc(invoiceNo(p))}</a>`, money(p.amount),
           p.status === 'paid' || p.status === 'cancelled' ? esc(p.payment_link || '') : `<input data-plink="${p.id}" value="${esc(p.payment_link || '')}" placeholder="https://buy.stripe.com/…" style="min-width:200px;min-height:36px;padding:4px 8px">`,
@@ -2249,11 +2249,11 @@ const ADMIN = {
     const s = data || {};
     const profit = Number(s.revenue) - Number(s.cost);
     const box = (label, v) => `<div class="card"><p class="muted small">${label}</p><p class="stat-v">${v}</p></div>`;
+    // Owner, 27.11.2026 ("Admin schlicht einfacher"): the overview shows only the to-do list and four numbers;
+    // all other figures are under Statistics.
     return { html: `<div class="grid-sm">
-      ${box(t('experts'), s.experts_total)}${box(t('stPending'), s.experts_pending)}${box(t('stApproved'), s.experts_approved)}
-      ${box('Companies', s.companies)}${box(t('rolesH'), s.open_roles)}${box(t('requests') + ' (' + t('stNew') + ')', s.new_requests)}
-      ${box(t('contracts') + ' (' + t('active') + ')', s.active_contracts)}${box(t('hoursTab') + ' (' + t('approved') + ')', Number(s.hours_approved || 0))}
-      ${box('Revenue', money(s.revenue))}${box('Expert cost', money(s.cost))}${box('Profit', money(profit))}
+      ${box(L('Experts to review'), s.experts_pending)}${box('Companies', s.companies)}
+      ${box(t('hoursTab') + ' (' + t('approved') + ')', Number(s.hours_approved || 0))}${box('Profit', money(profit))}
     </div>` };
   },
 
@@ -2272,16 +2272,13 @@ const ADMIN = {
     // Ranked by score (CV 20 + field test 40 + interview 40); experts with everything done are marked "ready".
     const data = [...(rows0 || [])].sort((a, b) => ((scoreOf[b.id] || {}).score || 0) - ((scoreOf[a.id] || {}).score || 0));
     const rowOf = Object.fromEntries((rows0 || []).map((r) => [r.id, r]));
-    const scoreCell = (id) => { const x = scoreOf[id] || {}; const r = rowOf[id] || {}; return `${r.id_status === 'verified' ? '<span class="pill pill-ok" style="margin-right:4px">ID ✓</span>' : r.id_status === 'submitted' ? '<span class="pill pill-warn" style="margin-right:4px">ID ?</span>' : ''}<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.ai_score ? `${'★'.repeat(x.ai_score)} (AI)` : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
+    const scoreCell = (id) => { const x = scoreOf[id] || {}; return `<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}`; };
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
-      html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Documents', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [
-        `<a class="link" style="font-weight:600" href="#/admin?tab=experts&id=${esc(e.id)}">${esc(e.profiles?.full_name || '–')}</a><div class="small muted">${L('Open profile')} →</div>`, scoreCell(e.id),
-        `<a href="mailto:${esc(e.profiles?.email)}">${esc(e.profiles?.email || '')}</a>`, esc(e.profiles?.country || '') + (e.tax_confirmed_at ? `<div class="small muted">Tax: ${esc(e.tax_country || '')}${e.tax_status === 'company' ? ` · ${esc(e.business_name || 'company')}` : ''}</div>` : '<div class="small muted">Tax: –</div>'), esc(fieldName(e.field)) + (e.languages ? `<div class="small muted">${esc(e.languages)}</div>` : ''), esc(e.years_experience ?? ''),
-        e.rate_expectation ? money(e.rate_expectation) : '', e.linkedin ? `<a href="${esc(e.linkedin)}" target="_blank" rel="noopener">Link</a>` : '',
-        e.cv_path ? `<button class="link" data-cv="${esc(e.cv_path)}">PDF</button>` : '–', docsCell(e.id), esc(e.referred_by || ''),
-        `<span class="small">${esc(e.payout_method || '')} ${esc(payoutOf[e.id] || '')}</span>`, pill(e.status),
-        `<div class="row"><button class="btn btn-sm" data-ex="${e.id}" data-st="approved">${t('approve')}</button><button class="btn btn-danger btn-sm" data-ex="${e.id}" data-st="rejected">${t('reject')}</button></div>`,
+      html: `<div class="stack"><div class="row">${filt}</div>${table(['Name', t('field'), 'Score', t('status'), ''], (data || []).map((e) => [
+        `<a class="link" style="font-weight:600" href="#/admin?tab=experts&id=${esc(e.id)}">${esc(e.profiles?.full_name || '–')}</a><div class="small muted">${esc(e.profiles?.email || '')}</div>`,
+        esc(fieldName(e.field)), scoreCell(e.id), pill(e.status),
+        `<div class="row"><button class="btn btn-sm" data-ex="${e.id}" data-st="approved">${t('approve')}</button><button class="btn btn-ghost btn-sm" data-ex="${e.id}" data-st="rejected">${t('reject')}</button></div>`,
       ]))}</div>`,
       mount() {
         $app.querySelectorAll('[data-cv]').forEach((b) => { b.onclick = async () => {
@@ -2395,7 +2392,7 @@ const ADMIN = {
       .map((e) => `<option value="${e.id}">${esc(e.profiles?.full_name || '')} – ${esc(fieldName(e.field))}${e.years_experience != null ? `, ${esc(e.years_experience)} y` : ''}</option>`).join('');
     if (!(data || []).length) return { html: `<p class="muted">${t('none')}</p>` };
     return {
-      html: `<div class="stack-lg"><p class="muted small">New requests get the best matching approved experts automatically (see Automation). You can also propose experts yourself: the company sees an anonymous profile (field, experience, headline, skills, country, test result, interview score and your note – no name or contact) and answers “Interested” or “Not a fit”. Then send the offer in Contracts.</p>
+      html: `<div class="stack-lg">
         ${(data || []).map((r) => {
           const list = byReq[r.id] || [];
           return `<div class="card stack">
@@ -2467,7 +2464,7 @@ const ADMIN = {
       ${bars}
       <div class="grid">${list('Top pages', s.pages, 'path', 'views', 'Views')}${list('Where visitors come from', s.referrers, 'referrer', 'visits', 'Visits')}</div>
       <div class="grid">${list('Devices', s.devices, 'device', 'visits', 'Visits')}${list('Browser languages', s.langs, 'lang', 'visits', 'Visits')}</div>
-      <p class="muted small">Counted anonymously, without cookies or IP addresses. A visit = the first page someone opens; your own visits never count – also when you are logged out, on every device where you once signed in as admin.</p>
+      
     </div>` };
   },
 
@@ -2533,7 +2530,7 @@ const ADMIN = {
         <div class="stack"><h3>All bookings ${year}</h3>
           ${table(['Date', 'Type', 'What', 'Who', 'Amount', 'Abroad', ''], rows.map((r) => [dateStr(r.date), esc(r.type), esc(r.what), esc(r.who) + (r.country ? `<span class="muted small"> · ${esc(r.country)}</span>` : ''),
             `<span style="color:${r.amount < 0 ? 'var(--bad)' : 'var(--ok)'}">${r.amount < 0 ? '−' : '+'}${fmt(r.amount, r.cur)}</span>`, r.foreign ? 'yes' : '', r.id ? `<button class="btn btn-ghost btn-sm" data-delexp="${r.id}">${t('delete')}</button>` : '']))}
-          <p class="muted small">Income and payouts appear here automatically once you click “Mark paid”. Only other expenses (domain, software, fees) are entered by hand.</p>
+          
         </div>
       </div>`,
       mount() {
@@ -2618,7 +2615,7 @@ const ADMIN = {
           r.bonus_paid_at ? `${pill('paid')} <span class="small muted">${dateStr(r.bonus_paid_at)}</span>` : r.qualified ? '<span class="pill pill-warn">Due – pay both</span>' : `<span class="small muted">${esc(Math.max(0, 10 - Number(r.paid_hours)))} h to go</span>`,
           r.bonus_paid_at ? `<button class="btn btn-ghost btn-sm" data-rbundo="${r.referred_id}">Undo</button>` : r.qualified ? `<button class="btn btn-sm" data-rbpaid="${r.referred_id}">Mark paid</button>` : '',
         ]))}
-        <p class="muted small">Pay the two bonuses together with the next weekly payout (Wise or PayPal), then click “Mark paid”.</p>
+        
       </div>`,
       mount() {
         $app.querySelectorAll('[data-rbpaid]').forEach((b) => { b.onclick = async () => { const { error: er } = await sb.from('referral_bonuses').insert({ referred_id: b.dataset.rbpaid }); if (er) return fail(er); render(); }; });
@@ -2703,7 +2700,7 @@ const ADMIN = {
           </div>
           <label class="f">${t('offerNoteL')}<textarea name="offer_note" maxlength="2000" style="min-height:70px"></textarea></label>
           <p class="muted small">${t('offerAdminP')}</p>
-          <p class="muted small">Tip: company price = expert pay + 30 % is filled in automatically.</p>
+          
           <button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('offerSend')}</button>
         </form>
         <p class="muted">Margin per hour across active contracts: <b>${money(margin)}</b></p>
@@ -2749,7 +2746,7 @@ const ADMIN = {
     return {
       html: `<div class="stack-lg">
         <form id="genInv" class="card row"><label class="f" style="flex:1 1 200px">${t('weekStart')}<input type="date" name="week" value="${lastMonday()}" required></label><button class="btn btn-accent" type="submit" style="align-self:flex-end">Create invoices from approved hours</button></form>
-        <p class="muted small">Payment link: create a Stripe Payment Link (stripe.com → Payment Links) for the amount and paste it here – the company then sees a “Pay now” button.</p>
+        
         ${table(['Company', t('weekStart'), t('hoursWorked'), t('amount'), 'Payment link', t('status'), ''], (data || []).map((i) => [
           `${esc(i.companies?.company_name || '')}<br><span class="small muted">${esc(i.companies?.profiles?.email || '')}</span>`, dateStr(i.week_start), esc(i.hours), money(i.amount),
           `<div class="row"><input data-link="${i.id}" value="${esc(i.payment_link || '')}" placeholder="https://buy.stripe.com/…" style="min-width:200px;min-height:36px;padding:4px 8px"></div>`,
