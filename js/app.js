@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js';
-import { t, lang } from './i18n.js';
-import { L } from './tr.js';
+import { CONFIG } from './config.js?v=20261127a';
+import { t, lang } from './i18n.js?v=20261127a';
+import { L } from './tr.js?v=20261127a';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
