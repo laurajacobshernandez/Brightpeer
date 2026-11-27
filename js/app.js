@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127o';
-import { t, lang } from './i18n.js?v=20261127o';
-import { L } from './tr.js?v=20261127o';
+import { CONFIG } from './config.js?v=20261127p';
+import { t, lang } from './i18n.js?v=20261127p';
+import { L } from './tr.js?v=20261127p';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -418,6 +418,26 @@ function roleCard(r) {
   </a>`;
 }
 
+// Owner, 27.11.2026: "es sollen alle gefunden werden" – search in every language: title, description, ALL skills,
+// field names and common job words (DE/FR/IT/ES/EN), language names; accents and umlauts ignored.
+const normQ = (x) => String(x || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const FIELD_WORDS = {
+  'Medicine': 'medicine medizin medecine medicina doctor physician arzt aerztin aerzte mediziner medecin medico clinical klinik clinique clinica nurse pflege krankenpfleger infirmier infermiere enfermero health gesundheit sante salute salud',
+  'Law': 'law recht droit diritto derecho lawyer anwalt anwaeltin rechtsanwalt jurist juristin avocat avvocato abogado legal juristisch juridique giuridico juridico contract vertrag contrat contratto contrato attorney',
+  'Software': 'software logiciel developer entwickler entwicklerin programmierer programmer code coding programmieren developpeur sviluppatore programmatore desarrollador programador engineer ingenieur informatik informatique informatica it python javascript',
+  'Chemistry & Math': 'chemistry chemie chimie chimica quimica math mathe mathematik mathematiques matematica matematicas physics physik physique fisica science wissenschaft naturwissenschaft scientist wissenschaftler stem chemist chemiker',
+  'Pharmacy': 'pharmacy apotheke apotheker apothekerin pharmazie pharmacie pharmacien farmacia farmacista farmaceutico medication medikament medikamente medicament farmaco medicamento drug',
+  'Accounting': 'accounting buchhaltung buchhalter buchhalterin comptabilite comptable contabilita contabile contabilidad contador finance finanzen treuhand treuhaender tax steuer steuern impot tasse impuesto audit wirtschaft economics',
+  'Translation (DE)': 'translation uebersetzung uebersetzer uebersetzerin traduction traducteur traduzione traduttore traduccion traductor german deutsch allemand tedesco aleman language sprache langue lingua idioma bilingual zweisprachig',
+  'Other': 'other anderes autre altro otro',
+};
+const LANG_WORDS = { Spanish: 'spanisch espagnol spagnolo espanol', French: 'franzoesisch francais francese frances', Italian: 'italienisch italien italiano', German: 'deutsch allemand tedesco aleman', Portuguese: 'portugiesisch portugais portoghese portugues', Japanese: 'japanisch japonais giapponese japones', Arabic: 'arabisch arabe', Chinese: 'chinesisch chinois cinese chino mandarin', Korean: 'koreanisch coreen coreano', Russian: 'russisch russe russo ruso', Turkish: 'tuerkisch turc turco', Dutch: 'niederlaendisch hollaendisch neerlandais olandese neerlandes', Polish: 'polnisch polonais polacco polaco', Hindi: 'hindi', English: 'englisch anglais inglese ingles' };
+function roleSearchText(r) {
+  const base = [r.title, r.description, r.field, fieldName(r.field), FIELD_WORDS[r.field] || '', skillList(r.skills).join(' '), r.hours_per_week].join(' ');
+  const langs = Object.keys(LANG_WORDS).filter((k) => new RegExp(k, 'i').test(`${r.title} ${r.description || ''}`)).map((k) => LANG_WORDS[k]).join(' ');
+  return normQ(base + ' ' + langs);
+}
+
 async function pageHome() {
   // Owner, 25.11.2026: intro first, then all roles ("Gesuchte Fachrichtungen") with quick field filters.
   const roles = [...(await getRoles())].sort((a, b) => FIELDS.indexOf(a.field) - FIELDS.indexOf(b.field));
@@ -439,7 +459,7 @@ async function pageHome() {
     <div class="row between"><div class="stack" style="gap:6px"><h2>${t('featuredH')}</h2><p class="muted">${t('featuredSub')}</p></div><span class="muted small">${t('rolesCount').replace('{n}', roles.length)}</span></div>
     <div class="row" style="gap:8px" id="homeChips">${fields.length > 1 ? `<button type="button" class="btn btn-sm" data-hf="">${t('allFields')}</button>${fields.map((f) => `<button type="button" class="btn btn-sm btn-ghost" data-hf="${esc(f)}">${esc(fieldName(f))}</button>`).join('')}` : ''}<input type="search" id="homeSearch" class="home-search" placeholder="${esc(L('Search roles, skills …'))}" aria-label="${esc(L('Search roles, skills …'))}"></div>
     <p class="muted" id="homeNone" hidden>${L('No matching role – apply anyway, we add new fields all the time.')}</p>
-    <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" class="card card-link role-card"`)).join('')}</div>
+    <div class="grid" id="homeRoles">${roles.map((r) => roleCard(r).replace('<a class="card card-link role-card"', `<a data-field="${esc(r.field)}" data-q="${esc(roleSearchText(r))}" class="card card-link role-card"`)).join('')}</div>
   </section>
   <section class="wrap"><div class="dark stack-lg"><h2>${t('howExpertsH')}</h2><div class="steps">${homeSteps('he')}</div><a class="btn btn-accent" href="#/apply" style="align-self:flex-start">${t('applyNow')}</a></div></section>
   <section class="wrap section"><div class="soft stack-lg">
@@ -467,17 +487,17 @@ async function pageHome() {
       const q = document.getElementById('homeSearch');
       let field = '';
       const apply = () => {
-        const words = (q.value || '').toLowerCase().split(/\s+/).filter(Boolean);
+        const words = normQ(q.value).split(/[\s,]+/).filter(Boolean);
         let shown = 0;
         $app.querySelectorAll('#homeRoles [data-field]').forEach((c) => {
-          const txt = c.textContent.toLowerCase();
+          const txt = c.dataset.q || normQ(c.textContent);
           const ok = (!field || c.dataset.field === field) && words.every((w) => txt.includes(w));
           c.style.display = ok ? '' : 'none'; if (ok) shown++;
         });
         document.getElementById('homeNone').hidden = shown > 0;
       };
       chips.forEach((b) => { b.onclick = () => { chips.forEach((x) => x.classList.toggle('btn-ghost', x !== b)); field = b.dataset.hf; apply(); }; });
-      q.oninput = apply;
+      q.oninput = () => { if (q.value && field) { field = ''; chips.forEach((x) => x.classList.toggle('btn-ghost', x.dataset.hf !== '')); } apply(); };
     },
   };
 }
