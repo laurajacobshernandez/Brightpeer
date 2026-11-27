@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127h';
+import { lang } from './i18n.js?v=20261127i';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -140,6 +140,9 @@ const D = {
   'Access link (your tool, guide or workspace)': T('Zugangslink (euer Tool, eure Anleitung oder euer Arbeitsbereich)', 'Lien d’accès (votre outil, guide ou espace de travail)', 'Link di accesso (il vostro strumento, guida o spazio di lavoro)', 'Enlace de acceso (vuestra herramienta, guía o espacio de trabajo)'),
   'How to work on this project': T('So arbeitest du an diesem Projekt', 'Comment travailler sur ce projet', 'Come lavorare a questo progetto', 'Cómo trabajar en este proyecto'),
   'The company is preparing your instructions and access. We will let you know as soon as they are ready.': T('Die Firma bereitet deine Anleitung und deinen Zugang vor. Wir melden uns, sobald alles bereit ist.', 'L’entreprise prépare vos instructions et votre accès. Nous vous prévenons dès qu’ils sont prêts.', 'L’azienda sta preparando le tue istruzioni e il tuo accesso. Ti avviseremo appena saranno pronti.', 'La empresa está preparando tus instrucciones y tu acceso. Te avisaremos en cuanto estén listos.'),
+  'Project Slack channel (link)': T('Slack-Kanal des Projekts (Link)', 'Canal Slack du projet (lien)', 'Canale Slack del progetto (link)', 'Canal de Slack del proyecto (enlace)'),
+  'All questions and agreements for this project run in this channel. Another tool link also works.': T('Alle Fragen und Absprachen zu diesem Projekt laufen in diesem Kanal. Ein Link zu einem anderen Tool geht auch.', 'Toutes les questions et décisions de ce projet passent par ce canal. Un lien vers un autre outil fonctionne aussi.', 'Tutte le domande e gli accordi di questo progetto passano da questo canale. Va bene anche il link a un altro strumento.', 'Todas las preguntas y acuerdos de este proyecto van por este canal. También sirve un enlace a otra herramienta.'),
+  'Open the project channel': T('Projekt-Kanal öffnen', 'Ouvrir le canal du projet', 'Apri il canale del progetto', 'Abrir el canal del proyecto'),
   'Open the company workspace': T('Arbeitsbereich der Firma öffnen', 'Ouvrir l’espace de travail de l’entreprise', 'Apri lo spazio di lavoro dell’azienda', 'Abrir el espacio de trabajo de la empresa'),
   'You work in the company’s own tools. Log your hours here every week – the company approves them, and approved hours are paid out weekly.': T('Du arbeitest in den Tools der Firma. Trage hier jede Woche deine Stunden ein – die Firma bestätigt sie, und bestätigte Stunden werden wöchentlich ausbezahlt.', 'Vous travaillez dans les outils de l’entreprise. Saisissez vos heures ici chaque semaine – l’entreprise les valide et les heures validées sont payées chaque semaine.', 'Lavori negli strumenti dell’azienda. Registra qui le tue ore ogni settimana: l’azienda le approva e le ore approvate vengono pagate ogni settimana.', 'Trabajas en las herramientas de la empresa. Registra aquí tus horas cada semana: la empresa las aprueba y las horas aprobadas se pagan semanalmente.'),
   'Ready': T('Bereit', 'Prêt', 'Pronto', 'Listo'),

@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127h';
-import { t, lang } from './i18n.js?v=20261127h';
-import { L } from './tr.js?v=20261127h';
+import { CONFIG } from './config.js?v=20261127i';
+import { t, lang } from './i18n.js?v=20261127i';
+import { L } from './tr.js?v=20261127i';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -80,7 +80,7 @@ function mountReview(root) {
 function workInfoForm(c, id) {
   return `<form class="stack" data-work="${c.id}" id="${id || ''}" style="gap:8px">
     <label class="f">${L('Instructions for the expert')}<textarea name="instructions" maxlength="5000" style="min-height:90px" placeholder="${esc(L('What to do, who to contact, rules and deadlines'))}">${esc(c.work_instructions || '')}</textarea></label>
-    <label class="f">${L('Access link (your tool, guide or workspace)')}<input name="link" type="url" maxlength="1000" placeholder="https://" pattern="https://.*" value="${esc(c.work_link || '')}"></label>
+    <label class="f">${L('Project Slack channel (link)')}<input name="link" type="url" maxlength="1000" placeholder="https://app.slack.com/…" pattern="https://.*" value="${esc(c.work_link || '')}"><span class="muted small">${L('All questions and agreements for this project run in this channel. Another tool link also works.')}</span></label>
     <button class="btn btn-sm" type="submit" style="align-self:flex-start">${t('save')}</button>
   </form>`;
 }
@@ -1190,7 +1190,7 @@ async function expertDashboard() {
 
       ${active.map((c) => `<div class="card stack" id="work-${c.id}"><p class="muted small">${L('How to work on this project')}</p><h3>${esc(c.title || '')}</h3>
         ${c.work_instructions ? `<p style="white-space:pre-line">${esc(c.work_instructions)}</p>` : `<p class="muted">${L('The company is preparing your instructions and access. We will let you know as soon as they are ready.')}</p>`}
-        ${safeLink(c.work_link) ? `<a class="btn btn-accent" href="${esc(safeLink(c.work_link))}" target="_blank" rel="noopener noreferrer" style="align-self:flex-start">${L('Open the company workspace')} ↗</a>` : ''}
+        ${safeLink(c.work_link) ? `<a class="btn btn-accent" href="${esc(safeLink(c.work_link))}" target="_blank" rel="noopener noreferrer" style="align-self:flex-start">${L('Open the project channel')} ↗</a>` : ''}
         <p class="muted small">${L('You work in the company’s own tools. Log your hours here every week – the company approves them, and approved hours are paid out weekly.')}</p>
       </div>`).join('')}
 
