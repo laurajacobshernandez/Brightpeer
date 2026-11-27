@@ -363,3 +363,6 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 /* Interview shared with companies (27.11.2026) */
 .iv-box{border-top:1px solid var(--line);padding-top:10px;gap:12px}
 .iv-q{display:flex;flex-direction:column;gap:6px}
+/* Search on the far right of "Gesuchte Fachrichtungen" (27.11.2026) */
+.home-search{margin-left:auto;min-width:220px;max-width:280px;padding:8px 14px;border-radius:999px}
+@media (max-width:640px){.home-search{margin-left:0;width:100%;max-width:none}}
