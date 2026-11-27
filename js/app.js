@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127m';
-import { t, lang } from './i18n.js?v=20261127m';
-import { L } from './tr.js?v=20261127m';
+import { CONFIG } from './config.js?v=20261127n';
+import { t, lang } from './i18n.js?v=20261127n';
+import { L } from './tr.js?v=20261127n';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -1234,6 +1234,12 @@ async function expertDashboard() {
         </div>
       </div>
 
+      <form class="card stack" id="shareIvF">
+        <h3>${L('Share my interview with companies')}</h3>
+        <p class="muted small">${L('Like on Mercor: companies that consider you can read and listen to your interview answers – your name and contact details stay hidden. Please do not say your name in the voice answers. You can switch this off at any time.')}</p>
+        <label class="check"><input type="checkbox" name="share" ${e.share_interview ? 'checked' : ''}> <span>${L('Companies may see my interview answers (anonymous)')}</span></label>
+      </form>
+
       <div class="card stack" id="bgCard">
         <div class="row between"><h3>${L('Background check')}</h3>${bgPill(e.background_status)}</div>
         <p class="muted small">${L('Some AI companies only work with experts who passed a background check by an independent provider (identity, education and work history; criminal records only where the law allows it). It is optional and only done with your consent. The result is shared only with Brightpeer.')}</p>
@@ -1390,6 +1396,11 @@ async function expertDashboard() {
         const { error } = await sb.from('expert_documents').delete().eq('id', b.dataset.docDel);
         if (error) return fail(error); toast(t('saved')); render();
       }; });
+      const shareF = document.getElementById('shareIvF');
+      if (shareF) shareF.querySelector('input').onchange = async (ev) => {
+        const { error } = await sb.from('experts').update({ share_interview: ev.target.checked }).eq('id', uid);
+        if (error) { ev.target.checked = !ev.target.checked; return fail(error); } toast(t('saved'));
+      };
       const idAuto = document.getElementById('idAuto');
       if (idAuto) idAuto.onclick = async () => {
         idAuto.disabled = true;
@@ -1629,6 +1640,7 @@ async function companyDashboard() {
       ${skillList(x.skills).length ? `<div class="row" style="gap:6px">${skillList(x.skills).slice(0, 6).map((k) => `<span class="chip chip-sm">${esc(k)}</span>`).join('')}</div>` : ''}
       <div class="row" style="gap:24px"><div><p class="muted small">${L('Field test')}</p><p style="font-weight:600">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div><div><p class="muted small">${L('Interview')}</p><p>${stars(x.interview_score)}</p></div></div>
       ${x.admin_note ? `<p class="small" style="white-space:pre-line"><b>${L('Why we suggest this expert:')}</b> ${esc(x.admin_note)}</p>` : ''}
+      ${x.interview_shared ? `<button class="btn btn-ghost btn-sm" type="button" data-iv="${x.id}" style="align-self:flex-start">▶ ${L('View interview')}</button><div class="iv-box stack" id="iv-${x.id}" hidden></div>` : ''}
       ${x.status === 'proposed' ? `<form class="stack" data-cand="${x.id}" style="gap:8px"><input name="note" maxlength="1000" placeholder="${esc(L('Note for us (optional)'))}"><div class="row"><button class="btn btn-accent btn-sm" type="submit" data-int="1">${L('Interested')}</button><button class="btn btn-ghost btn-sm" type="submit" data-int="0">${L('Not a fit')}</button></div></form>`
         : x.company_note ? `<p class="small muted">${L('Your note:')} ${esc(x.company_note)}</p>` : ''}
     </div>`).join('');
@@ -1701,6 +1713,16 @@ async function companyDashboard() {
         busy(f, false); if (error) return fail(error);
         toast(t('requestSent')); render();
       };
+      $app.querySelectorAll('[data-iv]').forEach((b) => { b.onclick = async () => {
+        const box = document.getElementById(`iv-${b.dataset.iv}`);
+        if (!box.hidden) { box.hidden = true; return; }
+        b.disabled = true;
+        const { data, error } = await sb.functions.invoke('candidate-interview', { body: { candidate_id: b.dataset.iv } });
+        b.disabled = false;
+        if (error || !data || !Array.isArray(data.answers)) return toast(L('The interview could not be loaded.'), true);
+        box.innerHTML = data.answers.map((a, i) => `<div class="iv-q"><p class="small muted">${i + 1}. ${esc(a.q)}</p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}${a.audio ? `<audio controls preload="none" src="${esc(a.audio)}" style="width:100%"></audio>` : ''}</div>`).join('') || `<p class="muted small">–</p>`;
+        box.hidden = false;
+      }; });
       $app.querySelectorAll('[data-cand]').forEach((cf) => {
         let interested = true;
         cf.querySelectorAll('[data-int]').forEach((b) => { b.onclick = () => { interested = b.dataset.int === '1'; }; });
