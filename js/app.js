@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127l';
-import { t, lang } from './i18n.js?v=20261127l';
-import { L } from './tr.js?v=20261127l';
+import { CONFIG } from './config.js?v=20261127m';
+import { t, lang } from './i18n.js?v=20261127m';
+import { L } from './tr.js?v=20261127m';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -1225,7 +1225,7 @@ async function expertDashboard() {
         <h3>${L('Documents')}</h3>
         <p class="muted small">${L('Besides your CV you can upload diplomas, certificates, an ID document, a profile photo, work samples and tax forms. PDF, JPG, PNG or WebP, max. 10 MB each. Only you and the Brightpeer team can see these files – companies never see them.')}</p>
         <div class="row" style="gap:10px"><span class="small"><b>${L('ID check')}:</b></span>${idPill(e.id_status)}<span class="muted small">${L({ none: 'Upload your ID document and a selfie holding it – our team compares them.', submitted: 'We are checking your ID.', verified: 'Your identity is verified.', rejected: 'Please upload a clearer ID document and selfie.' }[e.id_status || 'none'])}${e.id_status === 'rejected' && e.id_note ? ` ${esc(e.id_note)}` : ''}</span></div>
-        ${e.id_status !== 'verified' ? `<div class="stack" style="gap:6px"><button class="btn btn-accent btn-sm" id="idAuto" type="button" style="align-self:flex-start">${L('Verify my identity now (about 2 minutes)')}</button><p class="muted small">${L('Automatic check by Stripe Identity: you photograph your passport, ID card or driving licence and take a selfie. The result comes within minutes.')}</p></div>` : ''}
+        ${e.id_status !== 'verified' ? `<div class="stack" style="gap:6px"><button class="btn btn-accent btn-sm" id="idAuto" type="button" style="align-self:flex-start">${L('Verify my identity now (about 2 minutes)')}</button><p class="muted small">${L('Automatic check: you photograph your passport, ID card or driving licence and take a short selfie video. The result comes within minutes.')}</p></div>` : ''}
         <div class="form-grid">
           ${DOC_KINDS.map((k) => { const list = docs.filter((d) => d.kind === k); return `<div class="stack" style="gap:6px">
             <label class="f">${L(DOC_LABEL[k])}<input type="file" data-doc-kind="${k}" accept="${k === 'photo' || k === 'selfie' ? 'image/jpeg,image/png,image/webp' : 'application/pdf,image/jpeg,image/png,image/webp'}" ${k === 'photo' || k === 'id' || k === 'selfie' ? '' : 'multiple'}></label>
