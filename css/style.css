@@ -399,3 +399,10 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .admin-area .todo-n{background:var(--chip);color:var(--ink)}
 .admin-area .todo-go{color:var(--ink3)}
 .admin-area .todo-item:hover{border-color:var(--ink3)}
+/* Model evaluations + Brightpeer Bench (27.11.2026) */
+.evbar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--chip)}
+.evbar span{display:block;height:100%}
+.ev-pair{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.ev-ans{border:1px solid var(--line);border-radius:12px;background:#fff;padding:18px;min-width:0;overflow-wrap:anywhere}
+@media (max-width:760px){.ev-pair{grid-template-columns:minmax(0,1fr)}}
+.ev-choice input[type=radio]{width:18px;height:18px;min-height:0;padding:0;margin:0;flex:none;accent-color:var(--accent)}
