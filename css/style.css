@@ -364,5 +364,20 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .iv-box{border-top:1px solid var(--line);padding-top:10px;gap:12px}
 .iv-q{display:flex;flex-direction:column;gap:6px}
 /* Search on the far right of "Gesuchte Fachrichtungen" (27.11.2026) */
-.home-search{margin-left:auto;min-width:220px;max-width:280px;padding:8px 14px;border-radius:999px}
-@media (max-width:640px){.home-search{margin-left:0;width:100%;max-width:none}}
+/* Role toolbar like Mercor (27.11.2026) */
+.role-tabs{display:flex;gap:28px;border-bottom:1px solid var(--line)}
+.role-tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 0;margin-bottom:-1px;font:inherit;font-size:1.05rem;font-weight:500;color:var(--ink2);cursor:pointer}
+.role-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.role-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.role-search{flex:1 1 280px;max-width:520px;padding:10px 14px 10px 40px;border:1px solid var(--line2);border-radius:8px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%235B5D66' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center}
+.role-tools-r{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tool-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--line2);border-radius:8px;background:#fff;font-size:.875rem;font-weight:500;color:var(--ink);cursor:pointer;list-style:none}
+.tool-btn::-webkit-details-marker{display:none}
+.tool-btn select{width:auto;border:0;background:transparent;font:inherit;color:inherit;padding:0;cursor:pointer;outline:none;min-height:0}
+.tool-drop{position:relative}
+.tool-drop summary::after{content:"\25BE";font-size:.75rem}
+.drop-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:220px;background:#fff;border:1px solid var(--line2);border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:4px}
+.drop-h{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);margin-top:6px}
+.drop-opt{display:flex;gap:8px;align-items:center;font-size:.9rem;cursor:pointer;padding:3px 0}
+.drop-opt input{width:auto;min-height:0}
+@media (max-width:640px){.role-search{max-width:none}.role-tools-r{width:100%}.drop-menu{left:0;right:auto}}
