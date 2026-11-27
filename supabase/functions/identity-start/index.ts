@@ -1,6 +1,6 @@
-// Brightpeer – automatic ID check with Stripe Identity (27.11.2026, owner: "Ausweisprüfung soll automatisch sein").
-// Creates a Stripe Identity VerificationSession (ID document + matching selfie) for the signed-in expert and returns
-// Stripe's hosted URL. The result comes back through identity-webhook. Needs the secret STRIPE_SECRET_KEY.
+// Brightpeer – automatic ID check (27.11.2026, owner: "Ausweisprüfung soll automatisch sein" – chosen: Didit, cheaper).
+// Didit (secrets DIDIT_API_KEY + DIDIT_WORKFLOW_ID): ID document + liveness + face match, result via didit-webhook.
+// Fallback: Stripe Identity (secret STRIPE_SECRET_KEY), result via identity-webhook. Returns the provider's hosted URL.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const CORS = {
@@ -15,7 +15,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'method' }, 405);
   const key = Deno.env.get('STRIPE_SECRET_KEY');
-  if (!key) return json({ error: 'not_configured' }, 503);
+  const diditKey = Deno.env.get('DIDIT_API_KEY'); const diditWf = Deno.env.get('DIDIT_WORKFLOW_ID');
+  if (!key && !(diditKey && diditWf)) return json({ error: 'not_configured' }, 503);
   const url = Deno.env.get('SUPABASE_URL')!;
   const asUser = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } });
   const { data: { user } } = await asUser.auth.getUser();
@@ -28,6 +29,17 @@ Deno.serve(async (req) => {
   let ret = '';
   try { ret = String((await req.json()).return_url || ''); } catch { /* empty */ }
   if (!ALLOWED.some((a) => ret.startsWith(a))) ret = ALLOWED[0] + '#/dashboard';
+
+  if (diditKey && diditWf) {
+    const r = await fetch('https://verification.didit.me/v3/session/', {
+      method: 'POST', headers: { 'x-api-key': diditKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workflow_id: diditWf, vendor_data: user.id, callback: ret, metadata: { expert_id: user.id } }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.url) return json({ error: 'didit_failed', detail: String(d.detail || d.error || '').slice(0, 200) }, 502);
+    await db.from('experts').update({ id_status: 'submitted', id_session: d.session_id, id_note: null }).eq('id', user.id);
+    return json({ url: d.url });
+  }
 
   const form = new URLSearchParams();
   form.set('type', 'document');
