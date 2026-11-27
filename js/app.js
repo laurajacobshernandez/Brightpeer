@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127k';
-import { t, lang } from './i18n.js?v=20261127k';
-import { L } from './tr.js?v=20261127k';
+import { CONFIG } from './config.js?v=20261127l';
+import { t, lang } from './i18n.js?v=20261127l';
+import { L } from './tr.js?v=20261127l';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -1123,9 +1123,9 @@ function needLogin() {
 
 // ---------------------------------------------------------------- expert documents (26.11.2026)
 // Besides the CV: diplomas, certificates, ID, profile photo, work samples, tax forms. Private bucket, expert + admin only.
-const DOC_KINDS = ['diploma', 'certificate', 'id', 'selfie', 'photo', 'portfolio', 'tax_form'];
-const DOC_LABEL = { diploma: 'Diplomas', certificate: 'Certificates', id: 'ID document (passport or ID card)', selfie: 'Selfie holding your ID (for the ID check)', photo: 'Profile photo', portfolio: 'Work samples / portfolio', tax_form: 'Tax forms (e.g. W-8BEN)' };
-const DOC_SHORT = { diploma: 'Diploma', certificate: 'Certificate', id: 'ID', selfie: 'Selfie', photo: 'Photo', portfolio: 'Work sample', tax_form: 'Tax form' };
+const DOC_KINDS = ['diploma', 'certificate', 'id', 'selfie', 'photo', 'portfolio', 'tax_form', 'police_record'];
+const DOC_LABEL = { diploma: 'Diplomas', certificate: 'Certificates', id: 'ID document (passport or ID card)', selfie: 'Selfie holding your ID (for the ID check)', photo: 'Profile photo', portfolio: 'Work samples / portfolio', tax_form: 'Tax forms (e.g. W-8BEN)', police_record: 'Official criminal record extract (optional – only if a project asks for it)' };
+const DOC_SHORT = { diploma: 'Diploma', certificate: 'Certificate', id: 'ID', selfie: 'Selfie', photo: 'Photo', portfolio: 'Work sample', tax_form: 'Tax form', police_record: 'Criminal record' };
 const DOC_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 async function openDoc(path) {
   const w = window.open('', '_blank');
@@ -1237,6 +1237,7 @@ async function expertDashboard() {
       <div class="card stack" id="bgCard">
         <div class="row between"><h3>${L('Background check')}</h3>${bgPill(e.background_status)}</div>
         <p class="muted small">${L('Some AI companies only work with experts who passed a background check by an independent provider (identity, education and work history; criminal records only where the law allows it). It is optional and only done with your consent. The result is shared only with Brightpeer.')}</p>
+        <p class="muted small">${L('Tip: if a project asks for it, you can also upload your own official criminal record extract under Documents – then no extra check is needed.')}</p>
         ${(e.background_status || 'none') === 'none' ? `<form id="bgF" class="stack" style="gap:10px"><label class="check"><input type="checkbox" name="ok" required> <span>${L('I agree that Brightpeer may have a background check done on me by an independent provider when a project requires it.')}</span></label><button class="btn btn-sm" type="submit" style="align-self:flex-start">${L('Give consent')}</button></form>`
           : `<p class="small">${L({ consented: 'Thank you – you agreed on {d}. We start the check when a project needs it.', requested: 'The check is running.', passed: 'You passed the background check.', failed: 'The check could not be completed. We will contact you.' }[e.background_status]).replace('{d}', e.background_consent_at ? dateStr(e.background_consent_at) : '')}</p>`}
       </div>
@@ -1654,6 +1655,7 @@ async function companyDashboard() {
           <label class="f">${t('budget')}<input name="budget" maxlength="200"></label>
         </div>
         <label class="f">${t('description')} *<textarea name="description" required maxlength="5000"></textarea></label>
+        <label class="check"><input type="checkbox" name="background_required"> <span>${L('Our experts need a background check')} <span class="muted small">– ${L('done by an independent provider with the expert’s consent; the cost is added to your prepayment.')}</span></span></label>
         <button class="btn btn-accent" type="submit" style="align-self:flex-start">${t('sendRequest')}</button>
       </form>
 
@@ -1695,7 +1697,7 @@ async function companyDashboard() {
       const f = document.getElementById('reqF');
       f.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(f); busy(f, true);
-        const { error } = await sb.from('requests').insert({ company_id: uid, field: d.field, experts_needed: Number(d.experts_needed) || 1, hours_per_week: d.hours_per_week ? Number(d.hours_per_week) : null, budget: d.budget || null, description: d.description });
+        const { error } = await sb.from('requests').insert({ company_id: uid, field: d.field, experts_needed: Number(d.experts_needed) || 1, hours_per_week: d.hours_per_week ? Number(d.hours_per_week) : null, budget: d.budget || null, description: d.description, background_required: !!d.background_required });
         busy(f, false); if (error) return fail(error);
         toast(t('requestSent')); render();
       };
@@ -2300,7 +2302,7 @@ const ADMIN = {
             <div class="row between" style="align-items:flex-start"><div class="stack" style="gap:4px">
               <h3>${esc(r.companies?.company_name || '')} · ${esc(fieldName(r.field))}</h3>
               <p class="muted small">${esc(r.companies?.profiles?.full_name || '')} · <a href="mailto:${esc(r.companies?.profiles?.email)}">${esc(r.companies?.profiles?.email || '')}</a> · ${dateStr(r.created_at)}${r.companies?.terms_accepted_at ? '' : ' · <span style="color:var(--bad)">Client Terms not accepted yet</span>'}</p>
-              <p class="small">${t('expertsNeeded')}: <b>${esc(r.experts_needed)}</b>${r.hours_per_week ? ` · ${t('hoursPerWeek')}: <b>${esc(r.hours_per_week)}</b>` : ''}${r.budget ? ` · ${t('budget')}: <b>${esc(r.budget)}</b>` : ''}</p></div>
+              <p class="small">${t('expertsNeeded')}: <b>${esc(r.experts_needed)}</b>${r.hours_per_week ? ` · ${t('hoursPerWeek')}: <b>${esc(r.hours_per_week)}</b>` : ''}${r.budget ? ` · ${t('budget')}: <b>${esc(r.budget)}</b>` : ''}${r.background_required ? ' · <span class="pill pill-warn">Background check required – add the cost to the prepayment</span>' : ''}</p></div>
               <select data-req="${r.id}" style="min-height:36px;padding:4px 8px;width:auto">${opts(r.status)}</select></div>
             <p class="small" style="white-space:pre-line">${esc(r.description || '')}</p>
             ${list.length ? table(['Expert', 'Shown as', 'Your note', 'Company answer', ''], list.map((c) => [
