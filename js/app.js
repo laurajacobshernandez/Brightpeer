@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127p';
-import { t, lang } from './i18n.js?v=20261127p';
-import { L } from './tr.js?v=20261127p';
+import { CONFIG } from './config.js?v=20261127q';
+import { t, lang } from './i18n.js?v=20261127q';
+import { L } from './tr.js?v=20261127q';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -421,7 +421,7 @@ function roleCard(r) {
 // Owner, 27.11.2026: "es sollen alle gefunden werden" – search in every language: title, description, ALL skills,
 // field names and common job words (DE/FR/IT/ES/EN), language names; accents and umlauts ignored.
 const normQ = (x) => String(x || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-const FIELD_WORDS = {
+const SEARCH_FIELD_WORDS = {
   'Medicine': 'medicine medizin medecine medicina doctor physician arzt aerztin aerzte mediziner medecin medico clinical klinik clinique clinica nurse pflege krankenpfleger infirmier infermiere enfermero health gesundheit sante salute salud',
   'Law': 'law recht droit diritto derecho lawyer anwalt anwaeltin rechtsanwalt jurist juristin avocat avvocato abogado legal juristisch juridique giuridico juridico contract vertrag contrat contratto contrato attorney',
   'Software': 'software logiciel developer entwickler entwicklerin programmierer programmer code coding programmieren developpeur sviluppatore programmatore desarrollador programador engineer ingenieur informatik informatique informatica it python javascript',
@@ -433,7 +433,7 @@ const FIELD_WORDS = {
 };
 const LANG_WORDS = { Spanish: 'spanisch espagnol spagnolo espanol', French: 'franzoesisch francais francese frances', Italian: 'italienisch italien italiano', German: 'deutsch allemand tedesco aleman', Portuguese: 'portugiesisch portugais portoghese portugues', Japanese: 'japanisch japonais giapponese japones', Arabic: 'arabisch arabe', Chinese: 'chinesisch chinois cinese chino mandarin', Korean: 'koreanisch coreen coreano', Russian: 'russisch russe russo ruso', Turkish: 'tuerkisch turc turco', Dutch: 'niederlaendisch hollaendisch neerlandais olandese neerlandes', Polish: 'polnisch polonais polacco polaco', Hindi: 'hindi', English: 'englisch anglais inglese ingles' };
 function roleSearchText(r) {
-  const base = [r.title, r.description, r.field, fieldName(r.field), FIELD_WORDS[r.field] || '', skillList(r.skills).join(' '), r.hours_per_week].join(' ');
+  const base = [r.title, r.description, r.field, fieldName(r.field), SEARCH_FIELD_WORDS[r.field] || '', skillList(r.skills).join(' '), r.hours_per_week].join(' ');
   const langs = Object.keys(LANG_WORDS).filter((k) => new RegExp(k, 'i').test(`${r.title} ${r.description || ''}`)).map((k) => LANG_WORDS[k]).join(' ');
   return normQ(base + ' ' + langs);
 }
