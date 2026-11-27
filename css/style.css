@@ -381,3 +381,21 @@ details.faq p{margin-top:10px;color:var(--ink2)}
 .drop-opt{display:flex;gap:8px;align-items:center;font-size:.9rem;cursor:pointer;padding:3px 0}
 .drop-opt input{width:auto;min-height:0}
 @media (max-width:640px){.role-search{max-width:none}.role-tools-r{width:100%}.drop-menu{left:0;right:auto}}
+/* Calm admin (owner, 27.11.2026: "verbessere das Admin, schlicht einfacher"): more air, fewer colours, plainer tabs and tables. */
+.admin-area{gap:28px}
+.admin-area .tabs{gap:2px;border-bottom:1px solid var(--line)}
+.admin-area .tab{padding:10px 12px;font-weight:500;color:var(--ink3);border-radius:0}
+.admin-area .tab.active{color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+.admin-area .tab-count{background:var(--chip);color:var(--ink2);font-weight:600}
+.admin-area .tab.active .tab-count{background:var(--ink);color:#fff}
+.admin-area .card{box-shadow:none;padding:20px}
+.admin-area .stat-v{font-size:1.75rem}
+.admin-area .pill{background:var(--chip);color:var(--ink2);font-weight:500}
+.admin-area .pill-ok{background:var(--ok-soft);color:var(--ok)}
+.admin-area .pill-bad{background:var(--bad-soft);color:var(--bad)}
+.admin-area .table-wrap{border-radius:12px}
+.admin-area table th{font-weight:500;color:var(--ink3);background:transparent;text-transform:none;letter-spacing:0}
+.admin-area table td,.admin-area table th{padding:14px 16px;vertical-align:middle}
+.admin-area .todo-n{background:var(--chip);color:var(--ink)}
+.admin-area .todo-go{color:var(--ink3)}
+.admin-area .todo-item:hover{border-color:var(--ink3)}
