@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127i';
-import { t, lang } from './i18n.js?v=20261127i';
-import { L } from './tr.js?v=20261127i';
+import { CONFIG } from './config.js?v=20261127j';
+import { t, lang } from './i18n.js?v=20261127j';
+import { L } from './tr.js?v=20261127j';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -64,7 +64,21 @@ function reviewCell(s) {
       <button class="btn btn-danger btn-sm" type="submit" style="align-self:flex-start">${L('Reject hours')}</button></form></details></div>`;
 }
 const statusWithReason = (s) => pill(s.status) + (s.status === 'rejected' && s.review_note ? `<div class="small muted" style="max-width:260px">${L('Reason')}: ${esc(s.review_note)}</div>` : '');
+// Quality rating like Mercor (owner, 27.11.2026): the company rates each week 1–5 stars; the expert sees it.
+const starsTxt = (n) => (n ? `<span class="stars" aria-label="${n} / 5">${'★'.repeat(n)}<span class="muted">${'★'.repeat(5 - n)}</span></span>` : '');
+const qualityCell = (s) => (s.quality ? `${starsTxt(s.quality)}${s.quality_note ? `<div class="small muted" style="max-width:240px">${esc(s.quality_note)}</div>` : ''}` : '<span class="muted">–</span>');
+function rateCell(s) {
+  return `<form class="rate" data-rate="${s.id}"><fieldset class="star-pick"><legend class="sr-only">${esc(L('Quality'))}</legend>${[5, 4, 3, 2, 1].map((n) => `<label><input type="radio" name="q" value="${n}" ${s.quality === n ? 'checked' : ''} required><span aria-hidden="true">★</span><span class="sr-only">${n}</span></label>`).join('')}</fieldset>
+    <input name="note" maxlength="300" value="${esc(s.quality_note || '')}" placeholder="${esc(L('Short feedback (optional)'))}"><button class="btn btn-ghost btn-sm" type="submit">${s.quality ? L('Update') : L('Rate')}</button></form>`;
+}
+const idPill = (st) => `<span class="pill ${({ verified: 'pill-ok', rejected: 'pill-bad', submitted: 'pill-warn' })[st] || 'pill-grey'}">${esc(L({ none: 'Not started', submitted: 'In review', verified: 'Verified', rejected: 'Please redo' }[st || 'none']))}</span>`;
+const bgPill = (st) => `<span class="pill ${({ passed: 'pill-ok', failed: 'pill-bad', requested: 'pill-warn', consented: 'pill-info' })[st] || 'pill-grey'}">${esc(L({ none: 'Not started', consented: 'Consent given', requested: 'Running', passed: 'Passed', failed: 'Not passed' }[st || 'none']))}</span>`;
 function mountReview(root) {
+  root.querySelectorAll('[data-rate]').forEach((f) => { f.onsubmit = async (ev) => {
+    ev.preventDefault(); const d = formData(f); busy(f, true);
+    const { error } = await sb.rpc('rate_timesheet', { p_id: f.dataset.rate, p_quality: Number(d.q), p_note: d.note || null });
+    busy(f, false); if (error) return fail(error); toast(t('saved')); render();
+  }; });
   root.querySelectorAll('[data-ts]').forEach((b) => { b.onclick = async () => {
     b.disabled = true;
     const { error } = await sb.rpc('review_timesheet', { p_id: b.dataset.ts, p_status: b.dataset.st });
@@ -260,6 +274,41 @@ function renderHeader() {
   mb.onclick = () => { const nl = document.getElementById('navLinks'); nl.classList.toggle('open'); mb.setAttribute('aria-expanded', nl.classList.contains('open')); };
   const lo = document.getElementById('logoutBtn');
   if (lo) lo.onclick = async () => { await sb.auth.signOut(); go('#/'); };
+  renderAssistant();
+}
+
+// ---------------------------------------------------------------- help assistant (owner, 27.11.2026: like Mercor's assistant)
+// Round "?" button bottom right for signed-in experts and companies; answers come from the Edge Function help-assistant.
+let chatLog = [];
+function renderAssistant() {
+  let box = document.getElementById('helpBot');
+  if (!session || !sb) { if (box) box.remove(); chatLog = []; return; }
+  if (box) return;
+  box = document.createElement('div'); box.id = 'helpBot';
+  box.innerHTML = `<button class="hb-btn" type="button" aria-expanded="false" aria-controls="hbPanel" aria-label="${esc(L('Help assistant'))}">?</button>
+    <section class="hb-panel" id="hbPanel" hidden aria-label="${esc(L('Help assistant'))}">
+      <div class="hb-head"><b>${esc(L('Brightpeer help'))}</b><button class="hb-x" type="button" aria-label="${esc(L('Close'))}">×</button></div>
+      <div class="hb-msgs" aria-live="polite"><p class="hb-m bot">${esc(L('Hi! Ask me anything about Brightpeer – payday, hours, offers, documents …'))}</p></div>
+      <form class="hb-form"><label class="sr-only" for="hbIn">${esc(L('Your question'))}</label><input id="hbIn" maxlength="600" autocomplete="off" placeholder="${esc(L('Your question'))}" required><button class="btn btn-accent btn-sm" type="submit">${esc(L('Send'))}</button></form>
+      <p class="muted small" style="margin:0 12px 10px">${esc(L('Automatic answers – for personal cases write to'))} ${esc(CONFIG.COMPANY.email)}</p>
+    </section>`;
+  document.body.appendChild(box);
+  const btn = box.querySelector('.hb-btn'); const panel = box.querySelector('.hb-panel'); const msgs = box.querySelector('.hb-msgs');
+  const toggle = (open) => { panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); if (open) box.querySelector('#hbIn').focus(); };
+  btn.onclick = () => toggle(panel.hidden);
+  box.querySelector('.hb-x').onclick = () => { toggle(false); btn.focus(); };
+  const add = (who, text) => { const p = document.createElement('p'); p.className = `hb-m ${who}`; p.textContent = text; msgs.appendChild(p); msgs.scrollTop = msgs.scrollHeight; return p; };
+  box.querySelector('.hb-form').onsubmit = async (ev) => {
+    ev.preventDefault(); const inp = box.querySelector('#hbIn'); const q = inp.value.trim(); if (!q) return;
+    inp.value = ''; add('me', q); chatLog.push({ role: 'user', content: q });
+    const wait = add('bot', '…'); const sendBtn = box.querySelector('.hb-form button'); sendBtn.disabled = true;
+    try {
+      const { data, error } = await sb.functions.invoke('help-assistant', { body: { messages: chatLog.slice(-10), lang } });
+      const ans = !error && data && data.answer ? data.answer : (error && /429/.test(String(error.context?.status || error.message)) ? L('You asked many questions today – please try again tomorrow or write to us.') : L('Sorry, that did not work. Please try again or write to us.'));
+      wait.textContent = ans; if (!error && data && data.answer) chatLog.push({ role: 'assistant', content: data.answer });
+    } catch (e) { wait.textContent = L('Sorry, that did not work. Please try again or write to us.'); }
+    sendBtn.disabled = false; msgs.scrollTop = msgs.scrollHeight;
+  };
 }
 
 function renderFooter() {
@@ -1074,9 +1123,9 @@ function needLogin() {
 
 // ---------------------------------------------------------------- expert documents (26.11.2026)
 // Besides the CV: diplomas, certificates, ID, profile photo, work samples, tax forms. Private bucket, expert + admin only.
-const DOC_KINDS = ['diploma', 'certificate', 'id', 'photo', 'portfolio', 'tax_form'];
-const DOC_LABEL = { diploma: 'Diplomas', certificate: 'Certificates', id: 'ID document (passport or ID card)', photo: 'Profile photo', portfolio: 'Work samples / portfolio', tax_form: 'Tax forms (e.g. W-8BEN)' };
-const DOC_SHORT = { diploma: 'Diploma', certificate: 'Certificate', id: 'ID', photo: 'Photo', portfolio: 'Work sample', tax_form: 'Tax form' };
+const DOC_KINDS = ['diploma', 'certificate', 'id', 'selfie', 'photo', 'portfolio', 'tax_form'];
+const DOC_LABEL = { diploma: 'Diplomas', certificate: 'Certificates', id: 'ID document (passport or ID card)', selfie: 'Selfie holding your ID (for the ID check)', photo: 'Profile photo', portfolio: 'Work samples / portfolio', tax_form: 'Tax forms (e.g. W-8BEN)' };
+const DOC_SHORT = { diploma: 'Diploma', certificate: 'Certificate', id: 'ID', selfie: 'Selfie', photo: 'Photo', portfolio: 'Work sample', tax_form: 'Tax form' };
 const DOC_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 async function openDoc(path) {
   const w = window.open('', '_blank');
@@ -1097,6 +1146,7 @@ async function expertDashboard() {
     sb.from('interviews').select('status').eq('expert_id', uid).maybeSingle(),
   ]);
   const { data: myDocs } = await sb.from('expert_documents').select('*').eq('expert_id', uid).order('created_at', { ascending: false });
+  const { data: timer } = await sb.from('work_timers').select('*').eq('expert_id', uid).maybeSingle();
   const docs = myDocs || [];
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
   const [{ data: myPayout }, { data: myRefs }] = await Promise.all([sb.rpc('my_payout_details'), sb.rpc('my_referrals')]);
@@ -1174,12 +1224,20 @@ async function expertDashboard() {
       <div class="card stack" id="docsCard">
         <h3>${L('Documents')}</h3>
         <p class="muted small">${L('Besides your CV you can upload diplomas, certificates, an ID document, a profile photo, work samples and tax forms. PDF, JPG, PNG or WebP, max. 10 MB each. Only you and the Brightpeer team can see these files – companies never see them.')}</p>
+        <div class="row" style="gap:10px"><span class="small"><b>${L('ID check')}:</b></span>${idPill(e.id_status)}<span class="muted small">${L({ none: 'Upload your ID document and a selfie holding it – our team compares them.', submitted: 'We are checking your ID.', verified: 'Your identity is verified.', rejected: 'Please upload a clearer ID document and selfie.' }[e.id_status || 'none'])}${e.id_status === 'rejected' && e.id_note ? ` ${esc(e.id_note)}` : ''}</span></div>
         <div class="form-grid">
           ${DOC_KINDS.map((k) => { const list = docs.filter((d) => d.kind === k); return `<div class="stack" style="gap:6px">
-            <label class="f">${L(DOC_LABEL[k])}<input type="file" data-doc-kind="${k}" accept="${k === 'photo' ? 'image/jpeg,image/png,image/webp' : 'application/pdf,image/jpeg,image/png,image/webp'}" ${k === 'photo' || k === 'id' ? '' : 'multiple'}></label>
+            <label class="f">${L(DOC_LABEL[k])}<input type="file" data-doc-kind="${k}" accept="${k === 'photo' || k === 'selfie' ? 'image/jpeg,image/png,image/webp' : 'application/pdf,image/jpeg,image/png,image/webp'}" ${k === 'photo' || k === 'id' || k === 'selfie' ? '' : 'multiple'}></label>
             ${list.length ? `<ul class="small" style="margin:0;padding-left:18px">${list.map((d) => `<li><button class="link" data-doc-open="${esc(d.path)}">${esc(d.file_name || L(DOC_LABEL[k]))}</button> · <button class="link" data-doc-del="${d.id}" data-doc-path="${esc(d.path)}">${L('Remove')}</button></li>`).join('')}</ul>` : `<p class="muted small" style="margin:0">${L('Nothing uploaded yet')}</p>`}
           </div>`; }).join('')}
         </div>
+      </div>
+
+      <div class="card stack" id="bgCard">
+        <div class="row between"><h3>${L('Background check')}</h3>${bgPill(e.background_status)}</div>
+        <p class="muted small">${L('Some AI companies only work with experts who passed a background check by an independent provider (identity, education and work history; criminal records only where the law allows it). It is optional and only done with your consent. The result is shared only with Brightpeer.')}</p>
+        ${(e.background_status || 'none') === 'none' ? `<form id="bgF" class="stack" style="gap:10px"><label class="check"><input type="checkbox" name="ok" required> <span>${L('I agree that Brightpeer may have a background check done on me by an independent provider when a project requires it.')}</span></label><button class="btn btn-sm" type="submit" style="align-self:flex-start">${L('Give consent')}</button></form>`
+          : `<p class="small">${L({ consented: 'Thank you – you agreed on {d}. We start the check when a project needs it.', requested: 'The check is running.', passed: 'You passed the background check.', failed: 'The check could not be completed. We will contact you.' }[e.background_status]).replace('{d}', e.background_consent_at ? dateStr(e.background_consent_at) : '')}</p>`}
       </div>
 
       ${testsCard}
@@ -1194,6 +1252,12 @@ async function expertDashboard() {
         <p class="muted small">${L('You work in the company’s own tools. Log your hours here every week – the company approves them, and approved hours are paid out weekly.')}</p>
       </div>`).join('')}
 
+      ${active.length ? `<div class="card stack" id="timerCard"><h3>${L('Time tracker')}</h3>
+        ${timer && active.some((c) => c.id === timer.contract_id) ? `<p class="timer-v" id="timerV" data-start="${esc(timer.started_at)}">0:00:00</p><p class="muted small">${esc((active.find((c) => c.id === timer.contract_id) || {}).title || '')} · ${L('started')} ${esc(new Date(timer.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))}</p><button class="btn btn-danger" id="timerStop" type="button" style="align-self:flex-start">■ ${L('Stop and add to my hours')}</button>`
+          : `<div class="row" style="align-items:flex-end"><label class="f" style="flex:1 1 220px">${t('myContracts')}<select id="timerCon">${active.map((c) => `<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select></label><button class="btn btn-accent" id="timerStart" type="button">▶ ${L('Start')}</button></div>`}
+        <p class="muted small">${L('Press start when you begin working and stop when you finish. The time is added to this week’s hours (rounded to 15 minutes), which the company then approves. You can also enter hours by hand below.')}</p>
+      </div>` : ''}
+
       ${active.length ? `<form id="hoursF" class="card stack"><h3>${t('logHours')}</h3>
         <div class="form-grid">
           <label class="f">${t('myContracts')}<select name="contract_id" required>${active.map((c) => `<option value="${c.id}">${esc(c.title)}</option>`).join('')}</select></label>
@@ -1205,7 +1269,7 @@ async function expertDashboard() {
       </form>` : ''}
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('myHours')}</h2>
-        ${table([t('weekStart'), t('myContracts'), t('hoursWorked'), t('status'), ''], sheets.map((s) => [dateStr(s.week_start), esc(conTitle[s.contract_id] || ''), esc(s.hours), statusWithReason(s),
+        ${table([t('weekStart'), t('myContracts'), t('hoursWorked'), t('status'), L('Quality'), ''], sheets.map((s) => [dateStr(s.week_start), esc(conTitle[s.contract_id] || ''), esc(s.hours), statusWithReason(s), qualityCell(s),
           s.status === 'submitted' ? `<button class="btn btn-danger btn-sm" data-del-ts="${s.id}">${t('delete')}</button>`
           : s.status === 'rejected' && active.some((c) => c.id === s.contract_id) ? `<details><summary class="link small">${L('Correct and resend')}</summary><form class="stack" data-fix="${s.id}" style="gap:6px;margin-top:6px;min-width:200px">
               <input name="hours" type="number" step="0.25" min="0.25" max="80" required value="${esc(s.hours)}">
@@ -1293,12 +1357,12 @@ async function expertDashboard() {
       $app.querySelectorAll('[data-doc-kind]').forEach((inp) => { inp.onchange = async (ev) => {
         const kind = inp.dataset.docKind; const files = [...ev.target.files]; if (!files.length) return;
         for (const file of files) {
-          if (!DOC_MIME.includes(file.type) || (kind === 'photo' && file.type === 'application/pdf')) return toast(L('Only PDF, JPG, PNG or WebP files'), true);
+          if (!DOC_MIME.includes(file.type) || ((kind === 'photo' || kind === 'selfie') && file.type === 'application/pdf')) return toast(L('Only PDF, JPG, PNG or WebP files'), true);
           if (file.size > 10 * 1024 * 1024) return toast('Max. 10 MB', true);
         }
         inp.disabled = true;
         // Only one ID document and one profile photo: replace the old one.
-        if (kind === 'photo' || kind === 'id') {
+        if (kind === 'photo' || kind === 'id' || kind === 'selfie') {
           const old = docs.filter((d) => d.kind === kind);
           if (old.length) { await sb.storage.from('expert-docs').remove(old.map((d) => d.path)); await sb.from('expert_documents').delete().in('id', old.map((d) => d.id)); }
         }
@@ -1310,6 +1374,11 @@ async function expertDashboard() {
           const { error } = await sb.from('expert_documents').insert({ expert_id: uid, kind, path, file_name: file.name.slice(0, 200), mime: file.type, size_bytes: file.size });
           if (error) { inp.disabled = false; return fail(error); }
         }
+        // ID check like Mercor (owner, 27.11.2026): ID document + selfie → our team compares them and verifies.
+        if ((kind === 'id' || kind === 'selfie') && ['none', 'rejected'].includes(e.id_status || 'none')) {
+          const { data: kinds } = await sb.from('expert_documents').select('kind').eq('expert_id', uid).in('kind', ['id', 'selfie']);
+          if (new Set((kinds || []).map((x) => x.kind)).size === 2) await sb.from('experts').update({ id_status: 'submitted' }).eq('id', uid);
+        }
         toast(t('saved')); render();
       }; });
       $app.querySelectorAll('[data-doc-open]').forEach((b) => { b.onclick = () => openDoc(b.dataset.docOpen); });
@@ -1319,6 +1388,35 @@ async function expertDashboard() {
         const { error } = await sb.from('expert_documents').delete().eq('id', b.dataset.docDel);
         if (error) return fail(error); toast(t('saved')); render();
       }; });
+      const bgF = document.getElementById('bgF');
+      if (bgF) bgF.onsubmit = async (ev) => {
+        ev.preventDefault(); busy(bgF, true);
+        const { error } = await sb.from('experts').update({ background_status: 'consented' }).eq('id', uid);
+        busy(bgF, false); if (error) return fail(error); toast(t('saved')); render();
+      };
+      const tv = document.getElementById('timerV');
+      if (tv) {
+        const t0 = new Date(tv.dataset.start).getTime();
+        const tick = () => { if (!document.body.contains(tv)) return clearInterval(iv); const sec = Math.max(0, Math.floor((Date.now() - t0) / 1000)); tv.textContent = `${Math.floor(sec / 3600)}:${String(Math.floor(sec / 60) % 60).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; };
+        const iv = setInterval(tick, 1000); tick();
+      }
+      const tStart = document.getElementById('timerStart');
+      if (tStart) tStart.onclick = async () => {
+        tStart.disabled = true;
+        const { error } = await sb.from('work_timers').insert({ expert_id: uid, contract_id: document.getElementById('timerCon').value });
+        if (error) { tStart.disabled = false; return fail(error); } render();
+      };
+      const tStop = document.getElementById('timerStop');
+      if (tStop) tStop.onclick = async () => {
+        tStop.disabled = true;
+        const hrs = Math.min(24, (Date.now() - new Date(timer.started_at).getTime()) / 3600000);
+        if (hrs >= 1 / 60) {
+          const { error } = await sb.rpc('add_timer_hours', { p_contract: timer.contract_id, p_week: mondayOf(new Date(timer.started_at)), p_hours: Math.max(0.25, hrs) });
+          if (error) { tStop.disabled = false; return toast(String(error.message || '').includes('week_locked') ? L('This week is already approved – please enter the time for another week by hand.') : (error.message || t('error')), true); }
+        }
+        await sb.from('work_timers').delete().eq('expert_id', uid);
+        toast(L('Time added to your hours.')); render();
+      };
       const hf = document.getElementById('hoursF');
       if (hf) hf.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(hf); busy(hf, true);
@@ -1564,8 +1662,9 @@ async function companyDashboard() {
       </div>
 
       <div class="stack"><h2 style="font-size:1.6rem">${t('approveHours')}</h2>
-        ${table([t('experts'), t('roles'), t('weekStart'), t('hoursWorked'), t('note'), t('status'), ''], sheets.map((s) => [esc(s.expert_first_name), esc(s.title), dateStr(s.week_start), esc(s.hours), esc(s.note || ''), statusWithReason(s),
-          s.status === 'submitted' ? reviewCell(s) : '']))}
+        ${table([t('experts'), t('roles'), t('weekStart'), t('hoursWorked'), t('note'), t('status'), L('Quality'), ''], sheets.map((s) => [esc(s.expert_first_name), esc(s.title), dateStr(s.week_start), esc(s.hours), esc(s.note || ''), statusWithReason(s),
+          s.status === 'rejected' ? '' : rateCell(s), s.status === 'submitted' ? reviewCell(s) : '']))}
+        <p class="muted small">${L('Rate the quality of each week’s work with 1–5 stars, like on Mercor. It helps us give you the best experts and helps good experts move up.')}</p>
         <p class="muted small">${L('Please check the hours within 7 days. If you reject hours, give a short reason – the expert can correct and resend them. Hours you do not check count as approved after 7 days (Client Terms, section 4).')}</p>
         ${toApprove.length ? '' : ''}
       </div>
@@ -1806,14 +1905,16 @@ async function adminTodo() {
     qy = Array.isArray(vals) ? qy.in(col, vals) : qy.eq(col, vals);
     return qy.then((r) => (r.error ? 0 : r.count || 0), () => 0);
   };
-  const [experts, interviews, tests, requests, hours, prepay, payouts, refs] = await Promise.all([
+  const [experts, interviews, tests, requests, hours, prepay, payouts, refs, idChecks] = await Promise.all([
     cnt('experts', 'status', 'pending'), cnt('interviews', 'status', 'submitted'), cnt('test_attempts', 'status', 'submitted'),
     cnt('requests', 'status', 'new'), cnt('timesheets', 'status', 'submitted'), cnt('prepayments', 'status', ['requested', 'open']),
     cnt('payouts', 'status', 'pending'),
     sb.rpc('admin_referrals').then((r) => (r.data || []).filter((x) => x.qualified && !x.bonus_paid_at).length, () => 0),
+    cnt('experts', 'id_status', 'submitted'),
   ]);
   const items = [
     ['experts', experts, 'expert application(s) to review', '#/admin?tab=experts&st=pending'],
+    ['idChecks', idChecks, 'ID check(s) to verify (Experts → open profile)', '#/admin?tab=experts&st=all'],
     ['interviewsTab', interviews, 'interview(s) to rate', '#/admin?tab=interviewsTab'],
     ['testsTab', tests, 'field test(s) to check', '#/admin?tab=testsTab'],
     ['requests', requests, 'new company request(s)', '#/admin?tab=requests'],
@@ -1857,6 +1958,8 @@ async function expertDetail(id) {
     sb.from('contracts').select('id,title,status,expert_rate,client_rate,start_date,companies(company_name)').eq('expert_id', id).order('created_at', { ascending: false }),
     sb.from('payouts').select('id,week_start,hours,amount,status,paid_at').eq('expert_id', id).order('week_start', { ascending: false }),
   ]);
+  const { data: qual } = await sb.rpc('admin_expert_quality');
+  const q = (qual || []).find((r) => r.expert_id === id) || null;
   const back = `<a class="link" href="#/admin?tab=experts">← ${L('All experts')}</a>`;
   if (ex.error || !ex.data) return { html: `<div class="stack">${back}<p class="form-msg err">${esc(ex.error?.message || t('error'))}</p></div>` };
   const e = ex.data; const pr = e.profiles || {};
@@ -1885,6 +1988,7 @@ async function expertDetail(id) {
           <div><p class="muted small">${L('Field test')}</p><p class="stat-v">${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'}</p></div>
           <div><p class="muted small">Interview</p><p class="stat-v">${x.interview_score ? stars(x.interview_score) : x.ai_score ? stars(x.ai_score) + ' <span class="small muted">(AI)</span>' : '–'}</p></div>
           <div><p class="muted small">${L('Expected rate')}</p><p class="stat-v">${e.rate_expectation ? money(e.rate_expectation) : '–'}</p></div>
+          <div><p class="muted small">${L('Work quality')}</p><p class="stat-v">${q ? `${esc(q.avg_quality)} <span class="small muted">★ · ${esc(q.ratings)}×</span>` : '–'}</p></div>
         </div>
       </div>
       <div class="grid">
@@ -1892,6 +1996,13 @@ async function expertDetail(id) {
         ${sec(L('CV and documents'), (e.cv_path ? `<button class="btn btn-sm" data-cv="${esc(e.cv_path)}" style="align-self:flex-start">CV (PDF)</button>` : `<p class="muted small">${L('No CV yet')}</p>`) + docBtns)}
         ${sec(L('Field test'), attempts.length ? attempts.map((a) => `<div class="kv"><span>${esc(a.title || '')} · ${a.submitted_at ? dateStr(a.submitted_at) : t('stInProgress')}</span><span>${pill(a.status)} ${a.mc_max ? Math.round((a.mc_score / a.mc_max) * 100) + ' %' : ''}</span></div>`).join('') + `<a class="link small" href="#/admin?tab=testsTab">${L('Check answers')} →</a>` : `<p class="muted small">${L('No test yet')}</p>`)}
         ${sec('Interview', i ? row('Status', pill(i.status)) + row(L('Submitted'), i.submitted_at ? dateStr(i.submitted_at) : '') + row(L('AI rating'), i.ai_score ? stars(i.ai_score) : '') + (i.ai_summary ? `<p class="small" style="white-space:pre-line">${esc(i.ai_summary)}</p>` : '') + `<a class="link small" href="#/admin?tab=interviewsTab">${L('Listen and rate')} →</a>` : `<p class="muted small">${L('No interview yet')}</p>`)}
+        ${sec(L('ID check'), `<div class="row between"><span>${idPill(e.id_status)}</span>${e.id_checked_at ? `<span class="muted small">${dateStr(e.id_checked_at)}</span>` : ''}</div>
+          <p class="muted small">${L('Compare the ID document with the selfie: same person, name matches the profile, document valid.')}</p>
+          <div class="row" style="gap:8px">${(docs.data || []).filter((d) => d.kind === 'id' || d.kind === 'selfie').map((d) => `<button class="btn btn-ghost btn-sm" data-doc-open="${esc(d.path)}">${esc(DOC_SHORT[d.kind])}</button>`).join('') || `<span class="muted small">${L('No ID or selfie uploaded yet')}</span>`}</div>
+          <div class="row" style="gap:8px"><button class="btn btn-sm" data-idst="verified">${L('Verify ID')}</button><button class="btn btn-danger btn-sm" data-idst="rejected">${L('Ask to redo')}</button></div>`)}
+        ${sec(L('Background check'), `<div class="row between"><span>${bgPill(e.background_status)}</span>${e.background_consent_at ? `<span class="muted small">${L('Consent')}: ${dateStr(e.background_consent_at)}</span>` : ''}</div>
+          <p class="muted small">${L('Done by an external provider (e.g. Certn) – only with the expert’s consent. Record the result here.')}</p>
+          ${e.background_status && e.background_status !== 'none' ? `<div class="row" style="gap:8px"><button class="btn btn-ghost btn-sm" data-bgst="requested">${L('Check started')}</button><button class="btn btn-sm" data-bgst="passed">${L('Passed')}</button><button class="btn btn-danger btn-sm" data-bgst="failed">${L('Not passed')}</button></div>` : `<p class="small">${L('No consent yet – the expert gives it in their dashboard.')}</p>`}`)}
         ${sec(L('Tax details'), e.tax_confirmed_at ? row(L('Country'), esc(e.tax_country || '')) + row('Status', esc(e.tax_status === 'company' ? 'Company' : 'Self-employed')) + row(L('Company'), esc(e.business_name || '')) + row(L('Tax number'), esc(e.tax_id || '')) + row(L('Address'), `<span style="white-space:pre-line">${esc(e.billing_address || '')}</span>`) + row(L('Confirmed'), dateStr(e.tax_confirmed_at)) : `<p class="muted small">${L('Not filled in yet')}</p>`)}
         ${sec(L('Payout details'), e.payout_method ? row(L('Method'), esc(e.payout_method)) + row(L('Details'), `<span style="white-space:pre-line">${esc(payout)}</span>`) : `<p class="muted small">${L('Not filled in yet')}</p>`)}
       </div>
@@ -1906,6 +2017,16 @@ async function expertDetail(id) {
       $app.querySelectorAll('[data-doc-open]').forEach((b) => { b.onclick = () => openDoc(b.dataset.docOpen); });
       $app.querySelectorAll('[data-ex]').forEach((b) => { b.onclick = async () => {
         const { error: er } = await sb.from('experts').update({ status: b.dataset.st }).eq('id', b.dataset.ex);
+        if (er) return fail(er); toast(t('saved')); render();
+      }; });
+      $app.querySelectorAll('[data-idst]').forEach((b) => { b.onclick = async () => {
+        let note = null;
+        if (b.dataset.idst === 'rejected') { note = window.prompt(L('What should the expert fix? (they see this)'), L('The photo is not readable.')); if (note === null) return; }
+        const { error: er } = await sb.from('experts').update({ id_status: b.dataset.idst, id_note: note, id_checked_at: new Date().toISOString() }).eq('id', e.id);
+        if (er) return fail(er); toast(t('saved')); render();
+      }; });
+      $app.querySelectorAll('[data-bgst]').forEach((b) => { b.onclick = async () => {
+        const { error: er } = await sb.from('experts').update({ background_status: b.dataset.bgst, background_checked_at: b.dataset.bgst === 'requested' ? null : new Date().toISOString() }).eq('id', e.id);
         if (er) return fail(er); toast(t('saved')); render();
       }; });
     },
@@ -1951,6 +2072,8 @@ const ADMIN_CONFIRM = [
   ['[data-endcon]', 'End this contract? The expert can no longer log hours for it.'],
   ['[data-uncand]', 'Remove this expert from the request?'],
   ['[data-ta-reset]', 'Reset this test attempt? The answers will be deleted.'],
+  ['[data-idst="verified"]', 'Mark this identity as verified? Only if the ID and selfie clearly match.'],
+  ['[data-bgst="failed"]', 'Record the background check as not passed?'],
 ];
 function guardAdminActions() {
   const view = document.getElementById('adminView'); if (!view || view.dataset.guarded) return;
@@ -2037,7 +2160,8 @@ const ADMIN = {
     const scoreOf = Object.fromEntries((sc || []).map((x) => [x.expert_id, x]));
     // Ranked by score (CV 20 + field test 40 + interview 40); experts with everything done are marked "ready".
     const data = [...(rows0 || [])].sort((a, b) => ((scoreOf[b.id] || {}).score || 0) - ((scoreOf[a.id] || {}).score || 0));
-    const scoreCell = (id) => { const x = scoreOf[id] || {}; return `<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.ai_score ? `${'★'.repeat(x.ai_score)} (AI)` : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
+    const rowOf = Object.fromEntries((rows0 || []).map((r) => [r.id, r]));
+    const scoreCell = (id) => { const x = scoreOf[id] || {}; const r = rowOf[id] || {}; return `${r.id_status === 'verified' ? '<span class="pill pill-ok" style="margin-right:4px">ID ✓</span>' : r.id_status === 'submitted' ? '<span class="pill pill-warn" style="margin-right:4px">ID ?</span>' : ''}<b>${esc(x.score ?? 0)}</b><span class="muted small"> / 100</span>${x.ready ? ' <span class="pill pill-ok">ready</span>' : ''}<div class="small muted">CV ${x.has_cv ? '✓' : '✗'} · Test ${x.test_pct != null ? esc(x.test_pct) + ' %' : '–'} · Interview ${x.interview_score ? '★'.repeat(x.interview_score) : x.ai_score ? `${'★'.repeat(x.ai_score)} (AI)` : x.interview_status ? esc(x.interview_status) : '–'}</div>`; };
     const filt = ['pending', 'approved', 'rejected', 'all'].map((k) => `<a class="btn btn-sm ${filter === k ? '' : 'btn-ghost'}" href="#/admin?tab=experts&st=${k}">${k}</a>`).join('');
     return {
       html: `<div class="stack"><div class="row">${filt}</div><p class="muted small">Sorted by score: CV 20 + field test 40 + interview 40 points. “ready” = CV, test and reviewed interview are all there. Automatic approval can be switched on under Automation.</p>${table(['Name', 'Score', 'Email', t('country'), t('field'), t('years'), 'Rate', 'LinkedIn', 'CV', 'Documents', 'Ref', t('payoutSettings'), t('status'), ''], (data || []).map((e) => [

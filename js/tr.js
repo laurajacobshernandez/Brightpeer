@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127i';
+import { lang } from './i18n.js?v=20261127j';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -181,6 +181,50 @@ const D = {
   'Remove': T('Entfernen', 'Supprimer', 'Rimuovi', 'Eliminar'),
   'Remove this file?': T('Diese Datei entfernen?', 'Supprimer ce fichier ?', 'Rimuovere questo file?', '¿Eliminar este archivo?'),
   'Only PDF, JPG, PNG or WebP files': T('Nur PDF-, JPG-, PNG- oder WebP-Dateien', 'Uniquement des fichiers PDF, JPG, PNG ou WebP', 'Solo file PDF, JPG, PNG o WebP', 'Solo archivos PDF, JPG, PNG o WebP'),
+  // Mercor features (27.11.2026)
+  'Selfie holding your ID (for the ID check)': T('Selfie mit deinem Ausweis in der Hand (für die Ausweisprüfung)', 'Selfie avec votre pièce d’identité en main (pour la vérification)', 'Selfie con il documento in mano (per la verifica)', 'Selfie sosteniendo tu documento (para la verificación)'),
+  'ID check': T('Ausweisprüfung', 'Vérification d’identité', 'Verifica dell’identità', 'Verificación de identidad'),
+  'Upload your ID document and a selfie holding it – our team compares them.': T('Lade deinen Ausweis und ein Selfie mit dem Ausweis in der Hand hoch – unser Team vergleicht beides.', 'Téléversez votre pièce d’identité et un selfie en la tenant – notre équipe compare les deux.', 'Carica il documento d’identità e un selfie mentre lo tieni in mano – il nostro team li confronta.', 'Sube tu documento de identidad y un selfie sosteniéndolo: nuestro equipo los compara.'),
+  'We are checking your ID.': T('Wir prüfen deinen Ausweis.', 'Nous vérifions votre pièce d’identité.', 'Stiamo verificando il tuo documento.', 'Estamos revisando tu documento.'),
+  'Your identity is verified.': T('Deine Identität ist bestätigt.', 'Votre identité est vérifiée.', 'La tua identità è verificata.', 'Tu identidad está verificada.'),
+  'Please upload a clearer ID document and selfie.': T('Bitte lade einen besser lesbaren Ausweis und ein neues Selfie hoch.', 'Veuillez téléverser une pièce d’identité et un selfie plus nets.', 'Carica un documento e un selfie più leggibili.', 'Sube un documento y un selfie más nítidos.'),
+  'Background check': T('Hintergrundprüfung', 'Vérification des antécédents', 'Controllo dei precedenti', 'Verificación de antecedentes'),
+  'Some AI companies only work with experts who passed a background check by an independent provider (identity, education and work history; criminal records only where the law allows it). It is optional and only done with your consent. The result is shared only with Brightpeer.': T('Manche KI-Firmen arbeiten nur mit Fachleuten, die eine Hintergrundprüfung durch einen unabhängigen Anbieter bestanden haben (Identität, Ausbildung und beruflicher Werdegang; Strafregister nur, wo das Gesetz es erlaubt). Sie ist freiwillig und wird nur mit deiner Zustimmung gemacht. Das Ergebnis erhält nur Brightpeer.', 'Certaines entreprises d’IA ne travaillent qu’avec des experts ayant passé une vérification des antécédents par un prestataire indépendant (identité, formation et parcours professionnel ; casier judiciaire uniquement si la loi le permet). Elle est facultative et n’a lieu qu’avec votre accord. Seul Brightpeer reçoit le résultat.', 'Alcune aziende di IA lavorano solo con esperti che hanno superato un controllo dei precedenti da parte di un fornitore indipendente (identità, formazione ed esperienza lavorativa; casellario giudiziale solo dove la legge lo consente). È facoltativo e si fa solo con il tuo consenso. Il risultato lo riceve solo Brightpeer.', 'Algunas empresas de IA solo trabajan con expertos que han superado una verificación de antecedentes de un proveedor independiente (identidad, formación y trayectoria laboral; antecedentes penales solo donde la ley lo permite). Es opcional y solo se hace con tu consentimiento. Solo Brightpeer recibe el resultado.'),
+  'I agree that Brightpeer may have a background check done on me by an independent provider when a project requires it.': T('Ich bin einverstanden, dass Brightpeer bei Bedarf eines Projekts eine Hintergrundprüfung durch einen unabhängigen Anbieter über mich durchführen lässt.', 'J’accepte que Brightpeer fasse réaliser une vérification de mes antécédents par un prestataire indépendant lorsqu’un projet l’exige.', 'Accetto che Brightpeer faccia eseguire un controllo dei miei precedenti da un fornitore indipendente quando un progetto lo richiede.', 'Acepto que Brightpeer encargue una verificación de mis antecedentes a un proveedor independiente cuando un proyecto lo requiera.'),
+  'Give consent': T('Zustimmen', 'Donner mon accord', 'Dai il consenso', 'Dar mi consentimiento'),
+  'Thank you – you agreed on {d}. We start the check when a project needs it.': T('Danke – du hast am {d} zugestimmt. Wir starten die Prüfung, sobald ein Projekt sie braucht.', 'Merci – vous avez donné votre accord le {d}. Nous lançons la vérification dès qu’un projet en a besoin.', 'Grazie – hai dato il consenso il {d}. Avviamo il controllo quando un progetto lo richiede.', 'Gracias: diste tu consentimiento el {d}. Iniciamos la verificación cuando un proyecto la necesite.'),
+  'The check is running.': T('Die Prüfung läuft.', 'La vérification est en cours.', 'Il controllo è in corso.', 'La verificación está en curso.'),
+  'You passed the background check.': T('Du hast die Hintergrundprüfung bestanden.', 'Vous avez réussi la vérification des antécédents.', 'Hai superato il controllo dei precedenti.', 'Has superado la verificación de antecedentes.'),
+  'The check could not be completed. We will contact you.': T('Die Prüfung konnte nicht abgeschlossen werden. Wir melden uns bei dir.', 'La vérification n’a pas pu être finalisée. Nous vous contacterons.', 'Il controllo non è stato completato. Ti contatteremo.', 'La verificación no pudo completarse. Te contactaremos.'),
+  'Time tracker': T('Zeiterfassung', 'Suivi du temps', 'Cronometro', 'Control de tiempo'),
+  'started': T('gestartet', 'commencé à', 'iniziato alle', 'iniciado a las'),
+  'Stop and add to my hours': T('Stoppen und zu meinen Stunden hinzufügen', 'Arrêter et ajouter à mes heures', 'Ferma e aggiungi alle mie ore', 'Detener y añadir a mis horas'),
+  'Start': T('Starten', 'Démarrer', 'Avvia', 'Iniciar'),
+  'Press start when you begin working and stop when you finish. The time is added to this week’s hours (rounded to 15 minutes), which the company then approves. You can also enter hours by hand below.': T('Drück auf Starten, wenn du mit der Arbeit beginnst, und auf Stoppen, wenn du fertig bist. Die Zeit wird zu den Stunden dieser Woche addiert (auf 15 Minuten gerundet), die die Firma dann bestätigt. Unten kannst du Stunden auch von Hand eintragen.', 'Appuyez sur Démarrer quand vous commencez et sur Arrêter quand vous terminez. Le temps est ajouté aux heures de la semaine (arrondi à 15 minutes), que l’entreprise approuve ensuite. Vous pouvez aussi saisir des heures à la main ci-dessous.', 'Premi Avvia quando inizi e Ferma quando finisci. Il tempo viene aggiunto alle ore della settimana (arrotondato a 15 minuti), che l’azienda poi approva. Puoi anche inserire le ore a mano qui sotto.', 'Pulsa Iniciar al empezar y Detener al terminar. El tiempo se suma a las horas de esta semana (redondeado a 15 minutos), que luego aprueba la empresa. También puedes introducir horas a mano abajo.'),
+  'Quality': T('Qualität', 'Qualité', 'Qualità', 'Calidad'),
+  'This week is already approved – please enter the time for another week by hand.': T('Diese Woche ist schon bestätigt – bitte trag die Zeit von Hand für eine andere Woche ein.', 'Cette semaine est déjà approuvée – saisissez le temps à la main pour une autre semaine.', 'Questa settimana è già approvata – inserisci il tempo a mano per un’altra settimana.', 'Esta semana ya está aprobada: introduce el tiempo a mano para otra semana.'),
+  'Time added to your hours.': T('Zeit zu deinen Stunden hinzugefügt.', 'Temps ajouté à vos heures.', 'Tempo aggiunto alle tue ore.', 'Tiempo añadido a tus horas.'),
+  'Not started': T('Noch nicht begonnen', 'Pas commencé', 'Non iniziato', 'Sin empezar'),
+  'In review': T('In Prüfung', 'En vérification', 'In verifica', 'En revisión'),
+  'Verified': T('Bestätigt', 'Vérifié', 'Verificato', 'Verificado'),
+  'Please redo': T('Bitte neu hochladen', 'À refaire', 'Da rifare', 'Por favor, repite'),
+  'Consent given': T('Zugestimmt', 'Accord donné', 'Consenso dato', 'Consentimiento dado'),
+  'Running': T('Läuft', 'En cours', 'In corso', 'En curso'),
+  'Passed': T('Bestanden', 'Réussi', 'Superato', 'Superado'),
+  'Not passed': T('Nicht bestanden', 'Non réussi', 'Non superato', 'No superado'),
+  'Short feedback (optional)': T('Kurzes Feedback (optional)', 'Bref retour (facultatif)', 'Breve feedback (facoltativo)', 'Comentario breve (opcional)'),
+  'Update': T('Ändern', 'Modifier', 'Aggiorna', 'Actualizar'),
+  'Rate': T('Bewerten', 'Évaluer', 'Valuta', 'Valorar'),
+  'Rate the quality of each week’s work with 1–5 stars, like on Mercor. It helps us give you the best experts and helps good experts move up.': T('Bewerte die Qualität der Arbeit jeder Woche mit 1–5 Sternen. Das hilft uns, dir die besten Fachleute zu geben, und guten Fachleuten, aufzusteigen.', 'Évaluez la qualité du travail de chaque semaine de 1 à 5 étoiles. Cela nous aide à vous proposer les meilleurs experts et aide les bons experts à progresser.', 'Valuta la qualità del lavoro di ogni settimana da 1 a 5 stelle. Ci aiuta a darti i migliori esperti e aiuta i bravi esperti a crescere.', 'Valora la calidad del trabajo de cada semana de 1 a 5 estrellas. Nos ayuda a darte los mejores expertos y a que los buenos expertos asciendan.'),
+  'Help assistant': T('Hilfe-Assistent', 'Assistant d’aide', 'Assistente', 'Asistente de ayuda'),
+  'Brightpeer help': T('Brightpeer-Hilfe', 'Aide Brightpeer', 'Aiuto Brightpeer', 'Ayuda de Brightpeer'),
+  'Close': T('Schliessen', 'Fermer', 'Chiudi', 'Cerrar'),
+  'Hi! Ask me anything about Brightpeer – payday, hours, offers, documents …': T('Hallo! Frag mich alles zu Brightpeer – Zahltag, Stunden, Angebote, Dokumente …', 'Bonjour ! Posez-moi vos questions sur Brightpeer – paie, heures, offres, documents …', 'Ciao! Chiedimi tutto su Brightpeer – pagamenti, ore, offerte, documenti …', '¡Hola! Pregúntame lo que quieras sobre Brightpeer: pagos, horas, ofertas, documentos …'),
+  'Your question': T('Deine Frage', 'Votre question', 'La tua domanda', 'Tu pregunta'),
+  'Send': T('Senden', 'Envoyer', 'Invia', 'Enviar'),
+  'Automatic answers – for personal cases write to': T('Automatische Antworten – bei persönlichen Fragen schreib an', 'Réponses automatiques – pour les cas personnels, écrivez à', 'Risposte automatiche – per casi personali scrivi a', 'Respuestas automáticas: para casos personales escribe a'),
+  'You asked many questions today – please try again tomorrow or write to us.': T('Du hast heute schon viele Fragen gestellt – bitte versuch es morgen wieder oder schreib uns.', 'Vous avez posé beaucoup de questions aujourd’hui – réessayez demain ou écrivez-nous.', 'Hai fatto molte domande oggi – riprova domani o scrivici.', 'Hoy has hecho muchas preguntas: inténtalo mañana o escríbenos.'),
+  'Sorry, that did not work. Please try again or write to us.': T('Das hat leider nicht geklappt. Bitte versuch es nochmals oder schreib uns.', 'Désolé, cela n’a pas fonctionné. Réessayez ou écrivez-nous.', 'Spiacenti, non ha funzionato. Riprova o scrivici.', 'Lo siento, no funcionó. Inténtalo de nuevo o escríbenos.'),
 };
 
 export const L = (s) => (D[s] && D[s][lang]) || s;
