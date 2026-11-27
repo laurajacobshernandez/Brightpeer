@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127r';
-import { t, lang } from './i18n.js?v=20261127r';
-import { L } from './tr.js?v=20261127r';
+import { CONFIG } from './config.js?v=20261127s';
+import { t, lang } from './i18n.js?v=20261127s';
+import { L } from './tr.js?v=20261127s';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -3069,20 +3069,33 @@ function trackView(parts) {
 
 window.addEventListener('hashchange', render);
 
+// Fix 27.11.2026 (owner: "die Seite öffnet sich nicht" – endless loader): no start-up step may wait forever.
+const withTimeout = (p, ms, label) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(label + ' timed out')), ms))]);
+
 async function init() {
+  // Safety net: whatever happens, the loader never stays longer than 15 s.
+  setTimeout(() => {
+    const l = document.getElementById('loader');
+    if (l && !l.classList.contains('hide')) { console.warn('Start-up took too long – showing the page anyway'); l.classList.add('hide'); if (!$app.innerHTML.trim()) render(); }
+  }, 15000);
   if (configured) {
     try {
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      const { createClient } = await withTimeout(import('https://esm.sh/@supabase/supabase-js@2'), 10000, 'Supabase library');
       const qs = new URLSearchParams(location.search);
       const hadCode = qs.has('code');
       const oauthError = qs.get('error_description');
       const isReset = qs.get('reset') === '1';
-      sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce' } });
-      const { data } = await sb.auth.getSession();
-      session = data.session;
-      await loadProfile();
-      await Promise.all([loadOAuthProviders(), finishOAuth()]);
-      await finishPendingApply();
+      // lock: simple in-tab lock instead of the browser-wide lock – a hanging tab could block every other tab forever.
+      sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce', lock: async (_name, _timeout, fn) => fn() } });
+      try {
+        const { data } = await withTimeout(sb.auth.getSession(), 8000, 'Session');
+        session = data.session;
+      } catch (e) { console.warn(e); session = null; }
+      try {
+        await withTimeout(loadProfile(), 8000, 'Profile');
+        await withTimeout(Promise.all([loadOAuthProviders(), finishOAuth()]), 8000, 'Sign-in options');
+        await withTimeout(finishPendingApply(), 8000, 'Pending application');
+      } catch (e) { console.warn(e); }
       if (oauthError) { history.replaceState(null, '', location.pathname + location.hash); setTimeout(() => toast(oauthError, true), 300); }
       if (hadCode || isReset) {
         history.replaceState(null, '', location.pathname + location.hash);
