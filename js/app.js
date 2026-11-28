@@ -1,7 +1,7 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261127u';
-import { t, lang } from './i18n.js?v=20261127u';
-import { L } from './tr.js?v=20261127u';
+import { CONFIG } from './config.js?v=20261128j';
+import { t, lang } from './i18n.js?v=20261128j';
+import { L } from './tr.js?v=20261128j';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -278,17 +278,23 @@ function renderHeader() {
 }
 
 // ---------------------------------------------------------------- help assistant (owner, 27.11.2026: like Mercor's assistant)
-// Round "?" button bottom right for signed-in experts and companies; answers come from the Edge Function help-assistant.
+// Round button bottom right; answers come from the Edge Function help-assistant.
+// 28.11.2026 (owner): the assistant is called "Jarvis" and is shown to everyone, also visitors before sign-in
+// (visitors: 10 questions per day, signed-in: 30 – limits in the Edge Function).
 let chatLog = [];
+let chatUser = null;
 function renderAssistant() {
   let box = document.getElementById('helpBot');
-  if (!session || !sb) { if (box) box.remove(); chatLog = []; return; }
+  if (!sb) { if (box) box.remove(); chatLog = []; return; }
+  const uid = session?.user?.id || null;
+  if (box && chatUser !== uid) { box.remove(); box = null; chatLog = []; } // new conversation after sign-in / sign-out
+  chatUser = uid;
   if (box) return;
   box = document.createElement('div'); box.id = 'helpBot';
-  box.innerHTML = `<button class="hb-btn" type="button" aria-expanded="false" aria-controls="hbPanel" aria-label="${esc(L('Help assistant'))}">?</button>
+  box.innerHTML = `<button class="hb-btn" type="button" aria-expanded="false" aria-controls="hbPanel" aria-label="${esc(L('Ask Jarvis'))}">?</button>
     <section class="hb-panel" id="hbPanel" hidden aria-label="${esc(L('Help assistant'))}">
-      <div class="hb-head"><b>${esc(L('Brightpeer help'))}</b><button class="hb-x" type="button" aria-label="${esc(L('Close'))}">×</button></div>
-      <div class="hb-msgs" aria-live="polite"><p class="hb-m bot">${esc(L('Hi! Ask me anything about Brightpeer – payday, hours, offers, documents …'))}</p></div>
+      <div class="hb-head"><b>Jarvis <span class="muted small" style="font-weight:400">· ${esc(L('Brightpeer help'))}</span></b><button class="hb-x" type="button" aria-label="${esc(L('Close'))}">×</button></div>
+      <div class="hb-msgs" aria-live="polite"><p class="hb-m bot">${esc(L("Hi, I'm Jarvis! Ask me anything about Brightpeer – how it works, pay, payday, applying, offers for companies …"))}</p></div>
       <form class="hb-form"><label class="sr-only" for="hbIn">${esc(L('Your question'))}</label><input id="hbIn" maxlength="600" autocomplete="off" placeholder="${esc(L('Your question'))}" required><button class="btn btn-accent btn-sm" type="submit">${esc(L('Send'))}</button></form>
       <p class="muted small" style="margin:0 12px 10px">${esc(L('Automatic answers – for personal cases write to'))} ${esc(CONFIG.COMPANY.email)}</p>
     </section>`;

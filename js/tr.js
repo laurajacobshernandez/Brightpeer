@@ -1,7 +1,7 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261127u';
+import { lang } from './i18n.js?v=20261128j';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -220,6 +220,8 @@ const D = {
   'Brightpeer help': T('Brightpeer-Hilfe', 'Aide Brightpeer', 'Aiuto Brightpeer', 'Ayuda de Brightpeer'),
   'Close': T('Schliessen', 'Fermer', 'Chiudi', 'Cerrar'),
   'Hi! Ask me anything about Brightpeer – payday, hours, offers, documents …': T('Hallo! Frag mich alles zu Brightpeer – Zahltag, Stunden, Angebote, Dokumente …', 'Bonjour ! Posez-moi vos questions sur Brightpeer – paie, heures, offres, documents …', 'Ciao! Chiedimi tutto su Brightpeer – pagamenti, ore, offerte, documenti …', '¡Hola! Pregúntame lo que quieras sobre Brightpeer: pagos, horas, ofertas, documentos …'),
+  'Ask Jarvis': T('Frag Jarvis', 'Demandez à Jarvis', 'Chiedi a Jarvis', 'Pregunta a Jarvis'),
+  "Hi, I'm Jarvis! Ask me anything about Brightpeer – how it works, pay, payday, applying, offers for companies …": T('Hallo, ich bin Jarvis! Frag mich alles zu Brightpeer – wie es funktioniert, Bezahlung, Zahltag, Bewerbung, Angebote für Firmen …', 'Bonjour, je suis Jarvis ! Posez-moi toutes vos questions sur Brightpeer – fonctionnement, rémunération, jour de paie, candidature, offres pour les entreprises …', 'Ciao, sono Jarvis! Chiedimi tutto su Brightpeer – come funziona, compensi, giorno di paga, candidatura, offerte per le aziende …', '¡Hola, soy Jarvis! Pregúntame lo que quieras sobre Brightpeer: cómo funciona, pagos, día de pago, solicitud, ofertas para empresas …'),
   'Your question': T('Deine Frage', 'Votre question', 'La tua domanda', 'Tu pregunta'),
   'Send': T('Senden', 'Envoyer', 'Invia', 'Enviar'),
   'Automatic answers – for personal cases write to': T('Automatische Antworten – bei persönlichen Fragen schreib an', 'Réponses automatiques – pour les cas personnels, écrivez à', 'Risposte automatiche – per casi personali scrivi a', 'Respuestas automáticas: para casos personales escribe a'),
