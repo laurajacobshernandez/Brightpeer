@@ -1,7 +1,8 @@
 // Translations for texts that were written in English directly in app.js (owner, 25.11.2026: the whole page must be in
 // the visitor's language). Keyed by the English text; L('…') returns it in the current language, or English.
 // Legal pages (terms, privacy, client terms) stay in English as the binding version.
-import { lang } from './i18n.js?v=20261128j';
+import { lang } from './i18n.js?v=20261128k';
+import { M } from './tr-more.js?v=20261128k';
 
 const T = (de, fr, it, es) => ({ de, fr, it, es });
 const D = {
@@ -355,5 +356,7 @@ const D = {
   '{n} project(s) waiting for your rating': T('{n} Projekt(e) warten auf deine Bewertung', '{n} projet(s) attendent votre évaluation', '{n} progetto/i in attesa della tua valutazione', '{n} proyecto(s) esperan tu valoración'),
   '{n} tasks added': T('{n} Aufgaben hinzugefügt', '{n} tâches ajoutées', '{n} compiti aggiunti', '{n} tareas añadidas'),
 };
+
+Object.assign(D, M); // texts of 28.11.2026
 
 export const L = (s) => (D[s] && D[s][lang]) || s;

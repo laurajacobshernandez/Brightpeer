@@ -1,7 +1,8 @@
 // Brightpeer – single-page app (no build step). Works on GitHub Pages.
-import { CONFIG } from './config.js?v=20261128j';
-import { t, lang } from './i18n.js?v=20261128j';
-import { L } from './tr.js?v=20261128j';
+import { CONFIG } from './config.js?v=20261128k';
+import { t, lang } from './i18n.js?v=20261128k';
+import { L } from './tr.js?v=20261128k';
+import { ARTICLES, NEWS, CONTENT_LANGS } from './content.js?v=20261128k';
 
 // ---------------------------------------------------------------- setup
 const configured = !!CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith('YOUR') && !!CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('YOUR');
@@ -13,13 +14,15 @@ const $app = document.getElementById('app');
 const $header = document.getElementById('header');
 const $footer = document.getElementById('footer');
 
-const FIELDS = ['Medicine', 'Law', 'Software', 'Chemistry & Math', 'Pharmacy', 'Accounting', 'Translation (DE)', 'Other'];
-const FIELD_KEY = { 'Medicine': 'fMedicine', 'Law': 'fLaw', 'Software': 'fSoftware', 'Chemistry & Math': 'fSTEM', 'Pharmacy': 'fPharmacy', 'Accounting': 'fAccounting', 'Translation (DE)': 'fTranslation', 'Other': 'fOther' };
+// 28.11.2026 (owner, like Mercor): new fields Finance & Banking, Business & Operations, Creative, Science – each with its own page (#/fields/…).
+const FIELDS = ['Medicine', 'Law', 'Software', 'Chemistry & Math', 'Pharmacy', 'Accounting', 'Translation (DE)', 'Finance & Banking', 'Business & Operations', 'Creative', 'Science (Physics & Biology)', 'Other'];
+const FIELD_KEY = { 'Medicine': 'fMedicine', 'Law': 'fLaw', 'Software': 'fSoftware', 'Chemistry & Math': 'fSTEM', 'Pharmacy': 'fPharmacy', 'Accounting': 'fAccounting', 'Translation (DE)': 'fTranslation', 'Finance & Banking': 'fFinance', 'Business & Operations': 'fBusiness', 'Creative': 'fCreative', 'Science (Physics & Biology)': 'fScience', 'Other': 'fOther' };
 const fieldName = (f) => (FIELD_KEY[f] ? t(FIELD_KEY[f]) : (f || ''));
 
 const PAY = [
   ['Medicine', 120, 150], ['Law', 100, 150], ['Software', 70, 150], ['Chemistry & Math', 80, 120],
   ['Pharmacy', 80, 110], ['Accounting', 70, 100], ['Translation (DE)', 40, 60],
+  ['Finance & Banking', 80, 150], ['Business & Operations', 50, 100], ['Creative', 60, 100], ['Science (Physics & Biology)', 80, 120],
 ];
 
 const ICON_MUTE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
@@ -258,9 +261,9 @@ function renderHeader() {
     <div class="nav-links" id="navLinks">
       ${dd('research', t('navResearch'), t('ddResearchP'), [['/research', t('ddFields')], ['/info', t('infoH')]])}
       ${dd('companies', t('fCompanies'), t('ddCompaniesP'), [['/companies', t('ddOverview')], ['/info', t('ddEvals')], ['/company-signup', t('fCompanyAccount')]])}
-      ${dd('experts', t('fExperts'), t('ddExpertsP'), [['/roles', t('navRoles')], ['/apply', t('applyNow')], ['/info', t('payH')]])}
+      ${dd('experts', t('fExperts'), t('ddExpertsP'), [['/roles', t('navRoles')], ['/fields', L('All fields')], ['/apply', t('applyNow')], ['/info', t('payH')], ['/resources', L('Resources')]])}
       ${dd('solutions', L('Solutions'), L('Everything companies need to build better AI with real experts.'), [['/services', L('All solutions')], ...SERVICES.map((x) => ['/services/' + x.id, L(x.nav)])])}
-      ${dd('company', t('fCompany'), t('ddCompanyP'), [['/about', t('navAbout')], ['/help', t('navHelp')], [`mailto:${CONFIG.COMPANY.email}`, t('fContact')]])}
+      ${dd('company', t('fCompany'), t('ddCompanyP'), [['/about', t('navAbout')], ['/newsroom', L('Newsroom')], ['/resources', L('Resources')], ['/help', t('navHelp')], [`mailto:${CONFIG.COMPANY.email}`, t('fContact')]])}
       ${right}
     </div>
   </nav>`;
@@ -329,10 +332,10 @@ function renderFooter() {
         ${socialIcons()}
       </div>
       <div class="footer-cols">
-        ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/info', t('navInfo')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
-        ${col(t('fCompanies'), [['#/companies', t('hire')], ['#/company-signup', t('fCompanyAccount')], ['#/legal/client', t('clientTerms')]])}
+        ${col(t('fExperts'), [['#/roles', t('navRoles')], ['#/fields', L('All fields')], ['#/info', t('navInfo')], ['#/apply', t('applyNow')], ['#/login', t('login')], ['#/help', t('fHelpCenter')]])}
+        ${col(t('fCompanies'), [['#/companies', t('hire')], ['#/company-signup', t('fCompanyAccount')], ['#/api', L('API documentation')], ['#/legal/client', t('clientTerms')]])}
         ${col(L('Solutions'), [...SERVICES.map((x) => [`#/services/${x.id}`, L(x.nav)]), ['#/research', t('navResearch')]])}
-        ${col(t('fCompany'), [['#/about', t('navAbout')], [`mailto:${esc(CONFIG.COMPANY.email)}`, t('fContact')], ['#/help', t('navHelp')]])}
+        ${col(t('fCompany'), [['#/about', t('navAbout')], ['#/newsroom', L('Newsroom')], ['#/resources', L('Resources')], [`mailto:${esc(CONFIG.COMPANY.email)}`, t('fContact')], ['#/help', t('navHelp')]])}
       </div>
     </div>
     <div class="footer-bottom">
@@ -368,6 +371,11 @@ const SERVICES = [
     points: ['Compare models on your own tasks and documents', 'Expert grading for accuracy, safety and reasoning', 'Clear reports with examples, scores and error types', 'Repeatable test runs after every model update'] },
   { id: 'benchmarks', nav: 'Brightpeer Bench', title: 'Brightpeer Bench – in preparation', short: 'We are building our own benchmark with our experts: how well AI really answers in many languages – not word lists, but the questions native speakers ask every day.',
     points: ['Tasks and model answers written by native-speaker experts', 'First edition in preparation: AI answers in Spanish, French, Japanese, Arabic and more', 'Results will be published with a clear, open method', 'Custom private benchmarks for your company on request'] },
+  // 28.11.2026 (owner, like Mercor "Hire" and the data pipelines): full-time hiring and the API
+  { id: 'hiring', nav: 'Full-time hiring', title: 'Hire experts full-time', short: 'Found the right expert on a project? Hire them permanently through Brightpeer – with a monthly hiring plan and a fee only when someone is hired.',
+    points: ['Hiring plan: a fixed monthly fee for access to full-time hiring', 'Placement fee of 30 % of the first-year salary, only when you hire', 'Watch the interview, test result and quality ratings before you decide', 'We contact the expert and introduce you'] },
+  { id: 'api', nav: 'Data pipelines & API', title: 'Data pipelines and API', short: 'Run expert data work at scale and connect it to your own systems – tasks in, expert results out.',
+    points: ['Managed pipelines: task writing, expert review and a second quality check', 'REST API with keys for every company account', 'Upload evaluation tasks and download expert ratings automatically', 'Follow requests, proposed experts and hours from your own tools'] },
   { id: 'enterprise', nav: 'Enterprise AI', title: 'Build AI for your company', short: 'We help larger companies put AI to work – with experts who know your field.',
     points: ['Build and test your own AI agents', 'Automate everyday workflows', 'Turn your team’s expert knowledge into AI systems', 'Test and improve AI before it goes live'] },
 ];
@@ -379,6 +387,8 @@ const SVC_ICON = {
   evaluations: '<path d="M12 4v16M6 20h12"/><path d="M5 8h14"/><path d="M5 8l-2.5 6a2.5 2.5 0 0 0 5 0z"/><path d="M19 8l-2.5 6a2.5 2.5 0 0 0 5 0z"/>',
   benchmarks: '<path d="M4 20h16"/><rect x="5.5" y="11" width="3" height="7" rx="1"/><rect x="10.5" y="6" width="3" height="12" rx="1"/><rect x="15.5" y="9" width="3" height="9" rx="1"/>',
   enterprise: '<rect x="4" y="3.5" width="10" height="17" rx="1.5"/><path d="M14 9h4.5c.8 0 1.5.7 1.5 1.5v10H14"/><path d="M7 7.5h1M10 7.5h1M7 11h1M10 11h1M7 14.5h1M10 14.5h1M9 20.5v-3"/>',
+  hiring: '<rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V5.5c0-.8.7-1.5 1.5-1.5h3c.8 0 1.5.7 1.5 1.5v2M3.5 12.5h17M11 12.5v2h2v-2"/>',
+  api: '<path d="M8.5 7L4 12l4.5 5M15.5 7L20 12l-4.5 5M13.5 5l-3 14"/>',
   data: '<ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6"/><path d="M5 12v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6"/>',
 };
 const svcIcon = (id) => `<span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${SVC_ICON[id] || ''}</svg></span>`;
@@ -435,6 +445,10 @@ const SEARCH_FIELD_WORDS = {
   'Pharmacy': 'pharmacy apotheke apotheker apothekerin pharmazie pharmacie pharmacien farmacia farmacista farmaceutico medication medikament medikamente medicament farmaco medicamento drug',
   'Accounting': 'accounting buchhaltung buchhalter buchhalterin comptabilite comptable contabilita contabile contabilidad contador finance finanzen treuhand treuhaender tax steuer steuern impot tasse impuesto audit wirtschaft economics',
   'Translation (DE)': 'translation uebersetzung uebersetzer uebersetzerin traduction traducteur traduzione traduttore traduccion traductor german deutsch allemand tedesco aleman language sprache langue lingua idioma bilingual zweisprachig',
+  'Finance & Banking': 'finance finanzen banking bank banker banque banca banco investment investition investissement investimento inversion analyst analystin trading trader risk risiko portfolio asset wealth vermoegen cfa',
+  'Business & Operations': 'business operations betrieb geschaeft entreprise affaires azienda negocio empresa operaciones manager managerin management strategy strategie strategia consultant berater beraterin conseil consulente consultor hr personal recruiting sales verkauf vente vendite ventas marketing gtm project projekt',
+  'Creative': 'creative kreativ creatif creativo writer autor autorin schreiber texter texterin redacteur scrittore escritor copywriter design designer designerin grafik graphic graphiste grafico illustrator artist kuenstler artiste artista editor lektor lektorin film video',
+  'Science (Physics & Biology)': 'science wissenschaft naturwissenschaft sciences scienza ciencia physics physik physique fisica biology biologie biologia biologist biologe biologin physicist physiker physikerin researcher forscher forscherin chercheur ricercatore investigador lab labor genetics genetik neuroscience',
   'Other': 'other anderes autre altro otro',
 };
 const LANG_WORDS = { Spanish: 'spanisch espagnol spagnolo espanol', French: 'franzoesisch francais francese frances', Italian: 'italienisch italien italiano', German: 'deutsch allemand tedesco aleman', Portuguese: 'portugiesisch portugais portoghese portugues', Japanese: 'japanisch japonais giapponese japones', Arabic: 'arabisch arabe', Chinese: 'chinesisch chinois cinese chino mandarin', Korean: 'koreanisch coreen coreano', Russian: 'russisch russe russo ruso', Turkish: 'tuerkisch turc turco', Dutch: 'niederlaendisch hollaendisch neerlandais olandese neerlandes', Polish: 'polnisch polonais polacco polaco', Hindi: 'hindi', English: 'englisch anglais inglese ingles' };
@@ -728,6 +742,10 @@ const FIELD_WORDS = {
   'Pharmacy': ['pharmacist', 'pharmacy', 'pharmaceutical', 'apotheke', 'apotheker', 'pharmacien', 'farmacista'],
   'Accounting': ['accountant', 'accounting', 'cpa', 'tax', 'audit', 'auditor', 'bookkeeping', 'buchhaltung', 'treuhand', 'steuer', 'comptable'],
   'Translation (DE)': ['translator', 'translation', 'localization', 'interpreter', 'bilingual', 'zweisprachig', 'native speaker', 'übersetzer', 'übersetzung', 'dolmetscher', 'traducteur'],
+  'Finance & Banking': ['banking', 'investment banking', 'financial analyst', 'portfolio', 'asset management', 'private equity', 'trader', 'cfa', 'bank', 'risk management', 'finanzanalyst'],
+  'Business & Operations': ['operations', 'project manager', 'product manager', 'consultant', 'strategy', 'human resources', 'recruiter', 'sales', 'marketing', 'business development', 'mba'],
+  'Creative': ['copywriter', 'writer', 'editor', 'author', 'journalist', 'graphic designer', 'designer', 'illustrator', 'ux', 'art director', 'texter'],
+  'Science (Physics & Biology)': ['physicist', 'physics', 'biologist', 'biology', 'biochemistry', 'genetics', 'neuroscience', 'molecular', 'laboratory', 'research scientist', 'biologie'],
 };
 const SKILL_WORDS = ['Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'C#', 'Golang', 'Rust', 'SQL', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes',
   'Machine Learning', 'Data analysis', 'Excel', 'SAP', 'IFRS', 'US GAAP', 'Tax', 'Audit', 'Contract law', 'Corporate law', 'Litigation', 'Compliance',
@@ -991,6 +1009,10 @@ const FIELD_CARDS = [
   ['Pharmacy', '#D7F25B', '#0E0F12', 'fc5h', 'fc5p'],
   ['Accounting', '#E8F0EA', '#0E0F12', 'fc6h', 'fc6p'],
   ['Translation (DE)', '#0F9D6B', '#fff', 'fc7h', 'fc7p'],
+  ['Finance & Banking', '#0E3B2E', '#fff', 'fc8h', 'fc8p'],
+  ['Business & Operations', '#F3EFE6', '#0E0F12', 'fc9h', 'fc9p'],
+  ['Creative', '#C7F0D8', '#0E0F12', 'fc10h', 'fc10p'],
+  ['Science (Physics & Biology)', '#1F5F8B', '#fff', 'fc11h', 'fc11p'],
 ];
 function fieldCarousel() {
   const card = ([f, bg, fg, title, text]) => {
@@ -999,7 +1021,7 @@ function fieldCarousel() {
       <p class="fcard-tag">${esc(fieldName(f))}</p>
       <h3>${esc(t(title))}</h3>
       <p class="fcard-text">${esc(t(text))}</p>
-      <div class="fcard-foot"><b>${p ? `$${p[1]}–${p[2]} / h` : ''}</b><a href="#/roles?field=${encodeURIComponent(f)}" style="color:${fg}">${t('viewRoles')} →</a></div>
+      <div class="fcard-foot"><b>${p ? `$${p[1]}–${p[2]} / h` : ''}</b><a href="${FIELD_INFO[f] ? '#/fields/' + fieldSlug(f) : '#/roles?field=' + encodeURIComponent(f)}" style="color:${fg}">${FIELD_INFO[f] ? t('learnMore') : t('viewRoles')} →</a></div>
     </div>`;
   };
   const cards = FIELD_CARDS.map(card).join('');
@@ -1152,6 +1174,8 @@ function pageLegal(which) {
         'Prices exclude VAT and other taxes, which are added where applicable.'])}
       <h2>4. Timesheets and disputes</h2><p>The Client can see logged hours in the Brightpeer dashboard and approves them there. Objections to hours or quality must be raised in writing within 7 days of the hours being logged, with reasons. Otherwise the hours count as accepted.</p>
       <h2>5. Non-solicitation</h2><p>During a Project and for 12 months after it, the Client may not hire or contract directly any Expert introduced by Brightpeer, except through Brightpeer. If it does, the Client pays a placement fee of 25% of that Expert's first-year compensation, or USD 10,000, whichever is higher.</p>
+      <h2>5a. Full-time hiring through Brightpeer</h2><p>With an active hiring plan the Client may hire Experts proposed by Brightpeer as employees. The hiring plan costs the monthly fee shown in the dashboard (currently USD ${esc((CONFIG.HIRING || {}).monthly || 299)}), paid in advance for each month; it can be cancelled at the end of any paid month. When an Expert accepts employment with the Client, the Client pays Brightpeer a placement fee of ${esc((CONFIG.HIRING || {}).feePct || 30)}% of the Expert's agreed first-year gross salary, due within 14 days of the signed offer. The employment contract is concluded directly between the Client and the Expert.</p>
+      <h2>5b. API</h2><p>API keys are personal to the Client's account and must be kept secret. The Client is responsible for all use of its keys and must revoke a key that may have been disclosed. Brightpeer may limit the number of requests and may suspend keys in case of misuse.</p>
       <h2>6. Confidentiality and data</h2><p>Both parties keep the other's confidential information secret and use it only for the Project. Experts are bound by equivalent confidentiality obligations. If Experts process personal data on the Client's behalf, the parties will sign a data processing agreement.</p>
       <h2>7. Intellectual property</h2><p>Upon full payment, all rights in the work Experts create for the Client's Project pass to the Client. Brightpeer keeps its own tools, methods and know-how.</p>
       <h2>8. Quality</h2><p>Brightpeer performs the services with due care using qualified Experts. If work does not meet the agreed criteria, Brightpeer will correct or replace it within a reasonable time at no extra cost. This is the Client's primary remedy.</p>
@@ -1166,6 +1190,7 @@ function pageLegal(which) {
       <h2>2. Data we collect</h2>${tbl(['Category', 'Examples', 'Why', 'Legal basis (GDPR)'], [
         ['Account', 'Name, email, password (encrypted), country, language', 'Create and secure your account', 'Contract'],
         ['Profile and application', 'CV, education, licences, work history, skills, test results, LinkedIn link', 'Assess and match Experts to projects', 'Contract, legitimate interest'],
+        ['Interview', 'Written, voice or video answers (camera and microphone, only with your consent), automatic transcript', 'Assess Experts; shown to a Client only if you agree', 'Consent, contract'],
         ['Identity checks', 'ID document, selfie for verification (if requested)', 'Prevent fraud, confirm identity', 'Legal obligation, legitimate interest'],
         ['Work data', 'Logged hours, task outputs, quality reviews', 'Run projects, pay Experts, collect Client prepayments', 'Contract'],
         ['Payment', 'Bank or PayPal details, prepayments, receipts, tax information', 'Pay Experts, collect Client prepayments', 'Contract, legal obligation'],
@@ -1181,7 +1206,7 @@ function pageLegal(which) {
       <h2>5. Retention</h2><p>We keep account data while your account is open. Rejected applications are deleted after 24 months. Payment and accounting records are kept for 10 years as required by Swiss law. Other data is deleted when no longer needed.</p>
       <h2>6. Your rights</h2><p>You can request access to, correction or deletion of your data, restriction of or objection to processing, and a copy of your data in a portable format. You can withdraw consent at any time. Write to ${mail}. You may also complain to the Swiss Federal Data Protection and Information Commissioner (FDPIC) or your local data protection authority.</p>
       <h2>7. Security</h2><p>We use encryption in transit, access controls and row-level database security. No system is completely secure; we will inform you of any breach as required by law.</p>
-      <h2>8. Automated decisions</h2><p>Multiple-choice test answers are scored automatically. Written interview answers are also rated by an AI service (Anthropic, USA) to help us review them; the AI receives your answers and your field, not your name or contact details. Decisions about accepting Experts are made or checked by a person. You can ask for a human review of any decision.</p>
+      <h2>8. Automated decisions</h2><p>Multiple-choice test answers are scored automatically. Written interview answers and the transcripts of video answers are also rated by an AI service (Anthropic, USA) to help us review them; in the video interview the same service also suggests follow-up questions. The AI receives the text of your answers and your field, not your name, contact details or the video itself. The transcript is created by your own browser's speech recognition, which may use your browser provider's service. Decisions about accepting Experts are made or checked by a person. You can ask for a human review of any decision.</p>
       <h2>9. Children</h2><p>Brightpeer is not for anyone under 18. We do not knowingly collect their data.</p>
       <h2>10. Changes</h2><p>We may update this policy and will post the new date at the top. Material changes are announced by email.</p>`;
   } else if (which === 'imprint') {
@@ -1234,6 +1259,7 @@ async function expertDashboard() {
   const docs = myDocs || [];
   const testsCard = await skillTestsCard(uid, (ex.data || {}).field);
   const { data: evalTasks } = await sb.rpc('my_eval_projects');
+  const hireOffers = await expertHireOffers(); // full-time job offers (28.11.2026)
   const evalOpen = (evalTasks || []).filter((x) => x.done < x.total);
   const [{ data: myPayout }, { data: myRefs }] = await Promise.all([sb.rpc('my_payout_details'), sb.rpc('my_referrals')]);
   const rs = myRefs || {};
@@ -1285,6 +1311,7 @@ async function expertDashboard() {
       <div class="row between"><h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc((profile.full_name || '').split(' ')[0])}</h1><span>${t('status')}: ${pill(st)}</span></div>
       <div class="card stack" style="gap:6px"><h3>${t(stKey)}</h3><p class="muted">${t(stKey + 'P')}</p></div>
       ${evalOpen.length ? `<a class="card card-link row between offer" href="#/evals" style="gap:16px;flex-direction:row;align-items:center"><span class="stack" style="gap:4px"><b>${L('Evaluation tasks')}</b><span class="muted small">${L('{n} project(s) waiting for your rating').replace('{n}', evalOpen.length)}</span></span><span class="rate">${L('Start')} →</span></a>` : ''}
+      ${hireOffers.html}
       ${offerCards}
       ${nextCard}
 
@@ -1546,6 +1573,7 @@ async function expertDashboard() {
         const { error } = await sb.from('experts').update({ payout_method: d.payout_method, payout_details: d.payout_details }).eq('id', uid);
         busy(pf, false); if (error) return fail(error); toast(t('saved'));
       };
+      hireOffers.mount();
       const txf = document.getElementById('taxF');
       txf.onsubmit = async (ev) => {
         ev.preventDefault(); const d = formData(txf); busy(txf, true);
@@ -1579,6 +1607,10 @@ const INTERVIEW_FIELD = {
   'Pharmacy': ['What should a patient taking warfarin know about common painkillers?', 'An AI answer recommends doubling a missed dose. How do you respond?', 'How do you check a drug interaction you are unsure about?'],
   'Accounting': ['Explain the difference between cash and accrual accounting with an example.', 'An AI answer says depreciation reduces cash. What is wrong?', 'How do you make sure the numbers in a financial report are correct?'],
   'Translation (DE)': ['Which languages do you speak at native or near-native level? Translate this sentence into your strongest language other than English and explain your choices: "Please don\'t hesitate to reach out if you have any questions."', 'An AI translated the English idiom "It\'s raining cats and dogs" word for word into another language. What is the problem, and how would a native speaker of your language say it?', 'How do you handle terms or cultural references that have no direct translation?'],
+  'Finance & Banking': ['Explain to a client why a bond price falls when interest rates rise.', 'An AI answer says a company with growing revenue cannot go bankrupt. What is wrong?', 'How do you check whether a financial model or valuation is realistic?'],
+  'Business & Operations': ['A process in your team is always late. How do you find and fix the bottleneck?', 'An AI answer says the best way to reduce costs is always to cut staff. How would you correct it?', 'How do you measure whether a project or a sales campaign was a success?'],
+  'Creative': ['Show us how you would rewrite a boring product description so people want to read it.', 'An AI wrote a story that is grammatically correct but flat. What would you change and why?', 'How do you give useful feedback on someone else\'s text or design?'],
+  'Science (Physics & Biology)': ['Explain to a high-school student how vaccines train the immune system.', 'An AI answer claims that the Earth has seasons because it is closer to the Sun in summer. What is wrong?', 'How would you write a hard science problem that tests real understanding?'],
   'Other': ['What kind of expert tasks would you like to do at Brightpeer?', 'How would you check whether an AI answer in your field is correct?', 'Give an example of how you explain something complex in simple words.'],
 };
 const interviewQuestions = (field) => [...INTERVIEW_GENERAL, ...(INTERVIEW_FIELD[field] || INTERVIEW_FIELD.Other)];
@@ -1599,19 +1631,32 @@ async function pageInterview() {
   }
   const answers = Array.isArray(iv?.answers) ? iv.answers : [];
   const idx = Math.min(answers.length, qs.length - 1);
+  // 28.11.2026 (owner: "Mit Kamera wie Mercor"): AI video interview with Jarvis is the recommended way; written/voice stays as fallback.
+  if (iv && iv.mode === 'ai_video') return aiVideoInterview(iv, field, uid);
   if (!iv) {
+    const canVideo = !!(navigator.mediaDevices && window.MediaRecorder);
     return {
       html: `<section class="wrap section narrow stack-lg">
         <h1 style="font-size:clamp(2rem,5vw,3rem)">${t('ivH')}</h1>
         <p class="muted">${t('ivP')}</p>
-        <div class="card stack"><ul class="ticks"><li>${t('ivRule1').replace('{n}', qs.length)}</li><li>${t('ivRule2')}</li><li>${t('ivRule3')}</li><li>${t('ivRule4')}</li></ul></div>
         <p class="small muted">${t('field')}: <b>${esc(fieldName(field))}</b> · <a href="#/dashboard">${t('ivChangeField')}</a></p>
-        <button class="btn btn-accent" id="ivStart" style="align-self:flex-start">${t('ivStart')}</button>
+        ${canVideo ? `<form class="card stack offer" id="ivVideoF"><div class="row between"><h3>${L('AI video interview with Jarvis')}</h3><span class="pill pill-ok">${L('Recommended')}</span></div>
+          <ul class="ticks"><li>${L('{n} questions, about 15–20 minutes').replace('{n}', qs.length)}</li><li>${L('Jarvis reads every question aloud and may ask up to 3 short follow-up questions')}</li><li>${L('You answer on camera – max. 3 minutes per answer')}</li><li>${L('Your answers are saved after every question, you can continue later')}</li></ul>
+          <label class="check"><input type="checkbox" required> <span>${L('I agree that my answers are recorded on video and audio, transcribed and rated with the help of AI, and stored privately by Brightpeer (see')} <a href="#/legal/privacy" target="_blank">${t('privacy')}</a>).</span></label>
+          <button class="btn btn-accent" type="submit" style="align-self:flex-start">${L('Start video interview')}</button></form>` : ''}
+        <div class="card stack"><h3>${L('Written or voice interview')}</h3><ul class="ticks"><li>${t('ivRule1').replace('{n}', qs.length)}</li><li>${t('ivRule2')}</li><li>${t('ivRule3')}</li><li>${t('ivRule4')}</li></ul>
+        <button class="btn ${canVideo ? 'btn-ghost' : 'btn-accent'}" id="ivStart" style="align-self:flex-start">${t('ivStart')}</button></div>
       </section>`,
       mount() {
         document.getElementById('ivStart').onclick = async () => {
           const { error } = await sb.from('interviews').insert({ expert_id: uid, field, answers: [] });
           if (error) return fail(error); render();
+        };
+        const vf = document.getElementById('ivVideoF');
+        if (vf) vf.onsubmit = async (ev) => {
+          ev.preventDefault(); busy(vf, true);
+          const { error } = await sb.from('interviews').insert({ expert_id: uid, field, answers: [], mode: 'ai_video', video_consent_at: new Date().toISOString() });
+          busy(vf, false); if (error) return fail(error); render();
         };
       },
     };
@@ -1719,6 +1764,7 @@ async function companyDashboard() {
     };
   }
   const stars = (n) => (n ? '★'.repeat(n) + '<span class="muted">' + '★'.repeat(5 - n) + '</span>' : '–');
+  const hb = await hiringBlock(uid); // full-time hiring (28.11.2026)
   const candCards = candidates.map((x) => `<div class="card stack" style="gap:10px">
       <div class="row between"><h3>${esc(x.code)}</h3>${x.status === 'proposed' ? `<span class="label-new">${L('New')}</span>` : pill(x.status === 'interested' ? 'approved' : 'declined')}</div>
       <p class="muted small">${esc(fieldName(x.field))}${x.years != null ? ` · ${esc(x.years)} ${L('years experience')}` : ''}${x.country ? ` · ${esc(x.country)}` : ''}</p>
@@ -1730,11 +1776,13 @@ async function companyDashboard() {
       ${x.interview_shared ? `<button class="btn btn-ghost btn-sm" type="button" data-iv="${x.id}" style="align-self:flex-start">▶ ${L('View interview')}</button><div class="iv-box stack" id="iv-${x.id}" hidden></div>` : ''}
       ${x.status === 'proposed' ? `<form class="stack" data-cand="${x.id}" style="gap:8px"><input name="note" maxlength="1000" placeholder="${esc(L('Note for us (optional)'))}"><div class="row"><button class="btn btn-accent btn-sm" type="submit" data-int="1">${L('Interested')}</button><button class="btn btn-ghost btn-sm" type="submit" data-int="0">${L('Not a fit')}</button></div></form>`
         : x.company_note ? `<p class="small muted">${L('Your note:')} ${esc(x.company_note)}</p>` : ''}
+      ${hb.hireBtn(x)}
     </div>`).join('');
   return {
     html: `<section class="wrap section stack-lg">
       <h1 style="font-size:clamp(2rem,4vw,3rem)">${t('welcome')}, ${esc(c.company_name || profile.full_name || '')}</h1>
       <a class="card card-link row between" href="#/evals" style="gap:16px;flex-direction:row;align-items:center"><span class="stack" style="gap:4px"><b>${L('Model evaluations')}</b><span class="muted small">${L('Compare two AI models with blind expert ratings.')}</span></span><span class="rate">${L('Open')} →</span></a>
+      <a class="card card-link row between" href="#/api" style="gap:16px;flex-direction:row;align-items:center"><span class="stack" style="gap:4px"><b>${L('API and data pipelines')}</b><span class="muted small">${L('Connect your own systems – create API keys and read the documentation.')}</span></span><span class="rate">${L('Open')} →</span></a>
       ${candidates.length ? `<div class="stack" id="candidates"><h2 style="font-size:1.6rem">${L('Proposed experts')}</h2><p class="muted small">${L('Anonymous profiles we selected for your requests. Tell us who you are interested in – we then confirm the expert and start the project. Names and contact details stay private.')}</p><div class="grid">${candCards}</div></div>` : ''}
 
       <div class="card stack ${low ? 'offer' : ''}" id="balance">
@@ -1746,6 +1794,8 @@ async function companyDashboard() {
         <p class="small ${low ? '' : 'muted'}">${low ? `<b>${L('Your balance is low.')}</b> ${L('Experts only start or continue working while your balance covers their hours.')} ` : ''}${L('Brightpeer works with prepayment: you top up your balance first, and approved expert hours are paid from it each week. Unused balance is refunded on request.')}</p>
         ${(prep.data || []).length ? table([L('Date'), L('No.'), t('amount'), t('status'), '', ''], prep.data.map((p) => [dateStr(p.created_at), esc(invoiceNo(p)), money(p.amount), pill(p.status), prepAction(p), p.status === 'cancelled' ? '' : `<a class="small" href="#/invoice/${esc(p.id)}">${p.status === 'paid' ? L('Receipt (PDF)') : L('Invoice (PDF)')}</a>`])) : ''}
       </div>
+
+      ${hb.html}
 
       <form id="reqF" class="card stack"><h3>${t('newRequest')}</h3>
         <div class="form-grid">
@@ -1808,7 +1858,7 @@ async function companyDashboard() {
         const { data, error } = await sb.functions.invoke('candidate-interview', { body: { candidate_id: b.dataset.iv } });
         b.disabled = false;
         if (error || !data || !Array.isArray(data.answers)) return toast(L('The interview could not be loaded.'), true);
-        box.innerHTML = data.answers.map((a, i) => `<div class="iv-q"><p class="small muted">${i + 1}. ${esc(a.q)}</p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}${a.audio ? `<audio controls preload="none" src="${esc(a.audio)}" style="width:100%"></audio>` : ''}</div>`).join('') || `<p class="muted small">–</p>`;
+        box.innerHTML = data.answers.map((a, i) => `<div class="iv-q"><p class="small muted">${i + 1}. ${esc(a.q)}</p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}${a.audio ? `<audio controls preload="none" src="${esc(a.audio)}" style="width:100%"></audio>` : ''}${a.video ? `<video controls preload="none" playsinline src="${esc(a.video)}" style="width:100%;border-radius:12px;background:#000"></video>` : ''}</div>`).join('') || `<p class="muted small">–</p>`;
         box.hidden = false;
       }; });
       $app.querySelectorAll('[data-cand]').forEach((cf) => {
@@ -1822,6 +1872,7 @@ async function companyDashboard() {
       });
       mountWorkForms($app);
       mountReview($app);
+      hb.mount();
     },
   };
 }
@@ -1997,8 +2048,8 @@ async function pageAdmin() {
 
   const q = parseHash().query; if (q.get('tab')) adminTab = q.get('tab');
   await deleteQueuedFiles();
-  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'evalsTab', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab', 'accountingTab', 'automationTab'];
-  const TAB_LABEL = { evalsTab: 'Evaluations', prepayTab: 'Prepayments', visitorsTab: 'Statistics', referralsTab: 'Referrals', accountingTab: 'Accounting', automationTab: 'Automation' };
+  const TABS = ['overview', 'visitorsTab', 'experts', 'interviewsTab', 'testsTab', 'roles', 'requests', 'hiresTab', 'evalsTab', 'contracts', 'hoursTab', 'prepayTab', ...(CONFIG.PREPAYMENT_ONLY ? [] : ['invoices']), 'payouts', 'referralsTab', 'accountingTab', 'automationTab'];
+  const TAB_LABEL = { hiresTab: 'Hiring', evalsTab: 'Evaluations', prepayTab: 'Prepayments', visitorsTab: 'Statistics', referralsTab: 'Referrals', accountingTab: 'Accounting', automationTab: 'Automation' };
   if (!TABS.includes(adminTab)) adminTab = 'overview';
   // Owner, 26.11.2026 ("Verbessere Admin"): every tab shows how many things wait for her, the overview lists them as a to-do list.
   const [todo, view] = await Promise.all([adminTodo(), ADMIN[adminTab]()]);
@@ -2033,6 +2084,7 @@ async function adminTodo() {
     sb.rpc('admin_referrals').then((r) => (r.data || []).filter((x) => x.qualified && !x.bonus_paid_at).length, () => 0),
     cnt('experts', 'id_status', 'submitted'), cnt('eval_projects', 'status', 'submitted'),
   ]);
+  const [subReq, hireReq, feesOpen] = await Promise.all([sb.from('company_subscriptions').select('company_id', { count: 'exact', head: true }).eq('status', 'requested').then((r) => (r.error ? 0 : r.count || 0), () => 0), cnt('hires', 'status', ['requested', 'accepted']), cnt('hires', 'fee_status', 'open')]);
   const items = [
     ['experts', experts, 'expert application(s) to review', '#/admin?tab=experts&st=pending'],
     ['idChecks', idChecks, 'ID check(s) to verify (Experts → open profile)', '#/admin?tab=experts&st=all'],
@@ -2040,6 +2092,7 @@ async function adminTodo() {
     ['testsTab', tests, 'field test(s) to check', '#/admin?tab=testsTab'],
     ['requests', requests, 'new company request(s)', '#/admin?tab=requests'],
     ['evalsTab', evals, 'model evaluation(s) waiting for experts', '#/admin?tab=evalsTab'],
+    ['hiresTab', subReq + hireReq + feesOpen, 'hiring plan(s), hire request(s) or placement fee(s) to handle', '#/admin?tab=hiresTab'],
     ['hoursTab', hours, 'hour entr(ies) waiting for approval', '#/admin?tab=hoursTab'],
     ['prepayTab', prepay, 'prepayment(s) not paid yet', '#/admin?tab=prepayTab'],
     ['payouts', payouts, 'payout(s) to transfer (payday Wednesday)', '#/admin?tab=payouts'],
@@ -2255,6 +2308,7 @@ const ADMIN = {
   },
 
   evalsTab() { return adminEvals(); },
+  hiresTab() { return adminHires(); },
 
   async overview() {
     const { data, error } = await sb.rpc('admin_stats');
@@ -2643,17 +2697,18 @@ const ADMIN = {
     return {
       html: `<div class="stack-lg">${(data || []).length ? '' : `<p class="muted">${t('ivNone')}</p>`}
         ${(data || []).map((iv) => `<div class="card stack">
-          <div class="row between"><div class="stack" style="gap:2px"><h3>${esc(iv.experts?.profiles?.full_name || '')}</h3><p class="muted small">${esc(iv.experts?.profiles?.email || '')} · ${esc(fieldName(iv.field))} · ${iv.submitted_at ? dateStr(iv.submitted_at) : t('stInProgress')}</p></div>${pill(iv.status)}</div>
-          <details ${iv.status === 'submitted' ? 'open' : ''}><summary class="link">${t('ivAnswers')} (${(iv.answers || []).length})</summary>
-            <div class="stack" style="margin-top:12px">${(iv.answers || []).map((a, i) => `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px">
-              <p class="small"><b>${i + 1}. ${esc(a.q)}</b></p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}
-              ${a.audio ? `<button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-audio="${esc(a.audio)}">▶ ${t('ivPlay')}</button>` : ''}</div>`).join('')}</div>
+          <div class="row between"><div class="stack" style="gap:2px"><h3>${esc(iv.experts?.profiles?.full_name || '')}</h3><p class="muted small">${esc(iv.experts?.profiles?.email || '')} · ${esc(fieldName(iv.field))} · ${iv.submitted_at ? dateStr(iv.submitted_at) : t('stInProgress')}${iv.mode === 'ai_video' ? ' · 🎥 AI video interview' : ''}</p></div>${pill(iv.status)}</div>
+          <details ${iv.status === 'submitted' ? 'open' : ''}><summary class="link">${t('ivAnswers')} (${(iv.answers || []).filter((a) => !a.pending).length})</summary>
+            <div class="stack" style="margin-top:12px">${(iv.answers || []).filter((a) => !a.pending).map((a, i) => `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px">
+              <p class="small"><b>${i + 1}. ${a.followup ? '<span class="muted">[Follow-up by Jarvis]</span> ' : ''}${esc(a.q)}</b></p>${a.text ? `<p style="white-space:pre-line">${esc(a.text)}</p>` : ''}
+              ${a.audio ? `<button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-audio="${esc(a.audio)}">▶ ${t('ivPlay')}</button>` : ''}
+              ${a.video ? `<button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-video="${esc(a.video)}">▶ Watch video</button>` : ''}</div>`).join('')}</div>
           </details>
           <div class="card stack" style="gap:6px;background:var(--chip);border:0">
             <div class="row between"><p class="small"><b>AI rating</b> ${iv.ai_score ? `<span style="color:var(--accent)">${'★'.repeat(iv.ai_score)}</span><span class="muted">${'★'.repeat(5 - iv.ai_score)}</span> (${esc(iv.ai_score)}/5)` : '<span class="muted">not rated yet</span>'}</p>
               ${iv.status !== 'in_progress' ? `<div class="row"><button class="btn btn-ghost btn-sm" type="button" data-aiscore="${iv.id}">${iv.ai_score ? 'Rate again with AI' : 'Rate with AI'}</button>${iv.ai_score ? `<button class="btn btn-ghost btn-sm" type="button" data-useai="${iv.id}" data-v="${iv.ai_score}">Use AI stars</button>` : ''}</div>` : ''}</div>
             ${iv.ai_summary ? `<p class="small" style="white-space:pre-line">${esc(iv.ai_summary)}</p>` : ''}
-            <p class="muted small">Suggestion only – you decide. Voice answers are not read by the AI.</p>
+            <p class="muted small">Suggestion only – you decide. Voice answers are not read by the AI; video answers are rated from their transcript.</p>
           </div>
           <form class="row" data-ivform="${iv.id}">
             <select name="score" style="flex:0 0 140px"><option value="">${t('ivScore')}</option>${[5, 4, 3, 2, 1].map((n) => `<option value="${n}" ${iv.score === n ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select>
@@ -2667,6 +2722,11 @@ const ADMIN = {
           const { data: u, error: er } = await sb.storage.from('interviews').createSignedUrl(b.dataset.audio, 600);
           if (er) return fail(er);
           const au = document.createElement('audio'); au.controls = true; au.src = u.signedUrl; au.style.width = '100%'; b.replaceWith(au); au.play().catch(() => {});
+        }; });
+        $app.querySelectorAll('[data-video]').forEach((b) => { b.onclick = async () => {
+          const { data: u, error: er } = await sb.storage.from('interviews').createSignedUrl(b.dataset.video, 900);
+          if (er) return fail(er);
+          const v = document.createElement('video'); v.controls = true; v.playsInline = true; v.src = u.signedUrl; v.style.cssText = 'width:100%;max-width:560px;border-radius:12px;background:#000'; b.replaceWith(v); v.play().catch(() => {});
         }; });
         $app.querySelectorAll('[data-aiscore]').forEach((b) => { b.onclick = async () => {
           b.disabled = true; b.textContent = 'Rating…';
@@ -3296,11 +3356,16 @@ function pageEvalInfo() {
 }
 
 async function pageBench() {
-  let rows = []; let sum = {};
+  // 28.11.2026 (owner, like Mercor APEX "best AI models by profession"): ranking per field via ?field=…
+  const fsel = parseHash().query.get('field') || '';
+  let rows = []; let sum = {}; let bf = [];
   if (sb) {
-    const [lb, sm] = await Promise.all([sb.rpc('bench_leaderboard'), sb.rpc('bench_summary')]);
-    rows = lb.data || []; sum = sm.data || {};
+    const [lb, sm, fl] = await Promise.all([fsel ? sb.rpc('bench_leaderboard_field', { p_field: fsel }) : sb.rpc('bench_leaderboard'), sb.rpc('bench_summary'), sb.rpc('bench_fields').then((r) => r, () => ({ data: [] }))]);
+    rows = lb.data || []; sum = sm.data || {}; bf = fl.data || [];
   }
+  const profTabs = `<div class="stack" style="gap:8px"><h2 style="font-size:1.6rem">${L('Best AI models by profession')}</h2>
+    <div class="row svc-jump"><a class="chip ${fsel ? '' : 'chip-on'}" href="#/services/benchmarks">${L('All fields')}</a>${FIELDS.filter((f) => f !== 'Other').map((f) => { const has = bf.find((x) => x.field === f); return `<a class="chip ${fsel === f ? 'chip-on' : ''}" href="#/services/benchmarks?field=${encodeURIComponent(f)}"${has ? '' : ' style="opacity:.6"'}>${esc(fieldName(f))}</a>`; }).join('')}</div>
+    ${fsel ? `<p class="muted small">${L('Ranking for')} <b>${esc(fieldName(fsel))}</b> – ${L('only tasks from this field, rated by experts of this field.')}</p>` : ''}</div>`;
   const board = rows.length ? table(['#', L('Model'), L('Win rate'), L('Average score'), L('Comparisons'), L('Languages')], rows.map((r, i) => [
     `<b>${i + 1}</b>`, `<b>${esc(r.model)}</b>`, `${esc(r.win_rate)} %<div class="evbar" style="margin-top:6px;max-width:160px"><span style="width:${Number(r.win_rate) || 0}%;background:var(--accent)"></span></div>`,
     `${esc(r.avg_score)} / 5`, esc(r.comparisons), esc(r.languages || '')]))
@@ -3311,6 +3376,7 @@ async function pageBench() {
       <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Brightpeer Bench</h1>
       <p style="font-size:1.15rem;color:var(--ink2)">${L('How well do AI models really answer in many languages? Native-speaker experts compare the answers of two models at a time – blind, task by task.')}</p></div>
     ${Number(sum.ratings) ? `<div class="grid-sm">${stat(L('Expert ratings'), sum.ratings)}${stat(L('Tasks'), sum.tasks)}${stat(L('Languages'), sum.languages || '–')}</div>` : ''}
+    ${profTabs}
     <div class="stack"><h2 style="font-size:1.6rem">${L('Leaderboard')}</h2>${board}${sum.updated && rows.length ? `<p class="muted small">${L('Last updated')}: ${dateStr(sum.updated)}</p>` : ''}</div>
     <div class="card stack"><h3>${L('Method')}</h3><ul class="ticks">
       <li>${L('Tasks are written by native-speaker experts – everyday questions, not word lists.')}</li>
@@ -3352,7 +3418,8 @@ async function adminEvals() {
         `<div class="row">${action(p)}<button class="btn btn-ghost btn-sm" data-evdel="${esc(p.id)}">Delete</button></div>`]))}
       <form id="benchNew" class="card stack" style="padding:24px"><h3>New Brightpeer Bench project</h3>
         <div class="grid" style="gap:12px"><label class="f">Name<input name="title" required minlength="2" maxlength="160" placeholder="e.g. Everyday questions in Spanish"></label>
-        <label class="f">Language<input name="language" required maxlength="60" placeholder="Spanish"></label></div>
+        <label class="f">Language<input name="language" required maxlength="60" placeholder="Spanish"></label>
+        <label class="f">Field (for the ranking by profession)<select name="field"><option value="">All / none</option>${fieldOptions()}</select></label></div>
         <div class="grid" style="gap:12px"><label class="f">Model A<input name="model_a" required maxlength="80"></label><label class="f">Model B<input name="model_b" required maxlength="80"></label></div>
         <label class="f">Instructions for the experts<textarea name="instructions" rows="2" maxlength="4000"></textarea></label>
         <button class="btn" type="submit" style="align-self:flex-start">Create and add tasks</button></form>
@@ -3371,12 +3438,410 @@ async function adminEvals() {
       const f = document.getElementById('benchNew');
       f.onsubmit = async (e) => {
         e.preventDefault(); const d = formData(f);
-        const { data: p, error: er } = await sb.from('eval_projects').insert({ is_benchmark: true, company_id: null, title: d.title.trim(), language: d.language.trim(), model_a: d.model_a.trim(), model_b: d.model_b.trim(), instructions: d.instructions.trim() || null }).select('id').single();
+        const { data: p, error: er } = await sb.from('eval_projects').insert({ is_benchmark: true, company_id: null, title: d.title.trim(), language: d.language.trim(), field: d.field || null, model_a: d.model_a.trim(), model_b: d.model_b.trim(), instructions: d.instructions.trim() || null }).select('id').single();
         if (er) return fail(er);
         go('#/evals/' + p.id);
       };
     },
   };
+}
+
+// ================================================================ more Mercor features (28.11.2026)
+// Owner: "Alles ausser KI-Agenten für Firmen" – new fields with own pages, AI video interview, full-time hiring
+// (monthly plan + 30 % fee), data pipelines + API, Bench per profession, resources and newsroom.
+
+// ---------------------------------------------------------------- field pages (#/fields, #/fields/<slug>)
+const fieldSlug = (f) => String(f || '').toLowerCase().replace(/&/g, 'and').replace(/\(|\)/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const FIELD_INFO = {
+  'Finance & Banking': {
+    intro: 'Bankers, analysts, investment and risk professionals check how AI handles real financial work – from valuations to regulation.',
+    tasks: ['Write realistic finance cases with ideal answers', 'Check AI answers on valuations, markets, banking rules and risk', 'Grade financial models, reports and calculations step by step'],
+    who: 'Experience in banking, investment, asset management, corporate finance or risk – for example CFA, MBA or 3+ years in the field.' },
+  'Business & Operations': {
+    intro: 'Managers, consultants, HR, sales and operations professionals train AI on everyday business work.',
+    tasks: ['Write real business tasks: plans, processes, hiring, sales and negotiations', 'Check whether AI advice would really work in a company', 'Rate AI answers for clarity, realism and risk'],
+    who: '3+ years in operations, management, consulting, HR, sales, marketing or project management.' },
+  'Creative': {
+    intro: 'Writers, editors, designers and other creative professionals teach AI what good writing and good design really are.',
+    tasks: ['Write and edit texts the way a professional would', 'Rate AI stories, ads, scripts and designs for quality and originality', 'Explain clearly what makes a version better'],
+    who: 'Professional experience as a writer, copywriter, journalist, editor, designer, illustrator or in film and media. A portfolio helps.' },
+  'Science (Physics & Biology)': {
+    intro: 'Physicists, biologists and other scientists create hard problems and check the scientific reasoning of AI.',
+    tasks: ['Write hard physics and biology problems with full solutions', 'Check AI answers for scientific errors, step by step', 'Review explanations of experiments, data and research papers'],
+    who: 'Master’s or PhD in physics, biology, biochemistry or a related science, or research experience.' },
+};
+const fieldTextKeys = (f) => { const c = FIELD_CARDS.find((x) => x[0] === f); return c ? [c[3], c[4]] : null; };
+
+function pageFields() {
+  const list = FIELDS.filter((f) => f !== 'Other');
+  return `<section class="wrap section stack-lg">
+    <div class="stack" style="gap:10px;max-width:46rem"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${L('All fields')}</h1>
+      <p style="font-size:1.15rem;color:var(--ink2)">${L('Brightpeer works with professionals from many fields. Choose yours to see the work, the pay and the open roles.')}</p></div>
+    <div class="svc-grid">${list.map((f) => { const p = PAY.find((x) => x[0] === f); const k = fieldTextKeys(f);
+      return `<a class="svc" href="#/fields/${fieldSlug(f)}"><h3>${esc(fieldName(f))}</h3><p class="muted">${esc(FIELD_INFO[f] ? L(FIELD_INFO[f].intro) : k ? t(k[1]) : '')}</p>${p ? `<span class="role-pay">${money(p[1])}–${money(p[2])} <span class="muted small">${t('perHour')}</span></span>` : ''}<span class="rate">${t('learnMore')} →</span></a>`; }).join('')}</div>
+  </section>`;
+}
+
+async function pageField(slug) {
+  const f = FIELDS.find((x) => fieldSlug(x) === slug);
+  if (!f || f === 'Other') return pageNotFound();
+  const info = FIELD_INFO[f]; const k = fieldTextKeys(f); const p = PAY.find((x) => x[0] === f);
+  const roles = (await getRoles()).filter((r) => r.field === f);
+  return `<section class="wrap section stack-lg">
+    <a href="#/fields" style="font-weight:600">← ${L('All fields')}</a>
+    <div class="stack" style="gap:10px;max-width:46rem"><span class="svc-kicker">${esc(fieldName(f))}</span>
+      <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${esc(k ? t(k[0]) : fieldName(f))}</h1>
+      <p style="font-size:1.15rem;color:var(--ink2)">${esc(info ? L(info.intro) : k ? t(k[1]) : '')}</p>
+      ${p ? `<p class="role-pay" style="font-size:1.4rem">${money(p[1])}–${money(p[2])} <span class="muted small">${t('perHour')}</span></p>` : ''}
+      <div class="row"><a class="btn btn-accent" href="#/apply">${t('applyNow')}</a><a class="btn btn-ghost" href="#/roles?field=${encodeURIComponent(f)}">${t('viewRoles')}</a></div></div>
+    ${info ? `<div class="grid"><div class="card stack"><h3>${L('What you do')}</h3><ul class="ticks">${info.tasks.map((x) => `<li>${esc(L(x))}</li>`).join('')}</ul></div>
+      <div class="card stack"><h3>${L('Who we look for')}</h3><p class="muted">${esc(L(info.who))}</p></div></div>` : ''}
+    <div class="card stack"><h3>${L('How to join')}</h3><ul class="ticks"><li>${L('Apply for free with your CV')}</li><li>${L('Take a short test in your field')}</li><li>${L('Do the AI video interview with Jarvis')}</li><li>${L('Get approved and start on paid projects – payday every Wednesday')}</li></ul></div>
+    <div class="stack"><h2 style="font-size:1.6rem">${t('navRoles')}</h2>${roles.length ? `<div class="grid">${roles.map(roleCard).join('')}</div>` : `<p class="muted">${L('No open roles in this field right now – apply anyway, we contact you as soon as a project fits.')}</p>`}</div>
+  </section>`;
+}
+
+// ---------------------------------------------------------------- AI video interview with Jarvis
+// The camera records every answer, Jarvis reads the questions aloud and may ask up to 3 follow-up questions
+// (Edge Function ai-interviewer). The spoken answer is transcribed in the browser where possible.
+let ivStream = null;
+function stopInterviewMedia() {
+  if (ivStream) { ivStream.getTracks().forEach((x) => x.stop()); ivStream = null; }
+  try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* ignore */ }
+}
+function pickVoice() {
+  try {
+    const vs = window.speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
+    return vs.find((v) => /samantha|aria|jenny|female|zira|serena|karen|moira|tessa|google uk english female|google us english/i.test(v.name)) || vs[0] || null;
+  } catch { return null; }
+}
+function speak(text) {
+  try {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) u.voice = v; u.lang = (v && v.lang) || 'en-US'; u.rate = 0.97;
+    window.speechSynthesis.speak(u);
+  } catch { /* the question is also shown as text */ }
+}
+const ivCurrent = (answers, base) => {
+  const pending = answers.find((a) => a.pending);
+  const baseDone = answers.filter((a) => !a.followup && !a.pending).length;
+  if (pending) return { q: pending.q, followup: true, n: baseDone, total: base.length };
+  if (baseDone < base.length) return { q: base[baseDone], followup: false, n: baseDone + 1, total: base.length };
+  return null;
+};
+
+async function finishAiInterview(iv) {
+  const { error } = await sb.from('interviews').update({ status: 'submitted' }).eq('id', iv.id);
+  if (error) return fail(error);
+  stopInterviewMedia();
+  try { sb.functions.invoke('score-interview', { body: { interview_id: iv.id } }).then(() => {}, () => {}); } catch { /* ignore */ }
+  toast(t('ivDoneH')); render(); window.scrollTo(0, 0);
+}
+
+function aiVideoInterview(iv, field, uid) {
+  const base = interviewQuestions(field);
+  const answers = Array.isArray(iv.answers) ? iv.answers : [];
+  const cur = ivCurrent(answers, base);
+  if (!cur) return { html: `<section class="wrap section narrow"><p class="muted">${L('Saving your interview …')}</p></section>`, mount() { finishAiInterview(iv); } };
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  return {
+    html: `<section class="wrap section narrow stack-lg">
+      <div class="row between"><p class="muted small">${t('ivQuestion')} ${cur.n} / ${cur.total}${cur.followup ? ` · ${L('Follow-up question')}` : ''}</p><div class="progress" style="flex:0 0 160px"><span style="width:${Math.round(((cur.n - 1) / cur.total) * 100)}%"></span></div></div>
+      <div class="card stack aiv">
+        <div class="row" style="gap:14px;align-items:flex-start;flex-wrap:nowrap"><span class="aiv-avatar" aria-hidden="true">J</span>
+          <div class="stack" style="gap:6px"><p class="muted small">Jarvis · ${L('AI interviewer')}</p><h2 style="font-size:clamp(1.25rem,3vw,1.7rem)" id="aivQ">${esc(cur.q)}</h2>
+          <button type="button" class="link small" id="aivSay" style="align-self:flex-start">🔊 ${L('Read the question again')}</button></div></div>
+        <div class="aiv-cam"><video id="aivCam" autoplay muted playsinline></video><span class="aiv-rec" id="aivRec" hidden>● REC <span id="aivTime">0:00</span></span></div>
+        <p class="muted small" id="aivCamMsg">${L('Allow camera and microphone to start.')}</p>
+        <label class="f">${L('Transcript of your answer')} <span class="muted small">(${SR ? L('written automatically while you speak – you can correct it') : L('your browser cannot transcribe – please type the key points of your answer')})</span><textarea id="aivText" maxlength="6000" style="min-height:120px"></textarea></label>
+        <div id="aivMsg"></div>
+        <div class="row"><button class="btn btn-accent" type="button" id="aivGo" disabled>● ${L('Start answer')}</button><span class="muted small">${L('Max. 3 minutes per answer')}</span></div>
+      </div>
+      <p class="muted small">${L('Your answers are recorded on video and stored privately. Only Brightpeer – and companies you choose to share your interview with – can watch them.')}</p>
+    </section>`,
+    async mount() {
+      const cam = document.getElementById('aivCam'); const go = document.getElementById('aivGo'); const camMsg = document.getElementById('aivCamMsg');
+      const txt = document.getElementById('aivText'); const recBadge = document.getElementById('aivRec'); const time = document.getElementById('aivTime'); const msg = document.getElementById('aivMsg');
+      document.getElementById('aivSay').onclick = () => speak(cur.q);
+      try {
+        if (!ivStream) ivStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: 'user' }, audio: true });
+        cam.srcObject = ivStream; go.disabled = false; camMsg.textContent = L('Camera is on. Read the question, then start your answer.');
+        setTimeout(() => speak(cur.q), 400);
+      } catch (e) {
+        camMsg.innerHTML = `<span class="form-msg err">${esc(L('Camera or microphone not available. Please allow access in your browser settings and reload the page.'))}</span>`;
+        return;
+      }
+      let rec = null; let chunks = []; let timer = null; let sec = 0; let sr = null; let srOn = false; let finals = ''; let start = '';
+      const startSR = () => {
+        if (!SR) return;
+        try {
+          sr = new SR(); sr.lang = 'en-US'; sr.continuous = true; sr.interimResults = true;
+          sr.onresult = (ev) => { let interim = ''; for (let i = ev.resultIndex; i < ev.results.length; i++) { const r = ev.results[i]; if (r.isFinal) finals += r[0].transcript.trim() + ' '; else interim += r[0].transcript; } txt.value = (start + finals + interim).trim(); };
+          sr.onend = () => { if (srOn) { try { sr.start(); } catch { /* ignore */ } } };
+          srOn = true; sr.start();
+        } catch { /* transcription is optional */ }
+      };
+      const stopSR = () => { srOn = false; try { sr && sr.stop(); } catch { /* ignore */ } };
+      const mime = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+      const finish = () => new Promise((res) => { if (!rec || rec.state !== 'recording') return res(null); rec.onstop = () => res(new Blob(chunks, { type: rec.mimeType || mime || 'video/webm' })); rec.stop(); });
+      go.onclick = async () => {
+        if (rec && rec.state === 'recording') {
+          go.disabled = true; clearInterval(timer); stopSR(); recBadge.hidden = true;
+          const blob = await finish();
+          const text = txt.value.trim();
+          go.textContent = L('Saving …');
+          const ext = /mp4/.test(blob.type) ? 'mp4' : 'webm';
+          const path = `${uid}/v${answers.length + 1}-${Date.now()}.${ext}`;
+          const up = await sb.storage.from('interviews').upload(path, blob, { contentType: blob.type || 'video/webm' });
+          if (up.error) { go.disabled = false; go.textContent = '● ' + L('Start answer'); return fail(up.error); }
+          const entry = { q: cur.q, text, video: path, ...(cur.followup ? { followup: true } : {}) };
+          const next = cur.followup ? answers.map((a) => (a.pending ? entry : a)) : [...answers, entry];
+          const { error } = await sb.from('interviews').update({ answers: next }).eq('id', iv.id);
+          if (error) { go.disabled = false; return fail(error); }
+          if (!cur.followup) {
+            msg.innerHTML = `<p class="muted small">${esc(L('Jarvis is listening to your answer …'))}</p>`;
+            try { await withTimeout(sb.functions.invoke('ai-interviewer', { body: { interview_id: iv.id } }), 20000, 'Jarvis'); } catch { /* no follow-up then */ }
+          }
+          const { data: fresh } = await sb.from('interviews').select('*').eq('id', iv.id).maybeSingle();
+          if (fresh && !ivCurrent(Array.isArray(fresh.answers) ? fresh.answers : [], base)) return finishAiInterview(fresh);
+          render(); window.scrollTo(0, 0);
+          return;
+        }
+        try {
+          chunks = []; rec = new MediaRecorder(ivStream, mime ? { mimeType: mime, videoBitsPerSecond: 600000 } : undefined);
+        } catch { return toast(L('Recording is not supported in this browser. Please use a current Chrome, Edge, Firefox or Safari.'), true); }
+        rec.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* ignore */ }
+        start = txt.value ? txt.value.trim() + ' ' : ''; finals = '';
+        rec.start(1000); startSR(); sec = 0; recBadge.hidden = false; time.textContent = '0:00';
+        go.textContent = '■ ' + L('Finish answer');
+        timer = setInterval(() => { sec++; time.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; if (sec >= MAX_REC_S) go.click(); }, 1000);
+      };
+    },
+  };
+}
+
+// ---------------------------------------------------------------- full-time hiring (plan + 30 % fee)
+const HIRE_LABEL = { requested: 'Requested', offered: 'Sent to expert', accepted: 'Expert accepted', declined: 'Expert declined', hired: 'Hired', cancelled: 'Cancelled' };
+const HIRE_PILL = { requested: 'warn', offered: 'info', accepted: 'ok', declined: 'bad', hired: 'ok', cancelled: 'grey' };
+const hirePill = (s) => `<span class="pill pill-${HIRE_PILL[s] || 'grey'}">${esc(L(HIRE_LABEL[s] || s))}</span>`;
+const hireRef = (id) => `HIRE-${String(id).slice(0, 8).toUpperCase()}`;
+const subRef = (id) => `SUB-${String(id).slice(0, 8).toUpperCase()}`;
+const bankBox = (amount, ref) => { const B = CONFIG.BANK; return `<details><summary class="link small">${t('payByBank')}</summary><p class="small" style="margin-top:6px">${money(amount)}<br>${esc(B.holder)}<br>IBAN: ${esc(B.iban)}<br>BIC: ${esc(B.bic)}<br>${esc(B.bank)}<br>Ref: ${esc(ref)}</p></details>`; };
+
+async function hiringBlock(uid) {
+  const H = CONFIG.HIRING || { monthly: 299, feePct: 30 };
+  const [{ data: sub }, { data: hires }] = await Promise.all([
+    sb.from('company_subscriptions').select('*').eq('company_id', uid).maybeSingle().then((r) => r, () => ({ data: null })),
+    sb.rpc('company_hires').then((r) => r, () => ({ data: [] })),
+  ]);
+  const list = hires || [];
+  const active = sub?.status === 'active';
+  const fee = sub?.monthly_fee ?? H.monthly;
+  let state;
+  if (active) state = `<p><span class="pill pill-ok">${L('Active')}</span> ${sub.paid_until ? `<span class="muted small">${L('paid until')} ${dateStr(sub.paid_until)}</span>` : ''}</p><p class="muted small">${L('Open a proposed expert you are interested in and click “Hire full-time”.')}</p>`;
+  else if (sub?.status === 'requested') state = `<p><span class="pill pill-warn">${L('Requested')}</span> <span class="muted small">${L('Please pay the first month – we activate the plan as soon as the payment has arrived.')}</span></p>${bankBox(fee, subRef(uid))}`;
+  else state = `<button class="btn btn-accent btn-sm" type="button" id="hirePlanBtn" style="align-self:flex-start">${L('Activate hiring plan')} – ${money(fee)} / ${L('month')}</button>`;
+  const html = `<div class="card stack" id="hiring">
+      <div class="row between"><h3>${L('Full-time hiring')}</h3><span class="muted small">${money(fee)} / ${L('month')} + ${esc(H.feePct)} % ${L('of the first-year salary')}</span></div>
+      <p class="muted small">${L('Want to keep an expert for good? With the hiring plan you can hire proposed experts full-time. The placement fee is only due when someone is really hired.')}</p>
+      ${state}
+      ${list.length ? table([L('Expert'), L('Role'), L('Annual salary'), t('status'), L('Fee')], list.map((h) => [esc(h.code), esc(h.job_title), money(h.annual_salary), hirePill(h.status),
+        h.fee_status === 'paid' ? `${money(h.fee_amount)} <span class="pill pill-ok">${t('paid')}</span>` : h.fee_status === 'open' ? `${money(h.fee_amount)} ${bankBox(h.fee_amount, hireRef(h.id))}` : '–'])) : ''}
+    </div>`;
+  return {
+    html,
+    active,
+    hireBtn(x) {
+      if (!active || x.status !== 'interested') return '';
+      return `<details class="hire-box"><summary class="btn btn-ghost btn-sm">${L('Hire full-time')}</summary>
+        <form class="stack" data-hire="${esc(x.id)}" style="gap:8px;margin-top:10px">
+          <label class="f">${L('Job title')} *<input name="title" required minlength="2" maxlength="160"></label>
+          <label class="f">${L('Annual salary (USD)')} *<input name="salary" type="number" min="1000" max="9999999" step="1" required></label>
+          <label class="f">${L('Start date')}<input name="start" type="date"></label>
+          <label class="f">${L('Message for the expert (optional)')}<textarea name="note" maxlength="2000" rows="2"></textarea></label>
+          <p class="muted small">${L('Fee: {p} % of the first-year salary, due only when the expert is hired.').replace('{p}', esc(H.feePct))}</p>
+          <button class="btn btn-accent btn-sm" type="submit" style="align-self:flex-start">${L('Send hiring request')}</button></form></details>`;
+    },
+    mount() {
+      const pb = document.getElementById('hirePlanBtn');
+      if (pb) pb.onclick = async () => { pb.disabled = true; const { error } = await sb.rpc('request_hiring_plan'); if (error) { pb.disabled = false; return fail(error); } toast(L('Hiring plan requested – please pay the first month.')); render(); };
+      $app.querySelectorAll('[data-hire]').forEach((f) => { f.onsubmit = async (ev) => {
+        ev.preventDefault(); const d = formData(f); busy(f, true);
+        const { error } = await sb.rpc('request_hire', { p_candidate: f.dataset.hire, p_title: d.title, p_salary: Number(d.salary), p_start: d.start || null, p_note: d.note || null });
+        busy(f, false); if (error) return fail(/already/.test(error.message) ? new Error(L('You already sent a hiring request for this expert.')) : error);
+        toast(L('Hiring request sent – we contact the expert.')); render();
+      }; });
+    },
+  };
+}
+
+async function expertHireOffers() {
+  const { data } = await sb.rpc('my_hire_offers').then((r) => r, () => ({ data: [] }));
+  const list = data || [];
+  if (!list.length) return { html: '', mount() {} };
+  return {
+    html: `<div class="card stack offer" id="hireOffers"><h3>${L('Full-time job offers')}</h3>
+      ${list.map((h) => `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px">
+        <div class="row between"><b>${esc(h.job_title)}</b>${hirePill(h.status)}</div>
+        <p class="small">${L('Annual salary')}: <b>${money(h.annual_salary)}</b>${h.start_date ? ` · ${L('Start date')}: ${dateStr(h.start_date)}` : ''}${h.company_name ? ` · ${esc(h.company_name)}` : ''}</p>
+        ${h.company_note ? `<p class="small muted" style="white-space:pre-line">${esc(h.company_note)}</p>` : ''}
+        ${h.status === 'offered' ? `<form class="stack" data-hoffer="${esc(h.id)}" style="gap:8px"><input name="note" maxlength="1000" placeholder="${esc(L('Note for us (optional)'))}"><div class="row"><button class="btn btn-accent btn-sm" type="submit" data-acc="1">${L('I am interested')}</button><button class="btn btn-ghost btn-sm" type="submit" data-acc="0">${L('No, thanks')}</button></div></form>` : ''}
+      </div>`).join('')}
+      <p class="muted small">${L('The company stays anonymous until both sides agree. Brightpeer then puts you in touch – it costs you nothing.')}</p></div>`,
+    mount() {
+      $app.querySelectorAll('[data-hoffer]').forEach((f) => {
+        let acc = true; f.querySelectorAll('[data-acc]').forEach((b) => { b.onclick = () => { acc = b.dataset.acc === '1'; }; });
+        f.onsubmit = async (ev) => { ev.preventDefault(); busy(f, true); const { error } = await sb.rpc('respond_hire', { p_id: f.dataset.hoffer, p_accept: acc, p_note: formData(f).note || null }); busy(f, false); if (error) return fail(error); toast(t('saved')); render(); };
+      });
+    },
+  };
+}
+
+async function adminHires() {
+  const [{ data: subs, error }, { data: hires }, { data: cos }] = await Promise.all([
+    sb.from('company_subscriptions').select('*').order('created_at', { ascending: false }),
+    sb.from('hires').select('*, experts(field, profiles(full_name,email))').order('created_at', { ascending: false }),
+    sb.from('companies').select('id,company_name,profiles(email)'),
+  ]);
+  if (error) return { html: `<p class="form-msg err">${esc(error.message)}</p>` };
+  const co = Object.fromEntries((cos || []).map((c) => [c.id, c]));
+  const coCell = (id) => `${esc(co[id]?.company_name || '–')}<br><span class="small muted">${esc(co[id]?.profiles?.email || '')}</span>`;
+  const subAct = (s) => `<form class="row" data-sub="${esc(s.company_id)}" style="gap:6px;flex-wrap:wrap">
+      <input name="monthly_fee" type="number" min="0" step="1" value="${esc(s.monthly_fee)}" style="width:90px;min-height:36px;padding:4px 8px" aria-label="Monthly fee">
+      <input name="paid_until" type="date" value="${esc(s.paid_until || '')}" style="min-height:36px;padding:4px 8px" aria-label="Paid until">
+      <button class="btn btn-sm" type="submit" data-to="active">${s.status === 'active' ? 'Save' : 'Activate (paid)'}</button>
+      ${s.status !== 'cancelled' ? '<button class="btn btn-ghost btn-sm" type="submit" data-to="cancelled">Cancel</button>' : ''}</form>`;
+  const hireAct = (h) => {
+    const b = (to, label, cls = 'btn-ghost') => `<button class="btn ${cls} btn-sm" data-hst="${esc(h.id)}" data-to="${to}">${label}</button>`;
+    if (h.status === 'requested') return `<div class="row">${b('offered', 'Send to expert', '')}${b('cancelled', 'Cancel')}</div>`;
+    if (h.status === 'offered') return `<div class="row"><span class="muted small">Waiting for the expert</span>${b('cancelled', 'Cancel')}</div>`;
+    if (h.status === 'accepted') return `<div class="row">${b('hired', 'Mark hired (fee due)', '')}${b('cancelled', 'Cancel')}</div>`;
+    if (h.status === 'hired' && h.fee_status === 'open') return b('feepaid', 'Fee paid', '');
+    return '';
+  };
+  return {
+    html: `<div class="stack-lg">
+      <div class="stack"><h3>Hiring plans</h3><p class="muted small">Companies pay the monthly fee in advance (reference SUB-…). Activate the plan once the money has arrived and set "paid until".</p>
+        ${table(['Company', 'Status', 'Since', 'Paid until', ''], (subs || []).map((s) => [coCell(s.company_id), `<span class="pill pill-${s.status === 'active' ? 'ok' : s.status === 'requested' ? 'warn' : 'grey'}">${esc(s.status)}</span>`, dateStr(s.started_at || s.created_at), s.paid_until ? dateStr(s.paid_until) : '–', subAct(s)]))}</div>
+      <div class="stack"><h3>Full-time hires</h3><p class="muted small">Flow: company requests → you send it to the expert → expert accepts → you introduce both and mark "hired" → the fee (${esc((CONFIG.HIRING || {}).feePct || 30)} % of the first-year salary, reference HIRE-…) is due.</p>
+        ${table(['Company', 'Expert', 'Role', 'Salary', 'Status', 'Fee', ''], (hires || []).map((h) => [coCell(h.company_id),
+          `${esc(h.experts?.profiles?.full_name || '')}<br><span class="small muted">${esc(h.experts?.profiles?.email || '')} · ${esc(fieldName(h.experts?.field))}</span>`,
+          `${esc(h.job_title)}${h.start_date ? `<br><span class="small muted">Start ${dateStr(h.start_date)}</span>` : ''}${h.company_note ? `<br><span class="small muted">${esc(h.company_note)}</span>` : ''}${h.expert_note ? `<br><span class="small">Expert: ${esc(h.expert_note)}</span>` : ''}`,
+          money(h.annual_salary), hirePill(h.status), h.fee_amount ? `${money(h.fee_amount)} · ${esc(h.fee_status)}<br><span class="small muted">${hireRef(h.id)}</span>` : '–', hireAct(h)]))}</div>
+    </div>`,
+    mount() {
+      $app.querySelectorAll('[data-sub]').forEach((f) => {
+        let to = 'active'; f.querySelectorAll('[data-to]').forEach((b) => { b.onclick = () => { to = b.dataset.to; }; });
+        f.onsubmit = async (ev) => {
+          ev.preventDefault(); const d = formData(f); const s = (subs || []).find((x) => x.company_id === f.dataset.sub) || {};
+          const row = { status: to, monthly_fee: Number(d.monthly_fee) || 0, paid_until: d.paid_until || null };
+          if (to === 'active' && !s.started_at) row.started_at = new Date().toISOString();
+          const { error: er } = await sb.from('company_subscriptions').update(row).eq('company_id', f.dataset.sub);
+          if (er) return fail(er); toast(t('saved')); render();
+        };
+      });
+      $app.querySelectorAll('[data-hst]').forEach((b) => { b.onclick = async () => {
+        const h = (hires || []).find((x) => x.id === b.dataset.hst); const to = b.dataset.to; let row;
+        if (to === 'hired') {
+          const sal = window.prompt('Final annual salary in USD (the fee is calculated from it):', h.annual_salary);
+          if (sal === null) return; const s = Number(sal); if (!(s > 0)) return toast('Please enter a salary', true);
+          row = { status: 'hired', annual_salary: s, fee_amount: Math.round(s * Number(h.fee_pct) / 100 * 100) / 100, fee_status: 'open' };
+        } else if (to === 'feepaid') row = { fee_status: 'paid' };
+        else row = { status: to };
+        row.updated_at = new Date().toISOString();
+        const { error: er } = await sb.from('hires').update(row).eq('id', h.id);
+        if (er) return fail(er); toast(t('saved')); render();
+      }; });
+    },
+  };
+}
+
+// ---------------------------------------------------------------- API for companies (#/api)
+const API_BASE = () => `${CONFIG.SUPABASE_URL}/functions/v1/api`;
+const API_ENDPOINTS = [
+  ['GET', '/v1/me', 'Your company and prepaid balance'],
+  ['GET', '/v1/requests', 'Your expert requests'],
+  ['POST', '/v1/requests', 'New expert request – field, experts_needed, hours_per_week, description, budget'],
+  ['GET', '/v1/candidates', 'Anonymous expert profiles proposed for your requests'],
+  ['GET', '/v1/hours', 'Logged expert hours with status and quality rating'],
+  ['GET', '/v1/evals', 'Your model evaluations'],
+  ['POST', '/v1/evals', 'New evaluation – title, model_a, model_b, language, field, instructions'],
+  ['GET', '/v1/evals/{id}', 'One evaluation with its tasks'],
+  ['POST', '/v1/evals/{id}/items', 'Add tasks – items: [{prompt, answer_a, answer_b}], max. 500 per call'],
+  ['POST', '/v1/evals/{id}/submit', 'Send the evaluation to Brightpeer'],
+  ['GET', '/v1/evals/{id}/ratings', 'All blind expert ratings of an evaluation'],
+];
+
+async function pageApi() {
+  const isCo = session && profile?.role === 'company';
+  let keys = [];
+  if (isCo) { const { data } = await sb.from('api_keys').select('id,name,prefix,created_at,last_used_at,revoked_at').order('created_at', { ascending: false }); keys = data || []; }
+  const ex = `curl ${API_BASE()}/v1/evals \\\n  -H "Authorization: Bearer bp_live_…" \\\n  -H "Content-Type: application/json" \\\n  -d '{"title":"Medical answers","model_a":"model-v1","model_b":"model-v2","language":"English","field":"Medicine"}'`;
+  return {
+    html: `<section class="wrap section stack-lg">
+      <div class="stack" style="gap:10px;max-width:46rem"><div class="row" style="gap:12px;align-items:center">${svcIcon('api')}<span class="svc-kicker">${L('Data pipelines & API')}</span></div>
+        <h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">Brightpeer API</h1>
+        <p style="font-size:1.15rem;color:var(--ink2)">${L('Connect your own systems to Brightpeer: send tasks and model answers, follow the work and download the expert ratings automatically.')}</p></div>
+      ${isCo ? `<div class="card stack" id="apiKeys"><h3>${L('Your API keys')}</h3>
+        <div id="newKey"></div>
+        ${keys.length ? table([L('Name'), L('Key'), L('Created'), L('Last used'), t('status'), ''], keys.map((k) => [esc(k.name), `<code>${esc(k.prefix)}…</code>`, dateStr(k.created_at), k.last_used_at ? dateStr(k.last_used_at) : '–',
+          k.revoked_at ? `<span class="pill pill-grey">${L('Revoked')}</span>` : `<span class="pill pill-ok">${L('Active')}</span>`, k.revoked_at ? '' : `<button class="btn btn-ghost btn-sm" data-revoke="${esc(k.id)}">${L('Revoke')}</button>`])) : ''}
+        <form id="keyF" class="row" style="align-items:flex-end"><label class="f" style="flex:1 1 220px">${L('Name of the key')}<input name="name" maxlength="80" placeholder="${esc(L('e.g. Production'))}"></label><button class="btn btn-accent" type="submit">${L('Create API key')}</button></form>
+        <p class="muted small">${L('Keep your key secret. Anyone with the key can use your account through the API. Limit: 1,000 requests per key and day.')}</p></div>`
+        : `<div class="card stack"><p>${L('API keys are available in every company account.')}</p><div class="row"><a class="btn btn-accent" href="${session ? '#/dashboard' : '#/company-signup'}">${session ? t('dashboard') : t('fCompanyAccount')}</a></div></div>`}
+      <div class="stack"><h2 style="font-size:1.6rem">${L('Data pipelines')}</h2>
+        <div class="svc-grid">${[['Plan', 'We design the pipeline with you: task types, quality rules, number of experts and volume.'], ['Produce', 'Vetted experts write tasks, answers and ratings – with a second review for quality.'], ['Deliver', 'Results arrive continuously through the API or as CSV, task by task.'], ['Improve', 'Weekly quality reports and feedback loops make every batch better.']].map(([h, x], i) => `<div class="svc"><span class="step-n">${i + 1}</span><h3>${esc(L(h))}</h3><p class="muted">${esc(L(x))}</p></div>`).join('')}</div></div>
+      <div class="stack"><h2 style="font-size:1.6rem">${L('Reference')}</h2>
+        <p class="muted">${L('Base URL')}: <code>${esc(API_BASE())}</code> · ${L('Authentication')}: <code>Authorization: Bearer &lt;API key&gt;</code> · JSON</p>
+        ${table([L('Method'), L('Path'), L('What it does')], API_ENDPOINTS.map(([m, p, d]) => [`<code>${m}</code>`, `<code>${esc(p)}</code>`, esc(L(d))]))}
+        <pre class="code-block"><code>${esc(ex)}</code></pre>
+        <p class="muted small">${L('Errors come back as JSON with an "error" field and the usual HTTP status codes (400, 401, 403, 404, 429).')}</p></div>
+    </section>`,
+    mount() {
+      const f = document.getElementById('keyF');
+      if (f) f.onsubmit = async (ev) => {
+        ev.preventDefault(); busy(f, true); const { data, error } = await sb.rpc('create_api_key', { p_name: formData(f).name || 'API key' }); busy(f, false);
+        if (error) return fail(error);
+        document.getElementById('newKey').innerHTML = `<div class="form-msg ok stack" style="gap:6px"><b>${L('Your new API key – copy it now, it is shown only once:')}</b><code style="word-break:break-all">${esc(data)}</code><button class="btn btn-sm" type="button" id="copyKey" style="align-self:flex-start">${L('Copy')}</button></div>`;
+        document.getElementById('copyKey').onclick = () => { navigator.clipboard?.writeText(data).then(() => toast(L('Copied')), () => {}); };
+      };
+      $app.querySelectorAll('[data-revoke]').forEach((b) => { b.onclick = async () => { if (!window.confirm(L('Revoke this key? Systems using it stop working.'))) return; const { error } = await sb.rpc('revoke_api_key', { p_id: b.dataset.revoke }); if (error) return fail(error); render(); }; });
+    },
+  };
+}
+
+// ---------------------------------------------------------------- resources and newsroom
+function pageResources(slug) {
+  const lc = CONTENT_LANGS.includes(lang) ? lang : 'en';
+  const arts = ARTICLES.map((a) => ({ ...a, ...(a.tr[lc] || a.tr.en) }));
+  if (slug) {
+    const a = arts.find((x) => x.slug === slug);
+    if (!a) return pageNotFound();
+    return `<section class="wrap section narrow prose stack">
+      <a href="#/resources" style="font-weight:600">← ${L('Resources')}</a>
+      <p class="svc-kicker">${esc(L(a.cat))} · ${dateStr(a.date)}</p>
+      <h1 style="font-size:clamp(2rem,4.5vw,3rem)">${esc(a.title)}</h1>
+      ${a.body.map((p) => (p.startsWith('## ') ? `<h2>${esc(p.slice(3))}</h2>` : p.startsWith('- ') ? `<ul>${p.split('\n').map((x) => `<li>${esc(x.replace(/^- /, ''))}</li>`).join('')}</ul>` : `<p>${esc(p)}</p>`)).join('')}
+      <div class="row" style="margin-top:12px">${a.cta === 'company' ? `<a class="btn btn-accent" href="#/company-signup">${t('fCompanyAccount')}</a>` : `<a class="btn btn-accent" href="#/apply">${t('applyNow')}</a>`}</div>
+    </section>`;
+  }
+  return `<section class="wrap section stack-lg">
+    <div class="stack" style="gap:10px;max-width:46rem"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${L('Resources')}</h1>
+      <p style="font-size:1.15rem;color:var(--ink2)">${L('Guides for experts and companies – how AI training works, how to apply and how to get the best results.')}</p></div>
+    <div class="svc-grid">${arts.map((a) => `<a class="svc" href="#/resources/${a.slug}"><span class="svc-kicker">${esc(L(a.cat))}</span><h3>${esc(a.title)}</h3><p class="muted">${esc(a.teaser)}</p><span class="rate">${L('Read')} →</span></a>`).join('')}</div>
+  </section>`;
+}
+
+function pageNewsroom() {
+  const lc = CONTENT_LANGS.includes(lang) ? lang : 'en';
+  return `<section class="wrap section stack-lg">
+    <div class="stack" style="gap:10px;max-width:46rem"><h1 style="font-size:clamp(2.2rem,5vw,3.5rem)">${L('Newsroom')}</h1>
+      <p style="font-size:1.15rem;color:var(--ink2)">${L('News and updates from Brightpeer.')}</p></div>
+    <div class="stack">${NEWS.map((n) => { const x = n.tr[lc] || n.tr.en; return `<div class="card stack" style="gap:6px"><p class="muted small">${dateStr(n.date)}</p><h3>${esc(x.title)}</h3><p class="muted">${esc(x.text)}</p>${n.link ? `<a class="rate" href="${esc(n.link)}">${t('learnMore')} →</a>` : ''}</div>`; }).join('')}</div>
+    <div class="card stack"><h3>${L('Press contact')}</h3><p class="muted">${L('For press questions write to')} <a href="mailto:${esc(CONFIG.COMPANY.email)}">${esc(CONFIG.COMPANY.email)}</a>.</p></div>
+  </section>`;
 }
 
 // ---------------------------------------------------------------- router
@@ -3392,6 +3857,7 @@ async function render() {
   const seq = ++renderSeq;
   document.documentElement.lang = lang;
   const { parts } = parseHash();
+  if (parts[0] !== 'interview') stopInterviewMedia(); // camera off when leaving the video interview
   let page;
   try {
     switch (parts[0]) {
@@ -3402,7 +3868,11 @@ async function render() {
       case 'login': page = pageLogin(); break;
       case 'reset': page = pageReset(); break;
       case 'companies': page = pageCompanies(); break;
-      case 'services': page = parts[1] === 'benchmarks' ? await pageBench() : parts[1] === 'evaluations' ? pageEvalInfo() : pageServices(parts[1]); break;
+      case 'services': page = parts[1] === 'benchmarks' ? await pageBench() : parts[1] === 'evaluations' ? pageEvalInfo() : parts[1] === 'api' ? await pageApi() : pageServices(parts[1]); break;
+      case 'fields': page = parts[1] ? await pageField(parts[1]) : pageFields(); break;
+      case 'api': page = await pageApi(); break;
+      case 'resources': page = pageResources(parts[1]); break;
+      case 'newsroom': page = pageNewsroom(); break;
       case 'evals': page = await pageEvals(parts[1]); break;
       case 'research': page = pageResearch(); break;
       case 'info': page = pageInfo(); break;

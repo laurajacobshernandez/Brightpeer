@@ -455,3 +455,30 @@ Object.assign(es, {
   fa2: 'Registras tus horas en el panel (de lunes a domingo). El día de pago es cada miércoles: todas las horas que la empresa haya aprobado hasta entonces se pagan por transferencia o PayPal, en USD.',
   payday: 'Día de pago: cada miércoles – el próximo es el {d}. Se pagan todas las horas aprobadas hasta entonces.',
 });
+
+// 28.11.2026 (owner, like Mercor): four new fields with their own pages
+Object.assign(en, { fFinance: 'Finance & Banking', fBusiness: 'Business & Operations', fCreative: 'Creative (writing & design)', fScience: 'Science (physics & biology)',
+  fc8h: 'Finance & banking', fc8p: 'Check AI on valuations, markets, banking rules and risk – the way an analyst or banker would.',
+  fc9h: 'Business & operations', fc9p: 'Train AI on real business work: plans, processes, hiring, sales and negotiations.',
+  fc10h: 'Writing & design', fc10p: 'Show AI what good writing and good design look like – and explain why.',
+  fc11h: 'Physics & biology', fc11p: 'Create hard science problems and check every step of the reasoning.' });
+Object.assign(de, { fFinance: 'Finanzen & Banking', fBusiness: 'Business & Operations', fCreative: 'Kreativ (Text & Design)', fScience: 'Naturwissenschaften (Physik & Biologie)',
+  fc8h: 'Finanzen & Banking', fc8p: 'Prüfe KI bei Bewertungen, Märkten, Bankregeln und Risiko – so wie eine Analystin oder ein Banker.',
+  fc9h: 'Business & Operations', fc9p: 'Trainiere KI für echte Geschäftsarbeit: Pläne, Abläufe, Personalsuche, Verkauf und Verhandlungen.',
+  fc10h: 'Text & Design', fc10p: 'Zeige der KI, wie gute Texte und gutes Design aussehen – und erkläre warum.',
+  fc11h: 'Physik & Biologie', fc11p: 'Erstelle schwierige naturwissenschaftliche Aufgaben und prüfe jeden Schritt der Begründung.' });
+Object.assign(fr, { fFinance: 'Finance & banque', fBusiness: 'Business & opérations', fCreative: 'Création (texte & design)', fScience: 'Sciences (physique & biologie)',
+  fc8h: 'Finance & banque', fc8p: 'Vérifiez l’IA sur les valorisations, marchés, règles bancaires et risques – comme un analyste ou un banquier.',
+  fc9h: 'Business & opérations', fc9p: 'Entraînez l’IA au vrai travail d’entreprise : plans, processus, recrutement, ventes et négociations.',
+  fc10h: 'Écriture & design', fc10p: 'Montrez à l’IA à quoi ressemblent un bon texte et un bon design – et expliquez pourquoi.',
+  fc11h: 'Physique & biologie', fc11p: 'Créez des problèmes scientifiques difficiles et vérifiez chaque étape du raisonnement.' });
+Object.assign(it, { fFinance: 'Finanza & banche', fBusiness: 'Business & operations', fCreative: 'Creativo (testi & design)', fScience: 'Scienze (fisica & biologia)',
+  fc8h: 'Finanza & banche', fc8p: 'Verifica l’IA su valutazioni, mercati, regole bancarie e rischio – come farebbe un analista o un banchiere.',
+  fc9h: 'Business & operations', fc9p: 'Addestra l’IA sul vero lavoro aziendale: piani, processi, assunzioni, vendite e trattative.',
+  fc10h: 'Scrittura & design', fc10p: 'Mostra all’IA come sono un buon testo e un buon design – e spiega perché.',
+  fc11h: 'Fisica & biologia', fc11p: 'Crea problemi scientifici difficili e controlla ogni passaggio del ragionamento.' });
+Object.assign(es, { fFinance: 'Finanzas y banca', fBusiness: 'Negocio y operaciones', fCreative: 'Creativo (texto y diseño)', fScience: 'Ciencias (física y biología)',
+  fc8h: 'Finanzas y banca', fc8p: 'Revisa la IA en valoraciones, mercados, normas bancarias y riesgo, como lo haría un analista o un banquero.',
+  fc9h: 'Negocio y operaciones', fc9p: 'Entrena la IA en trabajo real de empresa: planes, procesos, contratación, ventas y negociaciones.',
+  fc10h: 'Escritura y diseño', fc10p: 'Enseña a la IA cómo son un buen texto y un buen diseño, y explica por qué.',
+  fc11h: 'Física y biología', fc11p: 'Crea problemas científicos difíciles y revisa cada paso del razonamiento.' });

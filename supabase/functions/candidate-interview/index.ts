@@ -31,12 +31,17 @@ Deno.serve(async (req) => {
   const answers = Array.isArray(iv.answers) ? iv.answers : [];
   const out = [];
   for (const a of answers) {
-    let audio = null;
+    if (a && a.pending) continue; // unanswered follow-up of the video interview
+    let audio = null; let video = null;
+    if (a && typeof a.video === 'string' && a.video) {
+      const { data: v } = await db.storage.from('interviews').createSignedUrl(a.video, 900);
+      video = v?.signedUrl || null;
+    }
     if (a && typeof a.audio === 'string' && a.audio) {
       const { data: s } = await db.storage.from('interviews').createSignedUrl(a.audio, 900);
       audio = s?.signedUrl || null;
     }
-    out.push({ q: String(a?.q || ''), text: String(a?.text || ''), audio });
+    out.push({ q: String(a?.q || ''), text: String(a?.text || ''), audio, video });
   }
   return json({ submitted_at: iv.submitted_at, answers: out });
 });

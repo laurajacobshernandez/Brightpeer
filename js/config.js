@@ -33,6 +33,10 @@ export const CONFIG = {
   PREPAYMENT_ONLY: true,
   LOW_BALANCE: 500, // USD – below this the balance is shown as low
 
+  // Full-time hiring (owner, 28.11.2026: "30 % + Monatsabo" like Mercor). Change the numbers here if needed;
+  // the monthly fee of a company is stored on its subscription in the database (default 299).
+  HIRING: { monthly: 299, feePct: 30 },
+
   // Social media (footer icons). Hidden until the accounts exist (25.11.2026) – paste the profile link to show an icon,
   // e.g. instagram: 'https://www.instagram.com/brightpeer'.
   // Leave a value empty ('') to hide that icon.
